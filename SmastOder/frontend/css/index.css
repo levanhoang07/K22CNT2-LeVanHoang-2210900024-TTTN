@@ -1,0 +1,369 @@
+/* --- Global Variables and Resets --- */
+:root {
+    /* Updated Palette - Deeper, more inviting 'spicy' theme */
+    --bg: #fef8f8; /* Very light, warm background */
+    --card: #ffffff;
+    --accent: #e53935; /* Primary Red - a bit more subdued and rich than pure bright red */
+    --accent-dark: #b71c1c; /* Darker Red for strong actions/price */
+    --muted: #616161; /* Darker gray for better contrast */
+    --text-primary: #212121; /* Near black for main text */
+    
+    /* Layout and Effects */
+    --radius: 14px; /* Slightly larger, softer corners */
+    --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.04);
+    --shadow-medium: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+    /* Typography */
+    font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Include a link to the Poppins font in your HTML for this to work best: 
+   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet"> 
+*/
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    /* More depth with a subtle radial gradient */
+    background: radial-gradient(circle at top left, var(--bg), #fce9e9); 
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* --- Header --- */
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: var(--card);
+    box-shadow: var(--shadow-subtle);
+    position: sticky; /* Keep it at the top */
+    top: 0;
+    z-index: 100;
+}
+
+.brand {
+    display: flex;
+    gap: 15px; /* Slightly more space */
+    align-items: center;
+}
+
+.logo {
+    width: 55px;
+    height: 55px;
+    border-radius: 12px;
+    /* More dynamic gradient */
+    background: linear-gradient(135deg, var(--accent), #ff6f69);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 800;
+    font-size: 22px; /* Bigger font */
+    box-shadow: 0 4px 15px rgba(229, 57, 53, 0.4); /* Stronger accent shadow */
+}
+
+.site-header h1 {
+    margin: 0;
+    font-size: 20px; /* Slightly larger header */
+    font-weight: 700;
+}
+
+.site-header .muted {
+    color: var(--muted);
+    margin: 0;
+    font-size: 14px;
+}
+
+.meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.meta input {
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    width: 90px;
+    transition: border-color 0.2s;
+}
+
+.meta input:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+
+/* --- Buttons --- */
+.btn {
+    padding: 10px 16px; /* Better padding */
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    background: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn.ghost {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent); /* Clearer border */
+    box-shadow: none;
+}
+
+.btn.ghost:hover {
+    background: var(--accent);
+    color: var(--card);
+}
+
+.btn.primary {
+    width: 100%;
+    margin-top: 15px;
+    background: var(--accent-dark);
+    font-size: 1.1em;
+}
+
+/* --- Layout --- */
+.layout {
+    max-width: 1200px; /* Wider layout */
+    margin: 24px auto; /* More margin */
+    display: grid;
+    grid-template-columns: 1fr 380px; /* Wider cart/sidebar */
+    gap: 30px; /* More space between sections */
+    padding: 0 24px;
+}
+
+.menu {
+    background: var(--card);
+    padding: 20px; /* More padding */
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-medium);
+}
+
+.menu-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.menu-head input {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    min-width: 250px;
+    transition: border-color 0.2s;
+}
+
+.menu-head input:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+
+.menu-grid {
+    /* Slightly bigger min width for items */
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+    gap: 20px; /* More gap for breathing room */
+}
+
+/* --- Menu Card Item --- */
+.card {
+    background: var(--card);
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border: 1px solid #f0f0f0;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.thumb {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    /* Soft, contrasting background */
+    background: linear-gradient(180deg, #ffe0e0, #fcecec);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-dark);
+    font-weight: 800;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.item-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+.item-desc {
+    margin: 4px 0 0 0;
+    font-size: 14px;
+    color: var(--muted);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limit description to 2 lines */
+    -webkit-box-orient: vertical;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    gap: 10px;
+}
+
+.price {
+    color: var(--accent-dark);
+    font-weight: 800;
+    font-size: 1.2em;
+}
+
+.qty {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-weight: 600;
+}
+
+.qty button {
+    background: #f8f8f8;
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 5px 8px;
+    border: 1px solid #ececec;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.qty button:hover {
+    background: #e0e0e0;
+}
+
+/* --- Cart/Sidebar --- */
+.cart {
+    background: var(--card);
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-medium);
+    position: sticky;
+    top: 24px; /* Align with layout top margin */
+    height: max-content;
+}
+
+.cart h2 {
+    color: var(--accent-dark);
+    font-size: 1.5em;
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.cart-list {
+    max-height: 420px; /* Slightly taller */
+    overflow-y: auto; /* Use y for clarity */
+    margin-bottom: 15px;
+}
+
+.cart-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 0; /* More vertical space */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06); /* Solid line for better definition */
+}
+.cart-list .cart-row:last-child {
+    border-bottom: none; /* No border on the last item */
+}
+
+.cart-row .muted {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.cart-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.qr-preview img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-top: 15px;
+    border: 1px solid #eee;
+}
+
+/* --- Footer --- */
+.site-footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 30px;
+}
+
+/* --- Responsive Adjustments --- */
+@media(max-width: 1050px) { /* Changed breakpoint for better look on smaller desktops/tablets */
+    .layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 0 16px;
+    }
+    .cart {
+        position: static; /* No longer sticky on mobile */
+    }
+}
+
+@media(max-width: 600px) {
+    .site-header {
+        padding: 12px 16px;
+    }
+    .menu-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .menu-head input {
+        min-width: unset;
+        width: 100%;
+    }
+    .brand {
+        gap: 10px;
+    }
+    .logo {
+        width: 45px;
+        height: 45px;
+    }
+    .site-header h1 {
+        font-size: 16px;
+    }
+    .item-title {
+        font-size: 1em;
+    }
+    .item-desc {
+        .item-desc { -webkit-line-clamp: 1; }
+    }
+}

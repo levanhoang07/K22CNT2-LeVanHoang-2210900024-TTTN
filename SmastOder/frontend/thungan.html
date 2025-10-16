@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thu Ngân & Báo Cáo | SmartOrder POS</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/thungan.css" /> 
+    
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+</head>
+<body>
+    <header class="pos-header">
+        <h1>💵 Quản Lý Thu Ngân</h1>
+        <div class="pos-time" id="current-time">14:00:00</div>
+    </header>
+
+    <main class="pos-layout">
+        <section class="pos-orders" aria-labelledby="orders-heading">
+            <h2 id="orders-heading">Đơn Hàng Chờ Thanh Toán</h2>
+            
+            <div class="order-filter">
+                <label for="table-search" class="visually-hidden">Tìm bàn</label>
+                <input id="table-search" type="search" placeholder="Tìm theo số bàn (A1, B5...)" />
+                <select id="order-status-filter">
+                    <option value="ready">Chờ thanh toán (Sẵn sàng)</option>
+                    <option value="all">Tất cả đơn</option>
+                </select>
+            </div>
+
+            <div id="order-list" class="order-list-cards" aria-live="polite">
+                <p class="empty-message">Không có đơn hàng nào chờ thanh toán.</p>
+            </div>
+            
+            <div id="payment-panel" class="payment-panel" aria-hidden="true">
+                <h3 class="panel-heading">Thanh Toán Đơn <span id="payment-table-id"></span></h3>
+                <div class="order-details-summary">
+                    <p>Tổng tiền món: <strong id="summary-subtotal">0 ₫</strong></p>
+                    <p>Giảm giá: <strong id="summary-discount">0 ₫</strong></p>
+                    <p class="final-amount">KHÁCH CẦN TRẢ: <strong id="summary-total">0 ₫</strong></p>
+                </div>
+
+                <div class="payment-controls">
+                    <label for="input-received">Khách trả:</label>
+                    <input id="input-received" type="number" value="0" min="0" />
+                    
+                    <label>Tiền thừa:</label>
+                    <strong id="summary-change" class="change-amount">0 ₫</strong>
+                    
+                    <button class="btn btn-payment-type" data-method="cash">Tiền Mặt</button>
+                    <button class="btn btn-payment-type" data-method="transfer">Chuyển Khoản</button>
+                    
+                    <button id="btn-finalize-payment" class="btn primary" disabled>HOÀN TẤT & IN HÓA ĐƠN</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="pos-reporting" aria-labelledby="revenue-heading">
+            <h2 id="revenue-heading">📈 Báo Cáo Doanh Thu</h2>
+            
+            <div class="report-controls">
+                <label for="filter-type">Xem theo:</label>
+                <select id="filter-type">
+                    <option value="ngay">Ngày</option>
+                    <option value="tuan">Tuần</option>
+                    <option value="thang">Tháng</option>
+                </select>
+                <button onclick="loadBaoCao()" class="btn btn-report">Xem Báo Cáo</button>
+            </div>
+            
+            <table id="baoCaoTable" class="revenue-table">
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Tổng Doanh Thu</th>
+                        <th>SL Đơn</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="js/thungan.js" defer></script>
+</body>
+</html>

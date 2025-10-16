@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bếp - Bảng Quản Lý Đơn Hàng | SmartOrder</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/bep.css" /> 
+    
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+</head>
+<body>
+    <header class="kitchen-header">
+        <h1>👨‍🍳 Bảng Quản Lý Bếp - SmartOrder</h1>
+        <div class="status-summary">
+            <span class="status-pending">Đang chờ: <strong id="pending-count">0</strong></span>
+            <span class="status-total">Tổng đơn: <strong id="total-count">0</strong></span>
+            <span class="kitchen-time" id="current-time">14:00:00</span>
+        </div>
+    </header>
+
+    <main class="kitchen-layout">
+        <h2 class="section-title">Đơn Hàng Đang Chờ <span class="muted">(Món mới nhất ở đầu)</span></h2>
+        <div id="order-list" class="order-grid" aria-live="polite">
+            <p class="empty-list">Chưa có đơn hàng mới nào. Thư giãn thôi! ☕</p>
+        </div>
+    </main>
+
+    <script src="js/bep.js" defer></script>
+</body>
+</html>

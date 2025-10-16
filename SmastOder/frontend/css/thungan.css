@@ -1,0 +1,245 @@
+/* --- POS Specific Variables --- */
+:root {
+    --pos-bg: #f8f8f8;
+    --pos-accent: #2196f3; /* Blue for POS focus/actions */
+    --pos-accent-dark: #1976d2;
+    --success-color: #4caf50;
+    --danger-color: #f44336;
+}
+
+body {
+    background: var(--pos-bg);
+    color: #333;
+}
+
+/* --- Header --- */
+.pos-header {
+    background: white;
+    padding: 15px 30px;
+    border-bottom: 3px solid var(--pos-accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.pos-header h1 {
+    font-size: 26px;
+    margin: 0;
+    font-weight: 700;
+    color: #555;
+}
+
+.pos-time {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--pos-accent);
+}
+
+/* --- Layout --- */
+.pos-layout {
+    max-width: 1400px;
+    margin: 20px auto;
+    display: grid;
+    /* Main orders column wider than reporting column */
+    grid-template-columns: 2fr 1fr; 
+    gap: 30px;
+    padding: 0 20px;
+}
+
+/* --- Order List & Filter --- */
+.pos-orders, .pos-reporting {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.pos-orders h2, .pos-reporting h2 {
+    font-size: 22px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.order-filter input, .order-filter select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.order-filter input {
+    flex-grow: 1;
+}
+
+.order-list-cards {
+    max-height: 400px; /* Constrain height */
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.empty-message {
+    text-align: center;
+    color: #999;
+    padding: 40px 0;
+}
+
+/* Card Styling for individual orders in the list */
+.order-card-summary {
+    background: #fcfcfc;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+}
+
+.order-card-summary:hover, .order-card-summary.selected {
+    background: #e3f2fd; /* Light blue on hover/select */
+    border-color: var(--pos-accent);
+}
+
+.card-table-id {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--pos-accent-dark);
+}
+
+.card-amount {
+    font-weight: 800;
+    color: var(--danger-color); /* Highlight amount due */
+}
+
+/* --- Payment Panel (Right side of POS) --- */
+.payment-panel {
+    margin-top: 25px;
+    padding: 20px;
+    border: 2px solid var(--pos-accent);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.panel-heading {
+    font-size: 20px;
+    color: var(--pos-accent-dark);
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.order-details-summary p {
+    margin: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+}
+
+.final-amount {
+    font-size: 22px !important;
+    font-weight: 700;
+    color: var(--pos-accent-dark);
+    border-top: 2px solid #eee;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+/* Payment Controls */
+.payment-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.payment-controls label {
+    grid-column: 1 / 2;
+    align-self: center;
+    font-weight: 600;
+}
+
+.payment-controls input, .payment-controls strong {
+    grid-column: 2 / 3;
+    text-align: right;
+}
+
+.payment-controls input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.change-amount {
+    font-size: 20px;
+    color: var(--success-color);
+}
+
+.btn-payment-type {
+    background: #f0f0f0;
+    color: #555;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-weight: 600;
+}
+
+.btn-payment-type:hover {
+    background: var(--pos-accent);
+    color: white;
+}
+
+#btn-finalize-payment {
+    grid-column: 1 / -1;
+    background: var(--success-color);
+    padding: 15px;
+    font-size: 1.2em;
+}
+
+#btn-finalize-payment:hover {
+    background: #388e3c;
+}
+
+/* --- Reporting Table --- */
+.report-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.revenue-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.revenue-table th, .revenue-table td {
+    border: 1px solid #eee;
+    padding: 10px;
+    text-align: left;
+}
+
+.revenue-table th {
+    background: #f5f5f5;
+    font-weight: 700;
+    color: #555;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .pos-layout {
+        grid-template-columns: 1fr; /* Stack orders and reporting on smaller screens */
+        gap: 20px;
+    }
+}
