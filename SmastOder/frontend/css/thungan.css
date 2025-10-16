@@ -1,68 +1,84 @@
 /* --- POS Specific Variables --- */
 :root {
-    --pos-bg: #f8f8f8;
-    --pos-accent: #2196f3; /* Blue for POS focus/actions */
-    --pos-accent-dark: #1976d2;
-    --success-color: #4caf50;
-    --danger-color: #f44336;
+    --pos-bg: #f5f5f5; /* Light grey background */
+    --pos-primary: #007bff; /* Blue for primary actions/focus */
+    --pos-primary-dark: #0056b3;
+    --success-color: #28a745; /* Green for success/change */
+    --danger-color: #dc3545; /* Red for negative values/discount */
+    --text-dark: #343a40;
+    --font-value: 'Roboto Mono', monospace; /* Monospaced font for numbers */
+    --font-general: 'Roboto', sans-serif;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 body {
     background: var(--pos-bg);
-    color: #333;
+    color: var(--text-dark);
+    font-family: var(--font-general);
+    font-size: 16px;
 }
 
 /* --- Header --- */
 .pos-header {
     background: white;
     padding: 15px 30px;
-    border-bottom: 3px solid var(--pos-accent);
+    border-bottom: 4px solid var(--pos-primary);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .pos-header h1 {
-    font-size: 26px;
+    font-size: 28px;
     margin: 0;
     font-weight: 700;
-    color: #555;
 }
 
 .pos-time {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--pos-accent);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--pos-primary);
+    font-family: var(--font-value);
 }
 
-/* --- Layout --- */
+/* --- Main Layout --- */
 .pos-layout {
-    max-width: 1400px;
+    max-width: 1500px;
     margin: 20px auto;
     display: grid;
-    /* Main orders column wider than reporting column */
-    grid-template-columns: 2fr 1fr; 
-    gap: 30px;
+    /* Tỉ lệ 3:1 (Orders/Payment vs. Reporting) */
+    grid-template-columns: 3fr 1fr; 
+    gap: 25px;
     padding: 0 20px;
 }
 
-/* --- Order List & Filter --- */
+/* --- Sections --- */
 .pos-orders, .pos-reporting {
     background: white;
     padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
 }
 
 .pos-orders h2, .pos-reporting h2 {
-    font-size: 22px;
+    font-size: 24px;
     margin-top: 0;
     margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
+    color: #444;
 }
 
+.order-count-badge {
+    background: var(--danger-color);
+    color: white;
+    font-size: 14px;
+    padding: 3px 8px;
+    border-radius: 50%;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+/* --- Order List & Filter --- */
 .order-filter {
     display: flex;
     gap: 10px;
@@ -70,9 +86,10 @@ body {
 }
 
 .order-filter input, .order-filter select {
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 10px 12px;
+    border-radius: 6px;
     border: 1px solid #ccc;
+    font-size: 15px;
 }
 
 .order-filter input {
@@ -80,7 +97,7 @@ body {
 }
 
 .order-list-cards {
-    max-height: 400px; /* Constrain height */
+    max-height: 400px; 
     overflow-y: auto;
     padding-right: 10px;
 }
@@ -89,126 +106,186 @@ body {
     text-align: center;
     color: #999;
     padding: 40px 0;
+    font-style: italic;
 }
 
-/* Card Styling for individual orders in the list */
+/* Order Card Summary */
 .order-card-summary {
-    background: #fcfcfc;
-    padding: 10px;
+    background: #ffffff;
+    padding: 12px 15px;
     border-radius: 8px;
-    border: 1px solid #eee;
-    margin-bottom: 10px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    transition: background 0.1s, border-color 0.1s;
+    transition: all 0.2s;
 }
 
-.order-card-summary:hover, .order-card-summary.selected {
-    background: #e3f2fd; /* Light blue on hover/select */
-    border-color: var(--pos-accent);
+.order-card-summary:hover {
+    background: #f0f8ff;
+    border-color: var(--pos-primary);
+}
+
+.order-card-summary.selected {
+    background: var(--pos-primary);
+    color: white;
+    border-color: var(--pos-primary-dark);
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
 }
 
 .card-table-id {
-    font-weight: 700;
-    font-size: 18px;
-    color: var(--pos-accent-dark);
+    font-weight: 800;
+    font-size: 20px;
+    /* Dùng màu trắng khi được chọn */
+    color: var(--pos-primary-dark); 
 }
+.order-card-summary.selected .card-table-id,
+.order-card-summary.selected .card-amount {
+    color: white; 
+}
+
 
 .card-amount {
     font-weight: 800;
-    color: var(--danger-color); /* Highlight amount due */
+    font-family: var(--font-value);
+    font-size: 18px;
+    color: var(--danger-color); 
 }
 
-/* --- Payment Panel (Right side of POS) --- */
+/* --- Payment Panel --- */
 .payment-panel {
     margin-top: 25px;
-    padding: 20px;
-    border: 2px solid var(--pos-accent);
+    padding: 25px;
+    border: 2px solid var(--pos-primary);
     border-radius: 10px;
-    background: #fff;
+    background: #f9f9f9;
 }
 
 .panel-heading {
-    font-size: 20px;
-    color: var(--pos-accent-dark);
+    font-size: 22px;
+    color: var(--pos-primary-dark);
     margin-top: 0;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px dashed #ddd;
 }
 
-.order-details-summary p {
-    margin: 8px 0;
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
+.summary-list {
+    margin: 15px 0;
+    padding: 0;
+}
+
+.summary-list dt {
+    float: left;
+    width: 60%;
+    line-height: 1.5;
+}
+.summary-list dd {
+    float: right;
+    width: 40%;
+    text-align: right;
+    margin-left: 0;
+    line-height: 1.5;
+    font-family: var(--font-value);
+    font-weight: 700;
+}
+.summary-list::after {
+    content: "";
+    display: table;
+    clear: both;
 }
 
 .final-amount {
-    font-size: 22px !important;
+    border-top: 2px solid #ddd;
+    padding-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.final-amount .label {
+    font-size: 18px;
     font-weight: 700;
-    color: var(--pos-accent-dark);
-    border-top: 2px solid #eee;
-    padding-top: 10px;
-    margin-top: 10px;
+    color: var(--text-dark);
+}
+
+.final-amount .total-value {
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--pos-primary);
+    font-family: var(--font-value);
 }
 
 /* Payment Controls */
-.payment-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-top: 20px;
+.control-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
-.payment-controls label {
-    grid-column: 1 / 2;
-    align-self: center;
+.control-group label {
     font-weight: 600;
 }
 
-.payment-controls input, .payment-controls strong {
-    grid-column: 2 / 3;
-    text-align: right;
-}
-
-.payment-controls input {
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
+.control-group input {
+    width: 50%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 2px solid #ccc;
+    font-size: 18px;
     font-weight: 700;
+    text-align: right;
+    font-family: var(--font-value);
 }
 
 .change-amount {
-    font-size: 20px;
-    color: var(--success-color);
+    font-size: 22px;
+    font-weight: 900;
+    font-family: var(--font-value);
+}
+
+.method-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 .btn-payment-type {
-    background: #f0f0f0;
-    color: #555;
-    border: 1px solid #ccc;
-    padding: 10px;
+    flex: 1;
+    background: #e9ecef;
+    color: var(--text-dark);
+    border: 1px solid #ced4da;
+    padding: 12px;
     font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.1s;
 }
 
 .btn-payment-type:hover {
-    background: var(--pos-accent);
+    background: #dee2e6;
+}
+
+.btn-payment-type[aria-pressed="true"] {
+    background: var(--pos-primary);
     color: white;
+    border-color: var(--pos-primary-dark);
 }
 
-#btn-finalize-payment {
-    grid-column: 1 / -1;
-    background: var(--success-color);
-    padding: 15px;
-    font-size: 1.2em;
+.btn-full-width {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.3em;
+    font-weight: 700;
 }
 
-#btn-finalize-payment:hover {
-    background: #388e3c;
-}
+/* Utility Colors */
+.accent-text { color: var(--pos-primary); }
+.success-text { color: var(--success-color); }
+.danger-text { color: var(--danger-color); }
+
 
 /* --- Reporting Table --- */
 .report-controls {
@@ -218,28 +295,54 @@ body {
     align-items: center;
 }
 
+.btn-report {
+    background: #6c757d;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+.btn-report:hover { background: #5a6268; }
+
 .revenue-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate; /* Tách biệt border cho hiệu ứng hiện đại */
+    border-spacing: 0;
     font-size: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    overflow: hidden; /* Cần để border-radius hoạt động với table */
 }
 
 .revenue-table th, .revenue-table td {
-    border: 1px solid #eee;
-    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+    padding: 12px;
     text-align: left;
 }
 
 .revenue-table th {
-    background: #f5f5f5;
+    background: #e9ecef;
     font-weight: 700;
-    color: #555;
+    color: var(--text-dark);
+    border-top: 1px solid #dee2e6;
 }
 
-/* Responsive Adjustments */
+.revenue-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.revenue-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Responsive Layout */
 @media (max-width: 992px) {
     .pos-layout {
         grid-template-columns: 1fr; /* Stack orders and reporting on smaller screens */
-        gap: 20px;
+    }
+    .pos-orders h2 {
+        border-bottom: 1px solid #eee;
     }
 }

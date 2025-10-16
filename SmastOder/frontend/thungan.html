@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Thu Ngân & Báo Cáo | SmartOrder POS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/thungan.css" /> 
     
@@ -11,46 +12,62 @@
 </head>
 <body>
     <header class="pos-header">
-        <h1>💵 Quản Lý Thu Ngân</h1>
-        <div class="pos-time" id="current-time">14:00:00</div>
+        <h1>💵 Bảng Điều Khiển Thu Ngân</h1>
+        <div class="pos-time" id="current-time">00:00:00</div>
     </header>
 
     <main class="pos-layout">
         <section class="pos-orders" aria-labelledby="orders-heading">
-            <h2 id="orders-heading">Đơn Hàng Chờ Thanh Toán</h2>
+            <h2 id="orders-heading">Đơn Hàng Chờ Thanh Toán <span class="order-count-badge" id="order-count-badge">0</span></h2>
             
             <div class="order-filter">
                 <label for="table-search" class="visually-hidden">Tìm bàn</label>
-                <input id="table-search" type="search" placeholder="Tìm theo số bàn (A1, B5...)" />
-                <select id="order-status-filter">
-                    <option value="ready">Chờ thanh toán (Sẵn sàng)</option>
+                <input id="table-search" type="search" placeholder="Tìm theo số bàn (A1, B5...)" aria-label="Tìm kiếm đơn hàng theo số bàn" />
+                
+                <label for="order-status-filter" class="visually-hidden">Lọc trạng thái</label>
+                <select id="order-status-filter" aria-label="Lọc đơn hàng theo trạng thái">
+                    <option value="ready">Sẵn sàng thanh toán (Bếp xong)</option>
+                    <option value="processing">Đang xử lý tại Bếp</option>
                     <option value="all">Tất cả đơn</option>
                 </select>
             </div>
 
-            <div id="order-list" class="order-list-cards" aria-live="polite">
-                <p class="empty-message">Không có đơn hàng nào chờ thanh toán.</p>
-            </div>
+            <div id="order-list" class="order-list-cards" role="list" aria-live="polite">
+                <p class="empty-message">Không có đơn hàng nào chờ thanh toán. 😌</p>
+                </div>
             
-            <div id="payment-panel" class="payment-panel" aria-hidden="true">
-                <h3 class="panel-heading">Thanh Toán Đơn <span id="payment-table-id"></span></h3>
+            <div id="payment-panel" class="payment-panel" aria-hidden="true" role="region" aria-label="Chi tiết thanh toán đơn hàng">
+                <h3 class="panel-heading">Thanh Toán Đơn <span id="payment-table-id" class="accent-text">--</span></h3>
+                
                 <div class="order-details-summary">
-                    <p>Tổng tiền món: <strong id="summary-subtotal">0 ₫</strong></p>
-                    <p>Giảm giá: <strong id="summary-discount">0 ₫</strong></p>
-                    <p class="final-amount">KHÁCH CẦN TRẢ: <strong id="summary-total">0 ₫</strong></p>
+                    <dl class="summary-list">
+                        <dt>Tổng tiền món:</dt><dd><strong id="summary-subtotal">0 ₫</strong></dd>
+                        <dt>Giảm giá (Voucher):</dt><dd><strong id="summary-discount" class="danger-text">0 ₫</strong></dd>
+                    </dl>
+                    
+                    <div class="final-amount">
+                        <span class="label">KHÁCH CẦN TRẢ:</span>
+                        <strong id="summary-total" class="total-value">0 ₫</strong>
+                    </div>
                 </div>
 
                 <div class="payment-controls">
-                    <label for="input-received">Khách trả:</label>
-                    <input id="input-received" type="number" value="0" min="0" />
+                    <div class="control-group">
+                        <label for="input-received">Khách trả:</label>
+                        <input id="input-received" type="number" value="0" min="0" aria-label="Số tiền khách trả" />
+                    </div>
                     
-                    <label>Tiền thừa:</label>
-                    <strong id="summary-change" class="change-amount">0 ₫</strong>
+                    <div class="control-group">
+                        <label>Tiền thừa:</label>
+                        <strong id="summary-change" class="change-amount success-text">0 ₫</strong>
+                    </div>
                     
-                    <button class="btn btn-payment-type" data-method="cash">Tiền Mặt</button>
-                    <button class="btn btn-payment-type" data-method="transfer">Chuyển Khoản</button>
+                    <div class="method-buttons">
+                        <button class="btn btn-payment-type" data-method="cash" aria-pressed="false">Tiền Mặt</button>
+                        <button class="btn btn-payment-type" data-method="transfer" aria-pressed="false">Chuyển Khoản</button>
+                    </div>
                     
-                    <button id="btn-finalize-payment" class="btn primary" disabled>HOÀN TẤT & IN HÓA ĐƠN</button>
+                    <button id="btn-finalize-payment" class="btn primary btn-full-width" disabled aria-live="assertive">HOÀN TẤT & IN HÓA ĐƠN</button>
                 </div>
             </div>
         </section>
@@ -60,7 +77,7 @@
             
             <div class="report-controls">
                 <label for="filter-type">Xem theo:</label>
-                <select id="filter-type">
+                <select id="filter-type" aria-label="Loại báo cáo">
                     <option value="ngay">Ngày</option>
                     <option value="tuan">Tuần</option>
                     <option value="thang">Tháng</option>
@@ -71,12 +88,13 @@
             <table id="baoCaoTable" class="revenue-table">
                 <thead>
                     <tr>
-                        <th>Thời gian</th>
-                        <th>Tổng Doanh Thu</th>
-                        <th>SL Đơn</th>
+                        <th scope="col">Thời gian</th>
+                        <th scope="col">Tổng Doanh Thu</th>
+                        <th scope="col">SL Đơn</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <tr><td colspan="3" class="muted">Bấm "Xem Báo Cáo" để tải dữ liệu.</td></tr>
                     </tbody>
             </table>
         </section>
