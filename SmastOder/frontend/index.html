@@ -1,85 +1,106 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mì Cay One| SmartOrder</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/index.css" />
-    
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
-    <script src="js/client.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mì Cay One - Nâng Tầng Hương Vị Việt</title>
+
+  <!-- Font & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index.css" />
+
+  <!-- Script -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script src="js/client.js" defer></script>
 </head>
 <body>
-    <header class="site-header">
-        <div class="brand">
-            <div class="logo" role="img" aria-label="Logo Mì Cay">MC</div>
-            <div>
-                <h1>Mì Cay One - Tầng Hương Vị Việt</h1>
-                <p class="muted">Hệ thống đặt món thông minh SmartOrder</p>
-            </div>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="brand">
+      <img class="logo" src="image/logo.jpg" alt="Logo Mì Cay" />
+      <div class="brand-info">
+        <h1>Mì Cay One</h1>
+        <p>🍜 Nâng tầng hương vị Việt</p>
+        <p class="address">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phúc Yên, Vĩnh Phúc</p>
+      </div>
+    </div>
+    <div class="table-meta">
+      <label for="table-input">Bàn:</label>
+      <input id="table-input" value="A1" readonly />
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="layout">
+    <!-- MENU -->
+    <section class="menu">
+      <div class="menu-head">
+        <h2>Thực đơn</h2>
+        <input id="search" type="search" placeholder="🔍 Tìm món (mì, nước, topping...)" />
+        <div class="category-bar">
+          <button class="cat-btn active" data-cat="all">Tất cả</button>
+          <button class="cat-btn" data-cat="Mì cay">Mì cay</button>
+          <button class="cat-btn" data-cat="Cơm">Cơm</button>
+          <button class="cat-btn" data-cat="Đồ uống">Đồ uống</button>
+          <button class="cat-btn" data-cat="Topping">Topping</button>
         </div>
-        <div class="meta">
-            <label for="table-input">Bàn:</label>
-            <input id="table-input" value="A1" aria-label="Số bàn hiện tại" readonly />
-            <span class="muted" style="font-size:12px;margin-left:8px">(Bàn được xác định tự động từ mã QR)</span>
-        </div>
-    </header>
+      </div>
 
-    <main class="layout">
-        <section class="menu" aria-labelledby="menu-heading">
-            <div class="menu-head">
-                <h2 id="menu-heading">Thực đơn chính</h2>
-                <label for="search" class="visually-hidden">Tìm kiếm món ăn</label>
-                <input id="search" type="search" placeholder="Tìm món (mì, nước, topping...)" aria-live="polite" />
-            </div>
-            
-            <div id="menu-container" class="menu-grid" role="list">
-                <div class="loading-state">Đang tải thực đơn...</div>
-            </div>
-        </section>
+      <div id="menu-container" class="menu-grid">
+        <div class="loading-state">⏳ Đang tải thực đơn...</div>
+      </div>
+    </section>
 
-        <aside class="cart" aria-labelledby="cart-heading">
-            <h3 id="cart-heading">Giỏ hàng & Thanh toán</h3>
-            
-            <div id="cart-list" class="cart-list" role="log" aria-live="polite">
-                <div class="muted empty-cart-message">🛒 Giỏ hàng trống. Hãy chọn món!</div>
-            </div>
-            
-            <div class="cart-info">
-                <dl class="order-summary">
-                    <dt>Tạm tính:</dt>
-                    <dd><strong id="cart-subtotal" aria-live="polite">0 ₫</strong></dd>
-                </dl>
+    <!-- CART -->
+    <aside class="cart">
+      <h3>Giỏ hàng</h3>
+      <div id="cart-list" class="cart-list">
+        <div class="empty">🛒 Giỏ hàng trống. Hãy chọn món!</div>
+      </div>
+      <div class="cart-summary">
+        <p>Tạm tính: <strong id="cart-subtotal">0 ₫</strong></p>
+        <button id="btn-order" class="btn primary" disabled>Gửi đơn đặt hàng</button>
+      </div>
+    </aside>
+  </main>
 
-                <button id="btn-order" class="btn primary" type="submit" disabled>Gửi đơn đặt hàng</button>
-            </div>
-            
-            <div id="qr-preview" class="qr-preview" aria-hidden="true" role="region" aria-label="Mã QR cho đơn hàng">
-                <p class="qr-text muted">Mã QR cho liên kết thanh toán/theo dõi đơn hàng.</p>
-            </div>
-        </aside>
-    </main>
+  <!-- MODAL -->
+  <div id="option-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>🌶 Chọn cấp độ cay & ghi chú</h3>
+      <label for="level-select">Cấp độ cay:</label>
+      <select id="level-select">
+        <option value="1">Cấp 1</option>
+        <option value="2">Cấp 2</option>
+        <option value="3">Cấp 3</option>
+        <option value="4">Cấp 4</option>
+        <option value="5">Cấp 5</option>
+        <option value="6">Cấp 6</option>
+        <option value="7">Cấp 7</option>
+      </select>
 
-    <footer class="site-footer">
-        <p>
-            © <span id="current-year">2023</span> Quán Mì Cay — Hỗ trợ kỹ thuật: <a href="mailto:info@micay.local">info@micay.local</a>
-        </p>
-        <script>document.getElementById('current-year').textContent = new Date().getFullYear();</script>
-    </footer>
+      <label for="note-input">Ghi chú:</label>
+      <textarea id="note-input" rows="2" placeholder="Ít hành, thêm bò, ít cay..."></textarea>
 
-    <script>
-      // Lấy số bàn từ query param ?table=... (QR trên bàn sẽ chứa link có param này)
-      (function(){
-        const params = new URLSearchParams(location.search);
-        const table = params.get('table') || params.get('ban') || params.get('tableId');
-        const input = document.getElementById('table-input');
-        if (table && input) {
-          input.value = table;
-          input.setAttribute('readonly', 'readonly');
-        }
-      })();
-    </script>
+      <div class="modal-actions">
+        <button id="cancel-modal" class="btn secondary">Hủy</button>
+        <button id="confirm-modal" class="btn primary">Thêm vào giỏ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <p>© <span id="current-year"></span> Mì Cay One — Hỗ trợ kỹ thuật: 
+      <a href="mailto:hotro@micayone.com">hotro@micayone.com</a>
+    </p>
+  </footer>
+
+  <script>
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+    const params = new URLSearchParams(location.search);
+    const table = params.get('table') || params.get('ban');
+    if (table) document.getElementById('table-input').value = table;
+  </script>
 </body>
 </html>

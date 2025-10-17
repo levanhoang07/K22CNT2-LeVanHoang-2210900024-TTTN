@@ -53,7 +53,7 @@ DRV_STR = f"{{{SELECTED_DRIVER}}}" if SELECTED_DRIVER else ''
 DB_CONFIG = {
     'DRIVER': DRV_STR,
     'SERVER': os.getenv('MSSQL_SERVER', r'LEVANHOANG\SQLEXPRESS'),
-    'DATABASE': os.getenv('MSSQL_DATABASE', 'SmartOrder'),
+    'DATABASE': os.getenv('MSSQL_DATABASE', 'MyCay_Oder'),
     'UID': os.getenv('MSSQL_UID', ''),
     'PWD': os.getenv('MSSQL_PWD', ''),
     # Thiết lập bảo mật cho kết nối hiện đại
