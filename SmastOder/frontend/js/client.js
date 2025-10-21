@@ -1,7 +1,8 @@
 // =============================
 // CẤU HÌNH
 // =============================
-const API_URL = "http://172.16.1.81:5000/api/menu";
+const API_URL = "http://127.0.0.1:5000/api/menu";
+const socket = io("http://127.0.0.1:5000");
 
 let cart = [];
 let menuData = []; // Lưu toàn bộ menu từ API
@@ -45,7 +46,7 @@ function renderMenu(menu) {
       (item) => `
       <div class="menu-item" role="listitem">
         <img 
-          src="http://172.16.1.81:5000/static${item.HinhAnh}"
+          src="http://127.0.0.1:5000//static${item.HinhAnh}"
           alt="${item.TenMon}" 
           class="menu-img"
           onerror="this.src='image/no-image.jpg';"
@@ -264,15 +265,16 @@ document.addEventListener("DOMContentLoaded", () => {
     filterMenu(query);
   });
 
-  const btnOrder = document.getElementById("btn-order");
-  btnOrder.addEventListener("click", () => {
-    if (cart.length === 0) return alert("Giỏ hàng trống!");
-    const table = document.getElementById("table-input").value;
-    const orderData = { table, items: cart };
+  cbtnOrder.addEventListener("click", () => {
+  if (cart.length === 0) return alert("Giỏ hàng trống!");
+  const table = document.getElementById("table-input").value;
+  const orderData = { table, items: cart, time: new Date().toLocaleString("vi-VN") };
 
-    console.log("Đơn hàng gửi:", orderData);
-    alert("✅ Đơn hàng đã gửi cho bếp!");
-    cart = [];
-    renderCart();
-  });
+  // Gửi đơn qua Socket.IO
+  socket.emit("new_order", orderData);
+
+  alert("✅ Đơn hàng đã gửi cho bếp và thu ngân!");
+  cart = [];
+  renderCart();
+});
 });
