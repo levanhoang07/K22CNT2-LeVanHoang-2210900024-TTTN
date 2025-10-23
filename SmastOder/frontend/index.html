@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mì Cay One - Nâng Tầng Hương Vị Việt</title>
-
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
   <!-- Font & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css" />
@@ -20,13 +20,13 @@
       <img class="logo" src="image/logo.jpg" alt="Logo Mì Cay" />
       <div class="brand-info">
         <h1>Mì Cay One</h1>
-        <p>🍜 Nâng tầng hương vị Việt</p>
+        <p>🍜<i> Nâng tầng hương vị Việt</i></p>
         <p class="address">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phúc Yên, Vĩnh Phúc</p>
       </div>
     </div>
     <div class="table-meta">
       <label for="table-input">Bàn bạn đang sử dụng:</label>
-      <input id="table-input" value="A1" readonly />
+      <input id="table-input" value="" readonly />
     </div>
   </header>
 
@@ -35,13 +35,10 @@
     <!-- MENU -->
     <section class="menu">
       <div class="menu-head">
-        <h2>Thực đơn</h2>
+        <h2 class="text-center"><b>Thực đơn</b></h2>
         <input id="search" type="search" placeholder="🔍 Tìm món (mì, nước, topping...)" />
         <div class="category-bar">
           <button class="cat-btn active" data-cat="all">Tất cả</button>
-          <button class="cat-btn" data-cat="Mì cay">Mì cay</button>
-          <button class="cat-btn" data-cat="Đồ uống">Đồ uống</button>
-          <button class="cat-btn" data-cat="Topping">Topping</button>
         </div>
       </div>
 
@@ -76,6 +73,7 @@
         <option value="5">Cấp 5</option>
         <option value="6">Cấp 6</option>
         <option value="7">Cấp 7</option>
+        <option value="khac">Khác</option>
       </select>
 
       <label for="note-input">Ghi chú:</label>
@@ -91,7 +89,8 @@
   <!-- FOOTER -->
   <footer class="site-footer">
     <p>© <span id="current-year"></span> Mì Cay One — Hỗ trợ kỹ thuật: 
-      <a href="mailto:hotro@micayone.com">hotro@micayone.com</a>
+      <a href="mailto:hotro@micayone.com">hotro@micayone.com</a><br>
+      <a>Phát triển bởi - Hoang</a>
     </p>
   </footer>
 

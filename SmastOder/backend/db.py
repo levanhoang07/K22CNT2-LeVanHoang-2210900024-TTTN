@@ -1,198 +1,153 @@
-# db.py
 import os
 import logging
 import pyodbc
 from contextlib import contextmanager
 
-# Cấu hình logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# ==============================
+# 🔧 CẤU HÌNH LOGGING
+# ==============================
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
-# --- Cấu Hình Driver ---
-# Các driver ưu tiên (sẽ thử theo thứ tự)
+# ==============================
+# 🎯 DANH SÁCH DRIVER ƯU TIÊN
+# ==============================
 _PREFERRED_DRIVERS = [
-    'ODBC Driver 18 for SQL Server',
-    'ODBC Driver 17 for SQL Server',
-    'ODBC Driver 13 for SQL Server',
-    'SQL Server Native Client 11.0',
-    'SQL Server'
+    "ODBC Driver 18 for SQL Server",
+    "ODBC Driver 17 for SQL Server",
+    "ODBC Driver 13 for SQL Server",
+    "SQL Server Native Client 11.0",
+    "SQL Server"
 ]
 
 def _find_driver():
-    """Tìm và trả về tên driver phù hợp nhất đã cài đặt."""
-    env_driver = os.getenv('MSSQL_DRIVER', '').strip()
-    available_drivers = pyodbc.drivers()
-    logger.debug("Available ODBC drivers: %s", available_drivers)
+    """Tìm và trả về driver SQL Server phù hợp nhất."""
+    env_driver = os.getenv("MSSQL_DRIVER", "").strip()
+    available = pyodbc.drivers()
 
-    # 1. Ưu tiên driver được chỉ định qua biến môi trường
-    if env_driver:
-        candidate = env_driver.strip('{}')
-        if candidate in available_drivers:
-            logger.info("Using driver from MSSQL_DRIVER environment variable: %s", candidate)
-            return candidate
-        else:
-            logger.warning("Requested MSSQL_DRIVER '%s' not found among installed drivers. Searching preferred list.", env_driver)
-    
-    # 2. Tìm trong danh sách ưu tiên
-    for preferred_driver in _PREFERRED_DRIVERS:
-        if preferred_driver in available_drivers:
-            logger.info("Found and selected preferred ODBC driver: %s", preferred_driver)
-            return preferred_driver
+    if env_driver and env_driver.strip("{}") in available:
+        logger.info(f"Using MSSQL_DRIVER from environment: {env_driver}")
+        return env_driver.strip("{}")
 
-    # 3. Không tìm thấy
-    logger.error("No suitable ODBC driver found. Please install Microsoft ODBC Driver for SQL Server (17/18).")
-    logger.error("Installed drivers: %s", available_drivers)
+    for d in _PREFERRED_DRIVERS:
+        if d in available:
+            logger.info(f"Selected ODBC driver: {d}")
+            return d
+
+    logger.error(f"No SQL Server ODBC driver found! Installed drivers: {available}")
     return None
 
-# Tìm driver và lưu lại dưới dạng chuỗi ODBC
 SELECTED_DRIVER = _find_driver()
-DRV_STR = f"{{{SELECTED_DRIVER}}}" if SELECTED_DRIVER else ''
+DRV_STR = f"{{{SELECTED_DRIVER}}}" if SELECTED_DRIVER else ""
 
-
-# --- Cấu Hình Kết Nối ---
+# ==============================
+# ⚙️ CẤU HÌNH KẾT NỐI
+# ==============================
 DB_CONFIG = {
-    'DRIVER': DRV_STR,
-    'SERVER': os.getenv('MSSQL_SERVER', r'LEVANHOANG\SQLEXPRESS'),
-    'DATABASE': os.getenv('MSSQL_DATABASE', 'MyCay_Oder'),
-    'UID': os.getenv('MSSQL_UID', ''),
-    'PWD': os.getenv('MSSQL_PWD', ''),
-    # Thiết lập bảo mật cho kết nối hiện đại
-    'ENCRYPT': os.getenv('MSSQL_ENCRYPT', 'yes'),
-    'TRUST_SERVER_CERT': os.getenv('MSSQL_TRUST_CERT', 'yes'),
-    # Cài đặt kết nối
-    'AUTOCOMMIT': os.getenv('MSSQL_AUTOCOMMIT', 'false').lower() in ('1', 'true', 'yes'),
-    'TIMEOUT': int(os.getenv('MSSQL_TIMEOUT', '10')), # Tăng timeout lên 10s cho an toàn
+    "DRIVER": DRV_STR,
+    "SERVER": os.getenv("MSSQL_SERVER", r"LEVANHOANG\SQLEXPRESS"),
+    "DATABASE": os.getenv("MSSQL_DATABASE", "MyCay_Oder"),
+    "UID": os.getenv("MSSQL_UID", ""),
+    "PWD": os.getenv("MSSQL_PWD", ""),
+    "ENCRYPT": os.getenv("MSSQL_ENCRYPT", "yes"),
+    "TRUST_SERVER_CERT": os.getenv("MSSQL_TRUST_CERT", "yes"),
+    "AUTOCOMMIT": os.getenv("MSSQL_AUTOCOMMIT", "false").lower() in ("1", "true", "yes"),
+    "TIMEOUT": int(os.getenv("MSSQL_TIMEOUT", "10"))
 }
 
-def build_conn_str(config: dict) -> str:
-    """Tạo chuỗi kết nối ODBC DSN-less từ cấu hình."""
-    if not config['DRIVER']:
-        raise RuntimeError(
-            "Không tìm thấy ODBC driver hợp lệ. "
-            "Cài đặt Microsoft ODBC Driver for SQL Server hoặc set môi trường MSSQL_DRIVER. "
-            f"Installed drivers: {pyodbc.drivers()}"
-        )
-    
-    # Các phần chung
-    common_parts = [
-        f"DRIVER={config['DRIVER']}",
-        f"SERVER={config['SERVER']}",
-        f"DATABASE={config['DATABASE']}",
-        f"Encrypt={config['ENCRYPT']}",
-        f"TrustServerCertificate={config['TRUST_SERVER_CERT']}",
-        "ApplicationIntent=ReadOnly" if os.getenv('MSSQL_READONLY') else "", # Thêm tùy chọn ReadOnly nếu cần
+def build_conn_str(cfg: dict) -> str:
+    """Tạo chuỗi kết nối SQL Server."""
+    if not cfg["DRIVER"]:
+        raise RuntimeError("❌ Không tìm thấy driver hợp lệ cho SQL Server.")
+
+    base = [
+        f"DRIVER={cfg['DRIVER']}",
+        f"SERVER={cfg['SERVER']}",
+        f"DATABASE={cfg['DATABASE']}",
+        f"Encrypt={cfg['ENCRYPT']}",
+        f"TrustServerCertificate={cfg['TRUST_SERVER_CERT']}"
     ]
+    auth = [f"UID={cfg['UID']}", f"PWD={cfg['PWD']}"] if cfg["UID"] else ["Trusted_Connection=yes"]
+    return ";".join(base + auth)
 
-    # Xác thực (SQL Server Auth vs. Windows Auth)
-    if config['UID']:
-        auth_parts = [f"UID={config['UID']}", f"PWD={config['PWD']}"]
-    else:
-        auth_parts = ["Trusted_Connection=yes"]
-
-    # Lọc bỏ các chuỗi rỗng và nối lại
-    return ";".join(filter(None, common_parts + auth_parts))
-
-
-# Khởi tạo chuỗi kết nối toàn cục
 try:
     CONN_STR = build_conn_str(DB_CONFIG)
-except RuntimeError as e:
+    logger.info("✅ Database connection string built successfully.")
+except Exception as e:
+    logger.critical(f"❌ Failed to build connection string: {e}")
     CONN_STR = None
-    logger.critical(e)
-    
-if CONN_STR:
-    logger.info("Connection string built successfully.")
 
-
+# ==============================
+# 🔌 KẾT NỐI DATABASE
+# ==============================
 def connect() -> pyodbc.Connection:
-    """Trả về một kết nối pyodbc mới."""
+    """Tạo kết nối mới tới SQL Server."""
     if not CONN_STR:
-        raise RuntimeError("Không thể kết nối: Chuỗi kết nối chưa được tạo do thiếu Driver.")
-    
+        raise RuntimeError("Không thể kết nối: chuỗi kết nối chưa được tạo.")
     try:
-        conn = pyodbc.connect(CONN_STR, timeout=DB_CONFIG['TIMEOUT'])
-        conn.autocommit = DB_CONFIG['AUTOCOMMIT']
+        conn = pyodbc.connect(CONN_STR, timeout=DB_CONFIG["TIMEOUT"])
+        conn.autocommit = DB_CONFIG["AUTOCOMMIT"]
         return conn
     except pyodbc.Error as e:
-        # Xử lý lỗi kết nối thất bại (ví dụ: IM002 - Driver, 08001 - Server/Port)
         msg = str(e)
-        if 'IM002' in msg or 'driver' in msg.lower() or 'ODBC Driver Manager' in msg:
-            raise RuntimeError(
-                f"""Kết nối ODBC thất bại: Driver chưa được cài hoặc tên driver sai.
-Hãy cài Microsoft ODBC Driver for SQL Server (17/18).
-Thông báo gốc: {msg}"""
-            ) from e
-        elif '08001' in msg or 'server' in msg.lower():
-            raise RuntimeError(
-                f"""Kết nối SQL Server thất bại: Không tìm thấy SERVER ({DB_CONFIG['SERVER']})
-Kiểm tra tên server, instance name, hoặc port.
-Thông báo gốc: {msg}"""
-            ) from e
+        if "IM002" in msg:
+            raise RuntimeError("❌ Lỗi ODBC Driver: chưa cài hoặc sai tên driver.") from e
+        elif "08001" in msg:
+            raise RuntimeError("❌ Lỗi kết nối SQL Server: không tìm thấy server hoặc instance.") from e
         raise
 
-
+# ==============================
+# 🧠 QUẢN LÝ CURSOR
+# ==============================
 @contextmanager
 def get_cursor():
     """
-    Context manager trả về một cursor. Commit khi thành công, Rollback khi có lỗi.
-    Đảm bảo đóng connection và cursor.
+    Context manager an toàn cho giao dịch DB.
+    Tự động commit nếu thành công, rollback nếu lỗi.
     """
     conn = None
     try:
         conn = connect()
-        # Sử dụng with cho cursor để đảm bảo đóng tự động
-        with conn.cursor() as cur:
-            yield cur
-        
-        # Chỉ commit/rollback khi autocommit=False
+        cur = conn.cursor()
+        yield cur
         if not conn.autocommit:
             conn.commit()
-            
     except pyodbc.Error as e:
         if conn and not conn.autocommit:
-            logger.warning("Transaction rolled back due to error: %s", str(e).split('\n')[0])
-            try:
-                conn.rollback()
-            except Exception as rb_e:
-                logger.error("Error during rollback: %s", rb_e)
+            conn.rollback()
+        logger.error(f"❌ Database error: {e}")
         raise
-    except Exception:
-        # Bắt các exception không phải pyodbc (ví dụ: lỗi code Python)
+    except Exception as e:
         if conn and not conn.autocommit:
-            logger.warning("Transaction rolled back due to non-database error.")
-            try:
-                conn.rollback()
-            except Exception as rb_e:
-                logger.error("Error during rollback: %s", rb_e)
+            conn.rollback()
+        logger.error(f"⚠️ Application error in get_cursor(): {e}")
         raise
-        
     finally:
+        try:
+            if cur:
+                cur.close()
+        except Exception:
+            pass
         if conn:
-            try:
-                conn.close()
-            except Exception as e:
-                logger.error("Error closing connection: %s", e)
+            conn.close()
 
-
+# ==============================
+# 🧪 KIỂM TRA KẾT NỐI
+# ==============================
 def test_connection():
-    """Kiểm tra kết nối nhanh. Nâng exception nếu thất bại."""
+    """Kiểm tra kết nối CSDL."""
     try:
         with get_cursor() as cur:
-            # Dùng câu lệnh SELECT nhẹ nhàng nhất
-            cur.execute("SELECT 1 AS ConnectionTest")
-            _ = cur.fetchone()
-        logger.info("Database connection test succeeded. SmartOrder DB is ready.")
-        return True
+            cur.execute("SELECT 1 AS Test")
+            row = cur.fetchone()
+            logger.info(f"✅ Database connected successfully. Test result: {row[0]}")
+            return True
     except Exception as e:
-        logger.critical("Database connection test failed. Check logs for details.")
+        logger.critical(f"❌ Database connection failed: {e}")
         raise
 
-if __name__ == '__main__':
-    """
-    Nếu chạy db.py độc lập, thực hiện kiểm tra kết nối ngay lập tức.
-    """
-    try:
-        test_connection()
-    except Exception:
-        # Lỗi đã được logger.critical ghi lại, chỉ cần thoát.
-        pass
+if __name__ == "__main__":
+    test_connection()

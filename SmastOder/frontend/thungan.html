@@ -1,105 +1,32 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Thu Ngân & Báo Cáo | SmartOrder POS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css" />
-    <link rel="stylesheet" href="css/thungan.css" /> 
-    
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Thu Ngân - SmartOrder</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" href="/static/css/thungan.css" />
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
-    <header class="pos-header">
-        <h1>💵 Bảng Điều Khiển Thu Ngân</h1>
-        <div class="pos-time" id="current-time">00:00:00</div>
-    </header>
+  <header class="pos-header">
+    <h1>💵 Thu Ngân - SmartOrder</h1>
+    <div id="current-time">--:--:--</div>
+  </header>
 
-    <main class="pos-layout">
-        <section class="pos-orders" aria-labelledby="orders-heading">
-            <h2 id="orders-heading">Đơn Hàng Chờ Thanh Toán <span class="order-count-badge" id="order-count-badge">0</span></h2>
-            
-            <div class="order-filter">
-                <label for="table-search" class="visually-hidden">Tìm bàn</label>
-                <input id="table-search" type="search" placeholder="Tìm theo số bàn (A1, B5...)" aria-label="Tìm kiếm đơn hàng theo số bàn" />
-                
-                <label for="order-status-filter" class="visually-hidden">Lọc trạng thái</label>
-                <select id="order-status-filter" aria-label="Lọc đơn hàng theo trạng thái">
-                    <option value="ready">Sẵn sàng thanh toán (Bếp xong)</option>
-                    <option value="processing">Đang xử lý tại Bếp</option>
-                    <option value="all">Tất cả đơn</option>
-                </select>
-            </div>
+  <main class="pos-layout">
+    <section>
+      <h2>Đơn hàng chờ</h2>
+      <div id="order-list">Đang tải...</div>
+    </section>
 
-            <div id="order-list" class="order-list-cards" role="list" aria-live="polite">
-                <p class="empty-message">Không có đơn hàng nào chờ thanh toán. 😌</p>
-                </div>
-            
-            <div id="payment-panel" class="payment-panel" aria-hidden="true" role="region" aria-label="Chi tiết thanh toán đơn hàng">
-                <h3 class="panel-heading">Thanh Toán Đơn <span id="payment-table-id" class="accent-text">--</span></h3>
-                
-                <div class="order-details-summary">
-                    <dl class="summary-list">
-                        <dt>Tổng tiền món:</dt><dd><strong id="summary-subtotal">0 ₫</strong></dd>
-                        <dt>Giảm giá (Voucher):</dt><dd><strong id="summary-discount" class="danger-text">0 ₫</strong></dd>
-                    </dl>
-                    
-                    <div class="final-amount">
-                        <span class="label">KHÁCH CẦN TRẢ:</span>
-                        <strong id="summary-total" class="total-value">0 ₫</strong>
-                    </div>
-                </div>
+    <section>
+      <h2>Báo cáo nhanh</h2>
+      <button onclick="loadBaoCao()">Tải báo cáo (tổng tiền & số đơn)</button>
+      <div id="report"></div>
+    </section>
+  </main>
 
-                <div class="payment-controls">
-                    <div class="control-group">
-                        <label for="input-received">Khách trả:</label>
-                        <input id="input-received" type="number" value="0" min="0" aria-label="Số tiền khách trả" />
-                    </div>
-                    
-                    <div class="control-group">
-                        <label>Tiền thừa:</label>
-                        <strong id="summary-change" class="change-amount success-text">0 ₫</strong>
-                    </div>
-                    
-                    <div class="method-buttons">
-                        <button class="btn btn-payment-type" data-method="cash" aria-pressed="false">Tiền Mặt</button>
-                        <button class="btn btn-payment-type" data-method="transfer" aria-pressed="false">Chuyển Khoản</button>
-                    </div>
-                    
-                    <button id="btn-finalize-payment" class="btn primary btn-full-width" disabled aria-live="assertive">HOÀN TẤT & IN HÓA ĐƠN</button>
-                </div>
-            </div>
-        </section>
-
-        <section class="pos-reporting" aria-labelledby="revenue-heading">
-            <h2 id="revenue-heading">📈 Báo Cáo Doanh Thu</h2>
-            
-            <div class="report-controls">
-                <label for="filter-type">Xem theo:</label>
-                <select id="filter-type" aria-label="Loại báo cáo">
-                    <option value="ngay">Ngày</option>
-                    <option value="tuan">Tuần</option>
-                    <option value="thang">Tháng</option>
-                </select>
-                <button onclick="loadBaoCao()" class="btn btn-report">Xem Báo Cáo</button>
-            </div>
-            
-            <table id="baoCaoTable" class="revenue-table">
-                <thead>
-                    <tr>
-                        <th scope="col">Thời gian</th>
-                        <th scope="col">Tổng Doanh Thu</th>
-                        <th scope="col">SL Đơn</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="3" class="muted">Bấm "Xem Báo Cáo" để tải dữ liệu.</td></tr>
-                    </tbody>
-            </table>
-        </section>
-    </main>
-
-    <script src="js/thungan.js" defer></script>
+  <script src="js/thungan.js"></script>
 </body>
 </html>

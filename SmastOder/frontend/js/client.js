@@ -2,14 +2,15 @@
 // CẤU HÌNH
 // =============================
 const API_URL = "http://127.0.0.1:5000/api/menu";
+const ORDER_URL = "http://127.0.0.1:5000/api/donhang";
 const socket = io("http://127.0.0.1:5000");
 
 let cart = [];
-let menuData = []; // Lưu toàn bộ menu từ API
-let selectedItem = null; // Món đang chọn khi mở modal
+let menuData = [];
+let selectedItem = null;
 
 // =============================
-// HÀM LẤY DỮ LIỆU MENU
+// LẤY DỮ LIỆU MENU
 // =============================
 async function fetchMenu() {
   const container = document.getElementById("menu-container");
@@ -21,9 +22,8 @@ async function fetchMenu() {
     const data = await res.json();
 
     menuData = data;
-
     renderMenu(menuData);
-    renderCategoryButtons(); // render danh mục
+    renderCategoryButtons();
   } catch (err) {
     console.error("Lỗi khi tải menu:", err);
     container.innerHTML = `<p class="error">⚠️ Không thể tải thực đơn. Vui lòng thử lại.</p>`;
@@ -46,14 +46,14 @@ function renderMenu(menu) {
       (item) => `
       <div class="menu-item" role="listitem">
         <img 
-          src="http://127.0.0.1:5000//static${item.HinhAnh}"
+          src="http://127.0.0.1:5000/static${item.HinhAnh}"
           alt="${item.TenMon}" 
           class="menu-img"
           onerror="this.src='image/no-image.jpg';"
         />
         <div class="menu-body">
           <h3 class="menu-name">${item.TenMon}</h3>
-          <p class="menu-desc">${item.MoTa}</p>
+          <p class="menu-desc">${item.MoTa || ""}</p>
           <div class="menu-footer">
             <span class="menu-price">${parseInt(item.Gia).toLocaleString()} ₫</span>
             <button 
@@ -70,14 +70,13 @@ function renderMenu(menu) {
     )
     .join("");
 
-  // Gắn sự kiện click “+”
   document.querySelectorAll(".add-to-cart").forEach((btn) =>
     btn.addEventListener("click", (e) => handleAddToCart(e.target.dataset))
   );
 }
 
 // =============================
-// XỬ LÝ KHI THÊM MÓN
+// THÊM MÓN
 // =============================
 function handleAddToCart(data) {
   const isSpicy = data.name.toLowerCase().includes("mì");
@@ -85,7 +84,7 @@ function handleAddToCart(data) {
 }
 
 // =============================
-// MODAL: CHỌN CẤP ĐỘ & GHI CHÚ
+// MODAL
 // =============================
 function openOptionModal(data, isSpicy) {
   const modal = document.getElementById("option-modal");
@@ -98,7 +97,6 @@ function openOptionModal(data, isSpicy) {
   levelSelect.value = "1";
   modal.classList.remove("hidden");
 
-  // Nếu không phải món mì, ẩn cấp độ cay nhưng vẫn giữ ghi chú
   if (isSpicy) {
     levelSelect.style.display = "block";
     levelLabel.style.display = "block";
@@ -108,9 +106,6 @@ function openOptionModal(data, isSpicy) {
   }
 }
 
-// =============================
-// NÚT TRONG MODAL
-// =============================
 document.getElementById("cancel-modal").addEventListener("click", () => {
   document.getElementById("option-modal").classList.add("hidden");
   selectedItem = null;
@@ -189,10 +184,10 @@ function renderCart() {
 }
 
 // =============================
-// DANH MỤC: KẾT HỢP CỨNG + DB
+// DANH MỤC
 // =============================
 function getCategoriesFromMenu() {
-  const categories = new Set(menuData.map(m => m.DanhMuc).filter(Boolean));
+  const categories = new Set(menuData.map((m) => m.DanhMuc).filter(Boolean));
   return Array.from(categories);
 }
 
@@ -201,9 +196,11 @@ function renderCategoryButtons() {
   if (!container) return;
 
   const categories = getCategoriesFromMenu();
+  const existing = Array.from(container.querySelectorAll(".cat-btn")).map(
+    (btn) => btn.dataset.cat
+  );
 
-  const existing = Array.from(container.querySelectorAll(".cat-btn")).map(btn => btn.dataset.cat);
-  categories.forEach(cat => {
+  categories.forEach((cat) => {
     if (!existing.includes(cat)) {
       const btn = document.createElement("button");
       btn.className = "cat-btn";
@@ -221,7 +218,6 @@ function attachCategoryEvents() {
     btn.addEventListener("click", (e) => {
       document.querySelectorAll(".cat-btn").forEach((b) => b.classList.remove("active"));
       e.target.classList.add("active");
-
       const query = document.getElementById("search").value.trim().toLowerCase();
       filterMenu(query);
     })
@@ -229,21 +225,20 @@ function attachCategoryEvents() {
 }
 
 // =============================
-// TÌM KIẾM MÓN
+// TÌM KIẾM
 // =============================
 function filterMenu(searchQuery = "") {
   const activeBtn = document.querySelector(".cat-btn.active");
   const activeCat = activeBtn ? activeBtn.dataset.cat : "all";
 
   let filtered = menuData;
-
   if (activeCat !== "all") {
-    filtered = filtered.filter(m => m.DanhMuc === activeCat);
+    filtered = filtered.filter((m) => m.DanhMuc === activeCat);
   }
 
   if (searchQuery) {
     filtered = filtered.filter(
-      m =>
+      (m) =>
         m.TenMon.toLowerCase().includes(searchQuery) ||
         (m.MoTa && m.MoTa.toLowerCase().includes(searchQuery))
     );
@@ -258,23 +253,58 @@ function filterMenu(searchQuery = "") {
 document.addEventListener("DOMContentLoaded", () => {
   fetchMenu();
 
-  // Sự kiện tìm kiếm
+  // Tìm kiếm
   const searchInput = document.getElementById("search");
   searchInput.addEventListener("input", () => {
     const query = searchInput.value.trim().toLowerCase();
     filterMenu(query);
   });
 
-  cbtnOrder.addEventListener("click", () => {
-  if (cart.length === 0) return alert("Giỏ hàng trống!");
-  const table = document.getElementById("table-input").value;
-  const orderData = { table, items: cart, time: new Date().toLocaleString("vi-VN") };
+  // Gửi đơn
+  const btnOrder = document.getElementById("btn-order");
+  btnOrder.addEventListener("click", async () => {
+    if (cart.length === 0) {
+      alert("Giỏ hàng trống!");
+      return;
+    }
 
-  // Gửi đơn qua Socket.IO
-  socket.emit("new_order", orderData);
+    const table = document.getElementById("table-input").value;
+    if (!table) {
+      alert("Vui lòng nhập số bàn!");
+      return;
+    }
 
-  alert("✅ Đơn hàng đã gửi cho bếp và thu ngân!");
-  cart = [];
-  renderCart();
-});
+    const orderData = {
+      table,
+      items: cart.map((i) => ({
+        id: i.id,
+        qty: i.qty,
+        note: i.note,
+        level: i.level,
+      })),
+      time: new Date().toLocaleString("vi-VN"),
+    };
+
+    try {
+      const res = await fetch(ORDER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.message || `Lỗi máy chủ (${res.status})`);
+      }
+
+      const json = await res.json();
+      alert(`✅ Đơn hàng đã gửi! Mã đơn: ${json.IDDonHang || "—"}`);
+
+      cart = [];
+      renderCart();
+    } catch (err) {
+      console.error("Lỗi gửi đơn:", err);
+      alert("❌ Không gửi được đơn. Vui lòng thử lại.");
+    }
+  });
 });
