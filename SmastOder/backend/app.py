@@ -12,8 +12,7 @@ from flask_socketio import SocketIO, emit
 from db import get_cursor, test_connection
 
 # ==============================
-# 🔧 LOGGING
-# ==============================
+# 🔧 LOGGING  
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - [FLASK] - %(message)s"
@@ -61,29 +60,8 @@ def api_menu():
     except Exception as e:
         logger.exception("Lỗi lấy menu: %s", e)
         return jsonify({"status": "error", "message": str(e)}), 500
-
 # ==============================
-# 📋 LẤY DANH SÁCH ĐƠN HÀNG
-# ==============================
-@app.route("/api/donhang", methods=["GET"])
-def api_get_donhang():
-    try:
-        with get_cursor() as cur:
-            cur.execute("""
-                SELECT IDDonHang, IDBan, TrangThaiBep, TrangThaiThanhToan,
-                       FORMAT(NgayTao, 'yyyy-MM-dd HH:mm:ss') AS NgayTao,
-                       ISNULL(TongTien, 0) AS TongTien
-                FROM DonHang
-                ORDER BY NgayTao DESC
-            """)
-            rows = fetch_all_as_dict(cur)
-        return jsonify(rows), 200
-    except Exception as e:
-        logger.exception("Lỗi lấy danh sách đơn: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-# ==============================
-# 🧾 TẠO ĐƠN HÀNG MỚI
+# 🧾 API TẠO ĐƠN HÀNG
 # ==============================
 @app.route("/api/donhang", methods=["POST"])
 def api_create_donhang():
@@ -106,49 +84,50 @@ def api_create_donhang():
         if not normalized_items:
             return jsonify({"status": "error", "message": "Danh sách món không hợp lệ"}), 400
 
-        # ⚙️ Transaction: tạo DonHang + ChiTietDonHang
         with get_cursor() as cur:
-            # 1️⃣ Insert DonHang
+            # 1️⃣ Tạo đơn mới & lấy IDDonHang ngay khi chèn
             cur.execute("""
                 INSERT INTO DonHang (IDBan, IDNguoiDung, TrangThaiBep, TrangThaiThanhToan, NgayTao)
+                OUTPUT INSERTED.IDDonHang
                 VALUES (?, NULL, N'Đang xử lý', 0, GETDATE())
             """, (idban,))
-            cur.execute("SELECT SCOPE_IDENTITY()")
-            iddon = int(cur.fetchone()[0])
+            res = cur.fetchone()
+            if not res or res[0] is None:
+                raise ValueError("Không thể lấy IDDonHang mới từ SQL Server")
+            iddon = int(res[0])
 
-            # 2️⃣ Lấy giá món
+            # 2️⃣ Lấy giá món ăn
             id_list = [it["IDMon"] for it in normalized_items]
             placeholders = ",".join("?" * len(id_list))
             cur.execute(f"SELECT IDMon, Gia FROM Menu WHERE IDMon IN ({placeholders})", tuple(id_list))
             prices = {int(r[0]): float(r[1]) for r in cur.fetchall()}
 
-            # 3️⃣ Insert chi tiết + tính tổng
+            # 3️⃣ Thêm chi tiết + tính tổng
             tong = 0.0
             for it in normalized_items:
                 gia = prices.get(it["IDMon"])
                 if gia is None:
                     continue
-                cur.execute("""
-                    INSERT INTO ChiTietDonHang (IDDonHang, IDMon, SoLuong, DonGia)
-                    VALUES (?, ?, ?, ?)
-                """, (iddon, it["IDMon"], it["SoLuong"], gia))
+                cur.execute(
+                    "INSERT INTO ChiTietDonHang (IDDonHang, IDMon, SoLuong, DonGia) VALUES (?, ?, ?, ?)",
+                    (iddon, it["IDMon"], it["SoLuong"], gia),
+                )
                 tong += gia * it["SoLuong"]
 
             # 4️⃣ Cập nhật tổng tiền
-            try:
-                cur.execute("UPDATE DonHang SET TongTien = ? WHERE IDDonHang = ?", (tong, iddon))
-            except Exception:
-                pass  # cột có thể không tồn tại → bỏ qua
+            cur.execute("UPDATE DonHang SET TongTien=? WHERE IDDonHang=?", (tong, iddon))
 
-        # 🔔 Gửi realtime cho các client
         payload = {"IDDonHang": iddon, "IDBan": idban, "TrangThaiBep": "Đang xử lý", "TongTien": tong}
         socketio.emit("new_order", payload, broadcast=True)
-        logger.info(f"✅ Đã tạo đơn hàng ID {iddon} cho bàn {idban}")
+        
+
+        print(f"✅ Đã tạo đơn hàng ID {iddon} (Tổng: {tong})")
 
         return jsonify({"status": "ok", "IDDonHang": iddon}), 201
 
     except Exception as e:
-        logger.exception("Lỗi tạo đơn hàng: %s", e)
+        print("❌ Lỗi tạo đơn hàng:", e)
+        import traceback; traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # ==============================
@@ -191,8 +170,8 @@ def on_disconnect():
 if __name__ == "__main__":
     try:
         test_connection()
-        logger.info("✅ Kết nối DB thành công. Khởi động Flask...")
+        logger.info("✅ Kết nối DB thành công.")
     except Exception as e:
         logger.critical("❌ Kết nối DB thất bại: %s", e)
 
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+    socketio.run(app, host="127.0.0.1", port=5000, debug=True, use_reloader=False)

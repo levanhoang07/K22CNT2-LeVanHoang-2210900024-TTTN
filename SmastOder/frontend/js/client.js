@@ -275,15 +275,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const orderData = {
-      table,
-      items: cart.map((i) => ({
-        id: i.id,
-        qty: i.qty,
-        note: i.note,
-        level: i.level,
-      })),
-      time: new Date().toLocaleString("vi-VN"),
-    };
+  IDBan: table, // ✅ Flask nhận đúng key này
+  items: cart.map((i) => ({
+    id: i.id,
+    qty: i.qty,
+    note: i.note,
+    level: i.level,
+  })),
+  time: new Date().toLocaleString("vi-VN"),
+};
+
 
     try {
       const res = await fetch(ORDER_URL, {
