@@ -8,7 +8,7 @@
   <!-- Font + Icon -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/a2d9b5cda6.js" crossorigin="anonymous"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
@@ -16,47 +16,168 @@
 </head>
 
 <body>
+  <!-- HEADER -->
   <header class="pos-header">
-    <h1>💵 Thu Ngân - <span>SmartOrder</span></h1>
-    <div id="current-time" class="time-box">--:--:--</div>
+    <div class="header-left">
+      <i class="fas fa-cash-register"></i>
+      <h1>Thu Ngân</h1>
+    </div>
+    <div class="header-right">
+      <div class="time-display">
+        <i class="fas fa-clock"></i>
+        <span id="current-time">--:--:--</span>
+      </div>
+      <button class="btn-refresh" onclick="loadOrders()" title="Làm mới">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
   </header>
 
+  <!-- MAIN CONTENT -->
   <main class="pos-container">
-    <!-- DANH SÁCH ĐƠN HÀNG -->
-    <section class="orders-section">
-      <h2><i class="fas fa-clipboard-list"></i> Đơn hàng hiện tại</h2>
+    
+    <!-- LEFT: DANH SÁCH ĐƠN HÀNG -->
+    <section class="orders-panel">
+      <div class="panel-header">
+        <h2><i class="fas fa-list-ul"></i> Đơn hàng chờ thanh toán</h2>
+        <span class="badge-count" id="order-count">0</span>
+      </div>
+
+      <!-- Bộ lọc -->
+      <div class="filter-tabs">
+        <button class="tab-btn active" onclick="filterOrders('all')">
+          <i class="fas fa-border-all"></i> Tất cả
+        </button>
+        <button class="tab-btn" onclick="filterOrders('pending')">
+          <i class="fas fa-clock"></i> Chờ thanh toán
+        </button>
+        <button class="tab-btn" onclick="filterOrders('paid')">
+          <i class="fas fa-check-circle"></i> Đã thanh toán
+        </button>
+      </div>
+
+      <!-- Danh sách đơn -->
       <div id="order-list" class="order-list">
-        <div class="order-item">
-          <div class="order-info">
-            <h3>Bàn 3</h3>
-            <p><strong>Tổng tiền:</strong> 150.000đ</p>
-            <p><strong>Trạng thái:</strong> <span class="status status-pending">Đang xử lý</span></p>
-          </div>
-          <div class="order-actions">
-            <button class="btn btn-detail"><i class="fas fa-eye"></i> Xem</button>
-            <button class="btn btn-complete"><i class="fas fa-check"></i> Hoàn tất</button>
-            <button class="btn btn-refund"><i class="fas fa-undo-alt"></i> Trả lại</button>
-          </div>
+        <!-- Đơn hàng sẽ được render bằng JS -->
+      </div>
+    </section>
+
+    <!-- RIGHT: THANH TOÁN -->
+    <section class="payment-panel">
+      <div class="panel-header">
+        <h2><i class="fas fa-calculator"></i> Thanh toán</h2>
+      </div>
+
+      <!-- Thông tin đơn đang chọn -->
+      <div id="selected-order-info" class="order-info-box">
+        <p class="no-selection">
+          <i class="fas fa-hand-pointer"></i>
+          Chọn một đơn hàng để thanh toán
+        </p>
+      </div>
+
+      <!-- Chi tiết món -->
+      <div id="order-items" class="items-container">
+        <!-- Items sẽ được render khi chọn đơn -->
+      </div>
+
+      <!-- Tính tiền -->
+      <div class="calculation-box">
+        <div class="calc-row total">
+          <span>Tổng cộng:</span>
+          <span id="total-amount" class="amount">0 ₫</span>
+        </div>
+        
+        <div class="calc-row discount">
+          <span>Giảm giá:</span>
+          <input type="number" id="discount-input" value="0" min="0" placeholder="0">
+          <span>₫</span>
+        </div>
+
+        <div class="calc-row final">
+          <span>Khách cần trả:</span>
+          <span id="final-amount" class="amount">0 ₫</span>
+        </div>
+      </div>
+
+      <!-- Phương thức thanh toán -->
+      <div class="payment-method">
+        <label class="method-label">Phương thức:</label>
+        <div class="method-buttons">
+          <button class="method-btn active" data-method="cash" onclick="selectPaymentMethod('cash')">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Tiền mặt</span>
+          </button>
+          <button class="method-btn" data-method="transfer" onclick="selectPaymentMethod('transfer')">
+            <i class="fas fa-credit-card"></i>
+            <span>Chuyển khoản</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tiền khách đưa (chỉ hiện khi chọn tiền mặt) -->
+      <div id="cash-payment-section" class="cash-section">
+        <label>Khách đưa:</label>
+        <div class="cash-input-group">
+          <input type="number" id="customer-cash" placeholder="Nhập số tiền khách đưa" min="0">
+          <span class="currency">₫</span>
+        </div>
+
+        <!-- Nút nhập nhanh -->
+        <div class="quick-cash-buttons">
+          <button onclick="setQuickCash(50000)">50k</button>
+          <button onclick="setQuickCash(100000)">100k</button>
+          <button onclick="setQuickCash(200000)">200k</button>
+          <button onclick="setQuickCash(500000)">500k</button>
+        </div>
+
+        <!-- Tiền thừa trả khách -->
+        <div class="change-box">
+          <span>Trả lại khách:</span>
+          <span id="change-amount" class="amount change">0 ₫</span>
+        </div>
+      </div>
+
+      <!-- Nút thanh toán -->
+      <div class="action-buttons">
+        <button class="btn-cancel" onclick="cancelPayment()">
+          <i class="fas fa-times"></i> Hủy
+        </button>
+        <button class="btn-pay" onclick="processPayment()">
+          <i class="fas fa-check-circle"></i> Thanh toán
+        </button>
+      </div>
+
+      <!-- Báo cáo nhanh -->
+      <div class="stats-box">
+        <h3><i class="fas fa-chart-pie"></i> Thống kê hôm nay</h3>
+        <div class="stat-row">
+          <span>Tổng đơn:</span>
+          <strong id="stat-orders">0</strong>
+        </div>
+        <div class="stat-row">
+          <span>Doanh thu:</span>
+          <strong id="stat-revenue" class="revenue">₫</strong>
         </div>
       </div>
     </section>
 
-    <!-- BÁO CÁO NHANH -->
-    <section class="report-section">
-      <h2><i class="fas fa-chart-line"></i> Báo cáo nhanh</h2>
-      <button class="btn btn-report" onclick="loadBaoCao()">
-        <i class="fas fa-sync-alt"></i> Cập nhật báo cáo
-      </button>
-      <div id="report" class="report-box">
-        <p><strong>Tổng đơn hôm nay:</strong> 20</p>
-        <p><strong>Tổng doanh thu:</strong> 3.250.000đ</p>
-      </div>
-    </section>
   </main>
 
-  <footer class="pos-footer">
-    <p>© 2025 SmartOrder POS | Giao diện Thu Ngân</p>
-  </footer>
+  <!-- Modal chi tiết đơn -->
+  <div id="order-detail-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-receipt"></i> Chi tiết đơn hàng</h3>
+        <button class="btn-close" onclick="closeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="modal-body">
+        <!-- Nội dung chi tiết -->
+      </div>
+    </div>
+  </div>
 
   <script src="js/thungan.js"></script>
 </body>
