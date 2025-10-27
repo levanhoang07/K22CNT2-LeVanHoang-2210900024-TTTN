@@ -6,6 +6,10 @@ eventlet.monkey_patch()  # cần gọi càng sớm càng tốt
 
 import os
 import logging
+import qrcode
+from datetime import datetime
+from io import BytesIO
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -45,7 +49,7 @@ def serve_image(filename):
     return send_from_directory(static_images, filename)
 
 # ==============================
-# 🍜 LẤY DANH SÁCH MENU
+# 🍜 PUBLIC - LẤY DANH SÁCH MENU (khách)
 # ==============================
 @app.route("/api/menu", methods=["GET"])
 def api_menu():
@@ -294,6 +298,193 @@ def on_connect():
 @socketio.on("disconnect")
 def on_disconnect():
     logger.info(f"Socket disconnected: {request.sid}")
+
+# ==============================
+# 🔐 ADMIN - CRUD MENU & QR BÀN
+# ==============================
+
+# Helper: save PIL image to static/images/qrcodes and return filename/path
+def save_qr_image(img, filename):
+    qrcode_dir = os.path.join(app.static_folder, "images", "qrcodes")
+    os.makedirs(qrcode_dir, exist_ok=True)
+    filepath = os.path.join(qrcode_dir, filename)
+    img.save(filepath)
+    # return relative path under /images/
+    return f"qrcodes/{filename}"
+
+# ---------- MENU CRUD ----------
+@app.route("/api/admin/menu", methods=["GET"])
+def admin_list_menu():
+    """Lấy toàn bộ món (admin)"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc, N'') AS DanhMuc, TrangThai
+                FROM Menu
+                ORDER BY IDMon DESC
+            """)
+            rows = fetch_all_as_dict(cur)
+        return jsonify(rows), 200
+    except Exception as e:
+        logger.exception("Lỗi admin_list_menu: %s", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/admin/menu", methods=["POST"])
+def admin_create_menu():
+    """
+    Body JSON: { "TenMon": "...", "MoTa": "...", "Gia": 12000, "HinhAnh": "path/original.png", "DanhMuc": "DoAn" }
+    """
+    try:
+        data = request.get_json(force=True)
+        ten = data.get("TenMon")
+        mota = data.get("MoTa", "")
+        gia = float(data.get("Gia", 0))
+        hinhanh = data.get("HinhAnh", "")
+        danh_muc = data.get("DanhMuc", "")
+
+        if not ten:
+            return jsonify({"status":"error","message":"TenMon required"}), 400
+
+        with get_cursor() as cur:
+            # Insert and return new ID using SCOPE_IDENTITY
+            cur.execute("""
+                INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc, TrangThai)
+                VALUES (?, ?, ?, ?, ?, 1);
+                SELECT SCOPE_IDENTITY();
+            """, (ten, mota, gia, hinhanh, danh_muc))
+            row = cur.fetchone()
+            new_id = int(row[0]) if row else None
+
+        return jsonify({"status":"ok", "IDMon": new_id}), 201
+
+    except Exception as e:
+        logger.exception("Lỗi admin_create_menu: %s", e)
+        return jsonify({"status":"error","message": str(e)}), 500
+
+@app.route("/api/admin/menu/<int:idmon>", methods=["PUT"])
+def admin_update_menu(idmon):
+    try:
+        data = request.get_json(force=True)
+        ten = data.get("TenMon")
+        mota = data.get("MoTa")
+        gia = data.get("Gia")
+        hinhanh = data.get("HinhAnh")
+        danh_muc = data.get("DanhMuc")
+        trangthai = data.get("TrangThai")  # optional
+
+        sets = []
+        params = []
+        if ten is not None:
+            sets.append("TenMon=?"); params.append(ten)
+        if mota is not None:
+            sets.append("MoTa=?"); params.append(mota)
+        if gia is not None:
+            sets.append("Gia=?"); params.append(float(gia))
+        if hinhanh is not None:
+            sets.append("HinhAnh=?"); params.append(hinhanh)
+        if danh_muc is not None:
+            sets.append("DanhMuc=?"); params.append(danh_muc)
+        if trangthai is not None:
+            sets.append("TrangThai=?"); params.append(int(trangthai))
+
+        if not sets:
+            return jsonify({"status":"error","message":"No fields to update"}), 400
+
+        params.append(idmon)
+        with get_cursor() as cur:
+            cur.execute(f"UPDATE Menu SET {', '.join(sets)} WHERE IDMon=?", tuple(params))
+
+        return jsonify({"status":"ok"}), 200
+
+    except Exception as e:
+        logger.exception("Lỗi admin_update_menu: %s", e)
+        return jsonify({"status":"error","message": str(e)}), 500
+
+@app.route("/api/admin/menu/<int:idmon>", methods=["DELETE"])
+def admin_delete_menu(idmon):
+    try:
+        with get_cursor() as cur:
+            # Nếu muốn soft-delete: UPDATE Menu SET TrangThai=0 WHERE IDMon=?
+            cur.execute("DELETE FROM Menu WHERE IDMon=?", (idmon,))
+        return jsonify({"status":"ok"}), 200
+    except Exception as e:
+        logger.exception("Lỗi admin_delete_menu: %s", e)
+        return jsonify({"status":"error","message": str(e)}), 500
+
+# ---------- TABLE CRUD + QR ----------
+@app.route("/api/admin/table", methods=["POST"])
+def admin_create_table():
+    """
+    Tạo bàn và sinh QR.
+    Body JSON: { "TenBan": "Bàn 1", "base_url": "https://site.com/khach" }
+    base_url: url khách sẽ quét (mình sẽ append ?table=<id>)
+    """
+    try:
+        data = request.get_json(force=True)
+        tenban = data.get("TenBan") or f"Ban-{int(datetime.utcnow().timestamp())}"
+        base_url = data.get("base_url") or None
+
+        with get_cursor() as cur:
+            cur.execute("INSERT INTO Ban (TenBan) VALUES (?) ; SELECT SCOPE_IDENTITY()", (tenban,))
+            r = cur.fetchone()
+            idban = int(r[0]) if r else None
+
+            # Prepare QR content (link)
+            if base_url:
+                qr_link = f"{base_url}?table={idban}"
+            else:
+                # Fallback to localhost (adjust when deploy)
+                qr_link = f"http://127.0.0.1:5000/khach?table={idban}"
+
+            # Generate QR image (PIL)
+            qr = qrcode.QRCode(box_size=8, border=2)
+            qr.add_data(qr_link)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+
+            filename = f"qr_table_{idban}.png"
+            saved_rel = save_qr_image(img, filename)  # returns "qrcodes/qr_table_123.png"
+
+            # Save QR path into DB (optional)
+            cur.execute("UPDATE Ban SET QRPath=? WHERE IDBan=?", (saved_rel, idban))
+
+        return jsonify({"status":"ok", "IDBan": idban, "QRPath": saved_rel, "qr_link": qr_link}), 201
+
+    except Exception as e:
+        logger.exception("Lỗi admin_create_table: %s", e)
+        return jsonify({"status":"error","message": str(e)}), 500
+
+@app.route("/api/admin/table", methods=["GET"])
+def admin_list_tables():
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT IDBan, TenBan, QRPath FROM Ban ORDER BY IDBan")
+            rows = fetch_all_as_dict(cur)
+        return jsonify(rows), 200
+    except Exception as e:
+        logger.exception("Lỗi admin_list_tables: %s", e)
+        return jsonify({"status":"error","message": str(e)}), 500
+
+# alias: /api/admin/ban (để frontend cũ dễ dùng)
+@app.route("/api/admin/ban", methods=["GET"])
+def admin_list_ban_alias():
+    return admin_list_tables()
+
+@app.route("/api/admin/table/<int:idban>", methods=["DELETE"])
+def admin_delete_table(idban):
+    try:
+        with get_cursor() as cur:
+            cur.execute("DELETE FROM Ban WHERE IDBan=?", (idban,))
+        # Optionally remove QR file from filesystem if you want:
+        # try:
+        #     filepath = os.path.join(app.static_folder, "images", saved_rel_from_db)
+        #     os.remove(filepath)
+        # except Exception:
+        #     pass
+        return jsonify({"status":"ok"}), 200
+    except Exception as e:
+        logger.exception("Lỗi admin_delete_table: %s", e)
+        return jsonify({"status":"error","message": str(e)}), 500
 
 # ==============================
 # ⚙️ CHẠY SERVER

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản trị Nhà hàng</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🍽️ Hệ thống Quản trị Nhà hàng</h1>
+    <nav>
+      <button class="active" data-target="menu-section">Món ăn</button>
+      <button data-target="table-section">Bàn & QR</button>
+      <button data-target="report-section">Báo cáo</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ========== MÓN ĂN ========== -->
+    <section id="menu-section" class="tab active">
+      <div class="section-header">
+        <h2>📋 Quản lý món ăn</h2>
+        <button id="add-food" class="btn">+ Thêm món</button>
+      </div>
+      <table id="menu-table">
+        <thead>
+          <tr>
+            <th>Tên món</th>
+            <th>Giá</th>
+            <th>Danh mục</th>
+            <th>Ảnh</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="summary">Tổng số món: <span id="stat-menu">0</span></p>
+    </section>
+
+    <!-- ========== BÀN & QR ========== -->
+    <section id="table-section" class="tab">
+      <div class="section-header">
+        <h2>🪑 Quản lý bàn & tạo mã QR</h2>
+      </div>
+      <table id="table-list">
+        <thead>
+          <tr>
+            <th>ID Bàn</th>
+            <th>Tên bàn</th>
+            <th>QR Code</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="qr-area">
+        <h3>Mã QR</h3>
+        <div id="qr-result"></div>
+        <p id="qr-link"></p>
+      </div>
+      <p class="summary">Tổng số bàn: <span id="stat-table">0</span></p>
+    </section>
+
+    <!-- ========== BÁO CÁO ========== -->
+    <section id="report-section" class="tab">
+      <div class="section-header">
+        <h2>📊 Báo cáo tổng hợp</h2>
+      </div>
+      <div class="stats">
+        <div class="card">
+          <h3>Đơn hàng</h3>
+          <p id="stat-orders">0</p>
+        </div>
+        <div class="card">
+          <h3>Doanh thu</h3>
+          <p id="stat-revenue">0 ₫</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 - Quản trị Nhà hàng | Thiết kế bởi Hoàng 💡</p>
+  </footer>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
