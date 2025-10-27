@@ -4,24 +4,63 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Bếp - SmartOrder</title>
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <link rel="stylesheet" href="/static/css/bep.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/bep.css" />
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
   <header class="kitchen-header">
-    <h1>👨‍🍳 Bếp - SmartOrder</h1>
-    <div class="status-summary">
-      <span>Đang chờ: <strong id="pending-count">0</strong></span>
-      <span>Tổng đơn: <strong id="total-count">0</strong></span>
-      <span id="current-time">--:--:--</span>
+    <div class="header-content">
+      <div class="header-title">
+        <h1>
+          <img class="logo" src="image/logo.jpg" alt="Logo Mì Cay" style="height: 50px; width: auto;" />
+          Bếp Mì Cay One
+        </h1>
+      </div>
+      
+      <div class="status-summary">
+        <div class="stat-card pending">
+          <span class="stat-label">Đang chờ</span>
+          <span class="stat-value" id="pending-count">0</span>
+        </div>
+        
+        <div class="stat-card total">
+          <span class="stat-label">Tổng đơn</span>
+          <span class="stat-value" id="total-count">0</span>
+        </div>
+        
+        <div class="stat-card">
+          <span class="stat-label">Giờ</span>
+          <span id="current-time">--:--:--</span>
+        </div>
+      </div>
     </div>
   </header>
 
   <main>
-    <h2>Đơn hàng (mới nhất lên đầu)</h2>
+    <div class="section-header">
+      <h2 class="section-title">
+        <i class="fas fa-clipboard-list"></i>
+        Đơn hàng mới nhất
+      </h2>
+      <div class="filter-buttons">
+        <button class="filter-btn active" onclick="filterOrders('all')">
+          <i class="fas fa-list"></i> Tất cả
+        </button>
+        <button class="filter-btn" onclick="filterOrders('pending')">
+          <i class="fas fa-clock"></i> Đang chờ
+        </button>
+        <button class="filter-btn" onclick="filterOrders('completed')">
+          <i class="fas fa-check-circle"></i> Hoàn tất
+        </button>
+      </div>
+    </div>
+    
     <div id="order-list" class="order-grid" aria-live="polite">
-      <p class="empty-list">Chưa có đơn hàng nào.</p>
+      <div class="empty-list">
+        <i class="fas fa-inbox"></i>
+        <div>Chưa có đơn hàng nào</div>
+      </div>
     </div>
   </main>
 

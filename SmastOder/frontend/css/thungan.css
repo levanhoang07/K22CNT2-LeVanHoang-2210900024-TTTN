@@ -1,348 +1,225 @@
-/* --- POS Specific Variables --- */
-:root {
-    --pos-bg: #f5f5f5; /* Light grey background */
-    --pos-primary: #007bff; /* Blue for primary actions/focus */
-    --pos-primary-dark: #0056b3;
-    --success-color: #28a745; /* Green for success/change */
-    --danger-color: #dc3545; /* Red for negative values/discount */
-    --text-dark: #343a40;
-    --font-value: 'Roboto Mono', monospace; /* Monospaced font for numbers */
-    --font-general: 'Roboto', sans-serif;
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
+/* ====== Tổng thể ====== */
 body {
-    background: var(--pos-bg);
-    color: var(--text-dark);
-    font-family: var(--font-general);
-    font-size: 16px;
+  font-family: "Inter", sans-serif;
+  background-color: #f9fafb;
+  color: #333;
+  margin: 0;
+  padding: 0;
 }
 
-/* --- Header --- */
+h1, h2, h3 {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ====== Header ====== */
 .pos-header {
-    background: white;
-    padding: 15px 30px;
-    border-bottom: 4px solid var(--pos-primary);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border-bottom: 2px solid #00b894;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.pos-header h1 {
-    font-size: 28px;
-    margin: 0;
-    font-weight: 700;
+.pos-header span {
+  color: #00b894;
 }
 
-.pos-time {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--pos-primary);
-    font-family: var(--font-value);
+.time-box {
+  background: #f0f0f0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #00b894;
 }
 
-/* --- Main Layout --- */
-.pos-layout {
-    max-width: 1500px;
-    margin: 20px auto;
-    display: grid;
-    /* Tỉ lệ 3:1 (Orders/Payment vs. Reporting) */
-    grid-template-columns: 3fr 1fr; 
-    gap: 25px;
-    padding: 0 20px;
+/* ====== Layout ====== */
+.pos-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+  padding: 25px;
 }
 
-/* --- Sections --- */
-.pos-orders, .pos-reporting {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: var(--card-shadow);
+.orders-section, .report-section {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
-.pos-orders h2, .pos-reporting h2 {
-    font-size: 24px;
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #444;
+.order-list {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.order-count-badge {
-    background: var(--danger-color);
-    color: white;
-    font-size: 14px;
-    padding: 3px 8px;
-    border-radius: 50%;
-    margin-left: 10px;
-    font-weight: bold;
+/* ====== Đơn hàng ====== */
+.order-item {
+  background: #f8f9fa;
+  border: 1px solid #e5e5e5;
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s;
+}
+.order-item:hover {
+  background: #eefdf6;
+  border-color: #00b894;
 }
 
-/* --- Order List & Filter --- */
-.order-filter {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+.order-info h3 {
+  color: #00b894;
+  margin-bottom: 6px;
 }
 
-.order-filter input, .order-filter select {
-    padding: 10px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 15px;
+.status {
+  font-weight: 600;
+}
+.status-pending {
+  color: #f1c40f;
+}
+.status-cooking {
+  color: #e67e22;
+}
+.status-completed {
+  color: #2ecc71;
 }
 
-.order-filter input {
-    flex-grow: 1;
+/* ====== Nút hành động ====== */
+.order-actions {
+  display: flex;
+  gap: 8px;
 }
 
-.order-list-cards {
-    max-height: 400px; 
-    overflow-y: auto;
-    padding-right: 10px;
+.btn {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.empty-message {
-    text-align: center;
-    color: #999;
-    padding: 40px 0;
-    font-style: italic;
+.btn:hover {
+  transform: translateY(-1px);
 }
 
-/* Order Card Summary */
-.order-card-summary {
-    background: #ffffff;
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.2s;
+.btn-detail {
+  background: #3498db;
+  color: #fff;
+}
+.btn-detail:hover {
+  background: #2980b9;
 }
 
-.order-card-summary:hover {
-    background: #f0f8ff;
-    border-color: var(--pos-primary);
+.btn-complete {
+  background: #2ecc71;
+  color: #fff;
+}
+.btn-complete:hover {
+  background: #27ae60;
 }
 
-.order-card-summary.selected {
-    background: var(--pos-primary);
-    color: white;
-    border-color: var(--pos-primary-dark);
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+.btn-refund {
+  background: #e74c3c;
+  color: #fff;
 }
-
-.card-table-id {
-    font-weight: 800;
-    font-size: 20px;
-    /* Dùng màu trắng khi được chọn */
-    color: var(--pos-primary-dark); 
-}
-.order-card-summary.selected .card-table-id,
-.order-card-summary.selected .card-amount {
-    color: white; 
-}
-
-
-.card-amount {
-    font-weight: 800;
-    font-family: var(--font-value);
-    font-size: 18px;
-    color: var(--danger-color); 
-}
-
-/* --- Payment Panel --- */
-.payment-panel {
-    margin-top: 25px;
-    padding: 25px;
-    border: 2px solid var(--pos-primary);
-    border-radius: 10px;
-    background: #f9f9f9;
-}
-
-.panel-heading {
-    font-size: 22px;
-    color: var(--pos-primary-dark);
-    margin-top: 0;
-    padding-bottom: 10px;
-    border-bottom: 1px dashed #ddd;
-}
-
-.summary-list {
-    margin: 15px 0;
-    padding: 0;
-}
-
-.summary-list dt {
-    float: left;
-    width: 60%;
-    line-height: 1.5;
-}
-.summary-list dd {
-    float: right;
-    width: 40%;
-    text-align: right;
-    margin-left: 0;
-    line-height: 1.5;
-    font-family: var(--font-value);
-    font-weight: 700;
-}
-.summary-list::after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-.final-amount {
-    border-top: 2px solid #ddd;
-    padding-top: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.final-amount .label {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-
-.final-amount .total-value {
-    font-size: 30px;
-    font-weight: 900;
-    color: var(--pos-primary);
-    font-family: var(--font-value);
-}
-
-/* Payment Controls */
-.control-group {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.control-group label {
-    font-weight: 600;
-}
-
-.control-group input {
-    width: 50%;
-    padding: 12px;
-    border-radius: 6px;
-    border: 2px solid #ccc;
-    font-size: 18px;
-    font-weight: 700;
-    text-align: right;
-    font-family: var(--font-value);
-}
-
-.change-amount {
-    font-size: 22px;
-    font-weight: 900;
-    font-family: var(--font-value);
-}
-
-.method-buttons {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.btn-payment-type {
-    flex: 1;
-    background: #e9ecef;
-    color: var(--text-dark);
-    border: 1px solid #ced4da;
-    padding: 12px;
-    font-weight: 600;
-    border-radius: 6px;
-    transition: all 0.1s;
-}
-
-.btn-payment-type:hover {
-    background: #dee2e6;
-}
-
-.btn-payment-type[aria-pressed="true"] {
-    background: var(--pos-primary);
-    color: white;
-    border-color: var(--pos-primary-dark);
-}
-
-.btn-full-width {
-    width: 100%;
-    padding: 18px;
-    font-size: 1.3em;
-    font-weight: 700;
-}
-
-/* Utility Colors */
-.accent-text { color: var(--pos-primary); }
-.success-text { color: var(--success-color); }
-.danger-text { color: var(--danger-color); }
-
-
-/* --- Reporting Table --- */
-.report-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    align-items: center;
+.btn-refund:hover {
+  background: #c0392b;
 }
 
 .btn-report {
-    background: #6c757d;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 6px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
+  background: #00b894;
+  color: #fff;
+  margin-top: 8px;
+  width: 100%;
+  justify-content: center;
 }
-.btn-report:hover { background: #5a6268; }
-
-.revenue-table {
-    width: 100%;
-    border-collapse: separate; /* Tách biệt border cho hiệu ứng hiện đại */
-    border-spacing: 0;
-    font-size: 15px;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    overflow: hidden; /* Cần để border-radius hoạt động với table */
+.btn-report:hover {
+  background: #019875;
 }
 
-.revenue-table th, .revenue-table td {
-    border-bottom: 1px solid #dee2e6;
-    padding: 12px;
-    text-align: left;
+/* ====== Báo cáo nhanh ====== */
+.report-box {
+  margin-top: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #eee;
 }
 
-.revenue-table th {
-    background: #e9ecef;
-    font-weight: 700;
-    color: var(--text-dark);
-    border-top: 1px solid #dee2e6;
+/* ====== Footer ====== */
+.pos-footer {
+  text-align: center;
+  padding: 12px;
+  font-size: 0.9rem;
+  color: #777;
+  background: #f4f4f4;
+  border-top: 1px solid #e0e0e0;
+}
+body {
+  background: #f8f9fa;
+  color: #333;
+  font-family: "Segoe UI", sans-serif;
 }
 
-.revenue-table tbody tr:last-child td {
-    border-bottom: none;
+.order-card {
+  background: white;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-bottom: 10px;
+  transition: 0.2s;
+}
+.order-card:hover {
+  transform: scale(1.01);
 }
 
-.revenue-table tbody tr:hover {
-    background-color: #f8f9fa;
-}
+.status-pending { border-left: 5px solid orange; }
+.status-cooking { border-left: 5px solid dodgerblue; }
+.status-done { border-left: 5px solid green; }
+.status-unknown { border-left: 5px solid gray; }
 
-/* Responsive Layout */
-@media (max-width: 992px) {
-    .pos-layout {
-        grid-template-columns: 1fr; /* Stack orders and reporting on smaller screens */
-    }
-    .pos-orders h2 {
-        border-bottom: 1px solid #eee;
-    }
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  margin-right: 6px;
+  font-size: 14px;
+}
+.btn.pay { background: #28a745; color: white; }
+.btn.cancel { background: #dc3545; color: white; }
+.btn:hover { opacity: 0.85; }
+
+.toast {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: #333;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  opacity: 0.9;
+  animation: fadeInOut 3.5s ease forwards;
+}
+.toast.success { background: #28a745; }
+.toast.error { background: #dc3545; }
+.toast.warn { background: #ffc107; color: black; }
+.toast.info { background: #17a2b8; }
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-10px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
 }

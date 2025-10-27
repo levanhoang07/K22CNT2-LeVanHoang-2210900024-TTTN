@@ -3,29 +3,60 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Thu Ngân - SmartOrder</title>
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <link rel="stylesheet" href="/static/css/thungan.css" />
+  <title>💵 Thu Ngân - SmartOrder</title>
+
+  <!-- Font + Icon -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a2d9b5cda6.js" crossorigin="anonymous"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <link rel="stylesheet" href="css/thungan.css" />
 </head>
+
 <body>
   <header class="pos-header">
-    <h1>💵 Thu Ngân - SmartOrder</h1>
-    <div id="current-time">--:--:--</div>
+    <h1>💵 Thu Ngân - <span>SmartOrder</span></h1>
+    <div id="current-time" class="time-box">--:--:--</div>
   </header>
 
-  <main class="pos-layout">
-    <section>
-      <h2>Đơn hàng chờ</h2>
-      <div id="order-list">Đang tải...</div>
+  <main class="pos-container">
+    <!-- DANH SÁCH ĐƠN HÀNG -->
+    <section class="orders-section">
+      <h2><i class="fas fa-clipboard-list"></i> Đơn hàng hiện tại</h2>
+      <div id="order-list" class="order-list">
+        <div class="order-item">
+          <div class="order-info">
+            <h3>Bàn 3</h3>
+            <p><strong>Tổng tiền:</strong> 150.000đ</p>
+            <p><strong>Trạng thái:</strong> <span class="status status-pending">Đang xử lý</span></p>
+          </div>
+          <div class="order-actions">
+            <button class="btn btn-detail"><i class="fas fa-eye"></i> Xem</button>
+            <button class="btn btn-complete"><i class="fas fa-check"></i> Hoàn tất</button>
+            <button class="btn btn-refund"><i class="fas fa-undo-alt"></i> Trả lại</button>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2>Báo cáo nhanh</h2>
-      <button onclick="loadBaoCao()">Tải báo cáo (tổng tiền & số đơn)</button>
-      <div id="report"></div>
+    <!-- BÁO CÁO NHANH -->
+    <section class="report-section">
+      <h2><i class="fas fa-chart-line"></i> Báo cáo nhanh</h2>
+      <button class="btn btn-report" onclick="loadBaoCao()">
+        <i class="fas fa-sync-alt"></i> Cập nhật báo cáo
+      </button>
+      <div id="report" class="report-box">
+        <p><strong>Tổng đơn hôm nay:</strong> 20</p>
+        <p><strong>Tổng doanh thu:</strong> 3.250.000đ</p>
+      </div>
     </section>
   </main>
+
+  <footer class="pos-footer">
+    <p>© 2025 SmartOrder POS | Giao diện Thu Ngân</p>
+  </footer>
 
   <script src="js/thungan.js"></script>
 </body>

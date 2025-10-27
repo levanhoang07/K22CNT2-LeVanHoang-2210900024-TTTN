@@ -60,6 +60,139 @@ def api_menu():
     except Exception as e:
         logger.exception("Lỗi lấy menu: %s", e)
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==============================
+# 📋 LẤY TẤT CẢ ĐƠN HÀNG
+# ==============================
+@app.route("/api/donhang", methods=["GET"])
+def api_get_all_donhang():
+    """Lấy danh sách tất cả đơn hàng"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT 
+                    IDDonHang, 
+                    IDBan, 
+                    IDNguoiDung, 
+                    TrangThaiBep, 
+                    TrangThaiThanhToan, 
+                    TongTien, 
+                    NgayTao
+                FROM DonHang 
+                ORDER BY NgayTao DESC
+            """)
+            orders = fetch_all_as_dict(cur)
+        return jsonify(orders), 200
+    except Exception as e:
+        logger.exception("Lỗi lấy danh sách đơn hàng: %s", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==============================
+# 🔍 LẤY CHI TIẾT MỘT ĐƠN HÀNG
+# ==============================
+@app.route("/api/donhang/<int:iddon>", methods=["GET"])
+def api_get_donhang_detail(iddon):
+    """Lấy thông tin chi tiết đơn hàng cùng danh sách món"""
+    try:
+        with get_cursor() as cur:
+            # Lấy thông tin đơn hàng
+            cur.execute("""
+                SELECT 
+                    IDDonHang, 
+                    IDBan, 
+                    IDNguoiDung, 
+                    TrangThaiBep, 
+                    TrangThaiThanhToan, 
+                    TongTien, 
+                    NgayTao
+                FROM DonHang 
+                WHERE IDDonHang = ?
+            """, (iddon,))
+            order = cur.fetchone()
+            
+            if not order:
+                return jsonify({"status": "error", "message": "Không tìm thấy đơn hàng"}), 404
+            
+            cols = [c[0] for c in cur.description]
+            order_dict = dict(zip(cols, order))
+            
+            # Lấy chi tiết món ăn
+            cur.execute("""
+                SELECT 
+                    ct.IDChiTiet,
+                    ct.IDMon,
+                    m.TenMon,
+                    m.HinhAnh,
+                    ct.SoLuong,
+                    ct.DonGia,
+                    (ct.SoLuong * ct.DonGia) AS ThanhTien
+                FROM ChiTietDonHang ct
+                JOIN Menu m ON ct.IDMon = m.IDMon
+                WHERE ct.IDDonHang = ?
+            """, (iddon,))
+            items = fetch_all_as_dict(cur)
+            
+            order_dict['Items'] = items
+            
+        return jsonify(order_dict), 200
+    except Exception as e:
+        logger.exception("Lỗi lấy chi tiết đơn hàng: %s", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==============================
+# 🔍 LẤY ĐƠN HÀNG THEO BÀN
+# ==============================
+@app.route("/api/donhang/ban/<int:idban>", methods=["GET"])
+def api_get_donhang_by_table(idban):
+    """Lấy tất cả đơn hàng của một bàn"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT 
+                    IDDonHang, 
+                    IDBan, 
+                    IDNguoiDung, 
+                    TrangThaiBep, 
+                    TrangThaiThanhToan, 
+                    TongTien, 
+                    NgayTao
+                FROM DonHang 
+                WHERE IDBan = ?
+                ORDER BY NgayTao DESC
+            """, (idban,))
+            orders = fetch_all_as_dict(cur)
+        return jsonify(orders), 200
+    except Exception as e:
+        logger.exception("Lỗi lấy đơn hàng theo bàn: %s", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# ==============================
+# 🔍 LẤY ĐƠN HÀNG THEO TRẠNG THÁI
+# ==============================
+@app.route("/api/donhang/trang-thai/<trang_thai>", methods=["GET"])
+def api_get_donhang_by_status(trang_thai):
+    """Lấy đơn hàng theo trạng thái bếp (Đang xử lý, Hoàn tất)"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT 
+                    IDDonHang, 
+                    IDBan, 
+                    IDNguoiDung, 
+                    TrangThaiBep, 
+                    TrangThaiThanhToan, 
+                    TongTien, 
+                    NgayTao
+                FROM DonHang 
+                WHERE TrangThaiBep = ?
+                ORDER BY NgayTao DESC
+            """, (trang_thai,))
+            orders = fetch_all_as_dict(cur)
+        return jsonify(orders), 200
+    except Exception as e:
+        logger.exception("Lỗi lấy đơn hàng theo trạng thái: %s", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # ==============================
 # 🧾 API TẠO ĐƠN HÀNG
 # ==============================
@@ -118,16 +251,14 @@ def api_create_donhang():
             cur.execute("UPDATE DonHang SET TongTien=? WHERE IDDonHang=?", (tong, iddon))
 
         payload = {"IDDonHang": iddon, "IDBan": idban, "TrangThaiBep": "Đang xử lý", "TongTien": tong}
-        socketio.emit("new_order", payload, broadcast=True)
+        socketio.emit("new_order", payload, namespace="/", to=None)
         
-
-        print(f"✅ Đã tạo đơn hàng ID {iddon} (Tổng: {tong})")
+        logger.info(f"🔔 Phát new_order đến client: {payload}")
 
         return jsonify({"status": "ok", "IDDonHang": iddon}), 201
 
     except Exception as e:
-        print("❌ Lỗi tạo đơn hàng:", e)
-        import traceback; traceback.print_exc()
+        logger.exception("❌ Lỗi tạo đơn hàng: %s", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 # ==============================
@@ -144,8 +275,8 @@ def api_bep_update(iddon):
                 return jsonify({"status": "error", "message": "Không tìm thấy đơn"}), 404
             payload = {"IDDonHang": int(r[0]), "IDBan": r[1], "TrangThaiBep": r[2]}
 
-        socketio.emit("bep_status_update", payload, broadcast=True)
-        logger.info(f"👨‍🍳 Đơn {iddon} đã hoàn tất.")
+        socketio.emit("bep_status_update", payload, namespace="/", to=None)
+        logger.info(f"👨‍🍳 Phát cập nhật trạng thái bếp: {payload}")
         return jsonify({"status": "ok", "payload": payload}), 200
 
     except Exception as e:

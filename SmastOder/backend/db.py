@@ -146,8 +146,9 @@ def test_connection():
             logger.info(f"✅ Database connected successfully. Test result: {row[0]}")
             return True
     except Exception as e:
-        logger.critical(f"❌ Database connection failed: {e}")
+        logger.critical(f"❌ Lỗi kết nối database{e}")
         raise
 
 if __name__ == "__main__":
     test_connection()
+ 
