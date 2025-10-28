@@ -194,7 +194,7 @@ async function toggleItems(iddon) {
                 <td class="item-stt">${index + 1}</td>
                 <td class="item-name-text">${item.TenMon}</td>
                 <td class="item-qty">×${item.SoLuong}</td>
-                <td class="item-note">-</td>
+                <td class="item-note">${item.GhiChu}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -262,11 +262,16 @@ function getStatusIcon(status) {
 
 function formatTime(dateStr) {
   if (!dateStr) return '--:--';
-  const d = new Date(dateStr);
-  const h = String(d.getHours()).padStart(2, '0');
-  const m = String(d.getMinutes()).padStart(2, '0');
-  return `${h}:${m}`;
+  const d = new Date(dateStr);  // JS tự hiểu timezone +07
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 }
+
 
 function formatMoney(amount) {
   if (!amount) return '0 ₫';

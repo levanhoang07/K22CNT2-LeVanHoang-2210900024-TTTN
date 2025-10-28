@@ -43,6 +43,7 @@
     <section id="table-section" class="tab">
       <div class="section-header">
         <h2>🪑 Quản lý bàn & tạo mã QR</h2>
+        <button id="add-table" class="btn">+ Thêm bàn</button>
       </div>
       <table id="table-list">
         <thead>
@@ -50,6 +51,7 @@
             <th>ID Bàn</th>
             <th>Tên bàn</th>
             <th>QR Code</th>
+            <th>Hành động</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -66,6 +68,11 @@
     <section id="report-section" class="tab">
       <div class="section-header">
         <h2>📊 Báo cáo tổng hợp</h2>
+        <select id="report-period">
+          <option value="day">Hôm nay</option>
+          <option value="week">Tuần này</option>
+          <option value="month">Tháng này</option>
+        </select>
       </div>
       <div class="stats">
         <div class="card">
@@ -79,6 +86,44 @@
       </div>
     </section>
   </main>
+
+  <!-- Popup thêm/sửa món -->
+  <div id="menu-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeMenuModal()">&times;</span>
+      <h3 id="menu-modal-title">Thêm món</h3>
+      <input type="text" id="menu-ten" placeholder="Tên món">
+      <input type="number" id="menu-gia" placeholder="Giá">
+      <input type="text" id="menu-danhmuc" placeholder="Danh mục">
+      <input type="text" id="menu-hinhanh" placeholder="Hình ảnh">
+      <button id="menu-save-btn">Lưu</button>
+    </div>
+  </div>
+
+  <!-- Popup thêm bàn -->
+  <div id="table-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeTableModal()">&times;</span>
+      <h3>Thêm bàn mới</h3>
+      <input type="text" id="table-ten" placeholder="Tên bàn">
+      <input type="text" id="table-base-url" placeholder="Base URL khách">
+      <button id="table-save-btn">Tạo bàn</button>
+    </div>
+  </div>
+  
+<!-- Spinner loading -->
+<div id="loading-spinner" style="
+  display:none;
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(255,255,255,0.7);
+  z-index:9999;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+">
+  <div class="spinner"></div>
+</div>
 
   <footer>
     <p>© 2025 - Quản trị Nhà hàng | Thiết kế bởi Hoàng 💡</p>

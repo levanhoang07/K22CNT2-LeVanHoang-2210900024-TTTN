@@ -459,8 +459,20 @@ function formatMoney(v) {
 function formatTime(dateStr) {
   if (!dateStr) return '--:--';
   const d = new Date(dateStr);
-  return d.toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' });
+
+  // Lấy giờ Việt Nam (UTC+7)
+  const vnTime = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+
+  const yyyy = vnTime.getUTCFullYear();
+  const mm = String(vnTime.getUTCMonth() + 1).padStart(2, '0'); // tháng từ 0-11
+  const dd = String(vnTime.getUTCDate()).padStart(2, '0');
+  const hh = String(vnTime.getUTCHours()).padStart(2, '0');
+  const min = String(vnTime.getUTCMinutes()).padStart(2, '0');
+  const ss = String(vnTime.getUTCSeconds()).padStart(2, '0');
+
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 }
+
 
 function formatDateTime(dateStr) {
   if (!dateStr) return '--:--';
