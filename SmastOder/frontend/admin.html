@@ -3,132 +3,408 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản trị Nhà hàng</title>
+  <title>🎛️ Admin - SmartOrder</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <!-- QR Code Library (optional) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <!-- CSS -->
   <link rel="stylesheet" href="css/admin.css">
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+
+    /* Header */
+    header {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 1.25rem 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-content {
+      max-width: 1600px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-left i {
+      font-size: 2rem;
+      color: #4f46e5;
+    }
+
+    .header-left h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    /* Navigation */
+    nav {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-content {
+      max-width: 1600px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    nav button {
+      padding: 1rem 1.5rem;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+      color: #64748b;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    nav button:hover {
+      color: #4f46e5;
+      background: #f8fafc;
+    }
+
+    nav button.active {
+      color: #4f46e5;
+      border-bottom-color: #4f46e5;
+    }
+
+    /* Main Content */
+    main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .tab {
+      display: none;
+    }
+
+    .tab.active {
+      display: block;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    /* Content Cards */
+    .content-card {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+  </style>
 </head>
 <body>
+  
+  <!-- Header -->
   <header>
-    <h1>🍽️ Hệ thống Quản trị Nhà hàng</h1>
-    <nav>
-      <button class="active" data-target="menu-section">Món ăn</button>
-      <button data-target="table-section">Bàn & QR</button>
-      <button data-target="report-section">Báo cáo</button>
-    </nav>
+    <div class="header-content">
+      <div class="header-left">
+        <i class="fas fa-cog"></i>
+        <h1>Admin Panel</h1>
+      </div>
+      <div class="header-right">
+        <span style="color: #64748b;">👤 Admin</span>
+      </div>
+    </div>
   </header>
 
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-content">
+      <button class="active" data-target="menu-section">
+        <i class="fas fa-utensils"></i> Quản lý Menu
+      </button>
+      <button data-target="table-section">
+        <i class="fas fa-table"></i> Quản lý Bàn
+      </button>
+      <button data-target="report-section">
+        <i class="fas fa-chart-bar"></i> Báo cáo
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
   <main>
-    <!-- ========== MÓN ĂN ========== -->
-    <section id="menu-section" class="tab active">
+    
+    <!-- MENU SECTION -->
+    <div id="menu-section" class="tab active">
       <div class="section-header">
-        <h2>📋 Quản lý món ăn</h2>
-        <button id="add-food" class="btn">+ Thêm món</button>
+        <h2>
+          <i class="fas fa-utensils"></i> Quản lý Menu
+        </h2>
+        <button id="add-food" class="btn-add">
+          <i class="fas fa-plus"></i> Thêm món mới
+        </button>
       </div>
-      <table id="menu-table">
-        <thead>
-          <tr>
-            <th>Tên món</th>
-            <th>Giá</th>
-            <th>Danh mục</th>
-            <th>Ảnh</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <p class="summary">Tổng số món: <span id="stat-menu">0</span></p>
-    </section>
 
-    <!-- ========== BÀN & QR ========== -->
-    <section id="table-section" class="tab">
-      <div class="section-header">
-        <h2>🪑 Quản lý bàn & tạo mã QR</h2>
-        <button id="add-table" class="btn">+ Thêm bàn</button>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>Tổng số món</h4>
+          <div class="stat-value" id="stat-menu">0</div>
+        </div>
       </div>
-      <table id="table-list">
-        <thead>
-          <tr>
-            <th>ID Bàn</th>
-            <th>Tên bàn</th>
-            <th>QR Code</th>
-            <th>Hành động</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div id="qr-area">
-        <h3>Mã QR</h3>
-        <div id="qr-result"></div>
-        <p id="qr-link"></p>
-      </div>
-      <p class="summary">Tổng số bàn: <span id="stat-table">0</span></p>
-    </section>
 
-    <!-- ========== BÁO CÁO ========== -->
-    <section id="report-section" class="tab">
+      <div class="content-card">
+        <div class="table-container">
+          <table id="menu-table">
+            <thead>
+              <tr>
+                <th>Tên món</th>
+                <th>Giá</th>
+                <th>Danh mục</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                  Đang tải dữ liệu...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE SECTION -->
+    <div id="table-section" class="tab">
       <div class="section-header">
-        <h2>📊 Báo cáo tổng hợp</h2>
-        <select id="report-period">
+        <h2>
+          <i class="fas fa-table"></i> Quản lý Bàn
+        </h2>
+        <button id="add-table" class="btn-add">
+          <i class="fas fa-plus"></i> Thêm bàn mới
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>Tổng số bàn</h4>
+          <div class="stat-value" id="stat-table">0</div>
+        </div>
+      </div>
+
+      <div class="content-card">
+        <div class="table-container">
+          <table id="table-list">
+            <thead>
+              <tr>
+                <th>Số bàn</th>
+                <th>Tên bàn</th>
+                <th>QR Code</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                  Đang tải dữ liệu...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT SECTION -->
+    <div id="report-section" class="tab">
+      <div class="section-header">
+        <h2>
+          <i class="fas fa-chart-bar"></i> Báo cáo & Thống kê
+        </h2>
+        <select id="report-period" style="padding: 0.625rem 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; font-weight: 600;">
           <option value="day">Hôm nay</option>
           <option value="week">Tuần này</option>
           <option value="month">Tháng này</option>
         </select>
       </div>
-      <div class="stats">
-        <div class="card">
-          <h3>Đơn hàng</h3>
-          <p id="stat-orders">0</p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>Tổng đơn hàng</h4>
+          <div class="stat-value" id="stat-orders">0</div>
         </div>
-        <div class="card">
-          <h3>Doanh thu</h3>
-          <p id="stat-revenue">0 ₫</p>
+        <div class="stat-card">
+          <h4>Doanh thu</h4>
+          <div class="stat-value" id="stat-revenue" style="color: #10b981;">0 ₫</div>
         </div>
       </div>
-    </section>
+    </div>
+
   </main>
 
-  <!-- Popup thêm/sửa món -->
+  <!-- MENU MODAL -->
   <div id="menu-modal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeMenuModal()">&times;</span>
-      <h3 id="menu-modal-title">Thêm món</h3>
-      <input type="text" id="menu-ten" placeholder="Tên món">
-      <input type="number" id="menu-gia" placeholder="Giá">
-      <input type="text" id="menu-danhmuc" placeholder="Danh mục">
-      <input type="text" id="menu-hinhanh" placeholder="Hình ảnh">
-      <button id="menu-save-btn">Lưu</button>
-    </div>
-  </div>
+      <div class="modal-header">
+        <h3 id="menu-modal-title">
+          <i class="fas fa-utensils"></i> Thêm món mới
+        </h3>
+        <button class="modal-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Tên món <span class="required">*</span></label>
+          <input type="text" id="menu-ten" placeholder="Nhập tên món ăn">
+        </div>
+        <div class="form-group">
+          <label>Giá <span class="required">*</span></label>
+          <input type="number" id="menu-gia" placeholder="0" min="0" step="1000">
+          <small>Đơn vị: VNĐ</small>
+        </div>
+        <div class="form-group">
+          <label>Danh mục <span class="required">*</span></label>
+          <select id="menu-danhmuc">
+            <option value="">-- Chọn danh mục --</option>
+            <option value="Mì cay">Mì cay</option>
+            <option value="Cơm trộn">Cơm trộn</option>
+            <option value="Topping">Topping</option>
+            <option value="Đồ uống">Đồ uống</option>
+          </select>
+        </div>
+        <div class="form-group">
+  <div class="form-group">
+  <label>Hình ảnh</label>
 
-  <!-- Popup thêm bàn -->
-  <div id="table-modal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeTableModal()">&times;</span>
-      <h3>Thêm bàn mới</h3>
-      <input type="text" id="table-ten" placeholder="Tên bàn">
-      <input type="text" id="table-base-url" placeholder="Base URL khách">
-      <button id="table-save-btn">Tạo bàn</button>
+  <div class="image-input-row">
+    <div class="col">
+      <input type="text" id="menu-hinhanh" placeholder="Link hoặc tên file (vd: pho.jpg)">
+      <small>Nhập tên file hoặc URL ảnh</small>
+    </div>
+
+    <div class="col">
+      <input type="file" id="menu-hinhanh-file" accept="image/*">
+      <small>Chọn file ảnh từ máy tính</small>
     </div>
   </div>
-  
-<!-- Spinner loading -->
-<div id="loading-spinner" style="
-  display:none;
-  position:fixed;
-  top:0; left:0; right:0; bottom:0;
-  background: rgba(255,255,255,0.7);
-  z-index:9999;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-">
-  <div class="spinner"></div>
 </div>
 
-  <footer>
-    <p>© 2025 - Quản trị Nhà hàng | Thiết kế bởi Hoàng 💡</p>
-  </footer>
 
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel">
+          <i class="fas fa-times"></i> Hủy
+        </button>
+        <button id="menu-save-btn" class="btn-save">
+          <i class="fas fa-save"></i> Lưu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE MODAL -->
+  <div id="table-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>
+          <i class="fas fa-table"></i> Thêm bàn mới
+        </h3>
+        <button class="modal-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Tên bàn <span class="required">*</span></label>
+          <input type="text" id="table-ten" placeholder="VD: Bàn 1, Bàn VIP...">
+        </div>
+        <div class="form-group">
+          <label>Base URL</label>
+          <input type="text" id="table-base-url" placeholder="https://yourdomain.com">
+          <small>Để trống sẽ dùng URL hiện tại</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel">
+          <i class="fas fa-times"></i> Hủy
+        </button>
+        <button id="table-save-btn" class="btn-save">
+          <i class="fas fa-save"></i> Tạo bàn
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR MODAL -->
+  <div id="qr-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>
+          <i class="fas fa-qrcode"></i> Mã QR Code
+        </h3>
+        <button id="qr-modal-close" class="modal-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="qr-result"></div>
+        <div id="qr-link"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING SPINNER -->
+  <div id="loading-spinner">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- JavaScript -->
   <script src="js/admin.js"></script>
+
 </body>
 </html>
