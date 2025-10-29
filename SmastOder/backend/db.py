@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# db.py - Kết nối SQL Server với pyodbc, hỗ trợ get_cursor() và get_connection()
+
 import os
 import logging
 import pyodbc
@@ -99,6 +102,9 @@ def connect() -> pyodbc.Connection:
             raise RuntimeError("❌ Lỗi kết nối SQL Server: không tìm thấy server hoặc instance.") from e
         raise
 
+# Alias để app.py còn dùng get_connection()
+get_connection = connect
+
 # ==============================
 # 🧠 QUẢN LÝ CURSOR
 # ==============================
@@ -109,6 +115,7 @@ def get_cursor():
     Tự động commit nếu thành công, rollback nếu lỗi.
     """
     conn = None
+    cur = None
     try:
         conn = connect()
         cur = conn.cursor()
@@ -146,9 +153,11 @@ def test_connection():
             logger.info(f"✅ Database connected successfully. Test result: {row[0]}")
             return True
     except Exception as e:
-        logger.critical(f"❌ Lỗi kết nối database{e}")
+        logger.critical(f"❌ Lỗi kết nối database: {e}")
         raise
 
+# ==============================
+# 🔧 MAIN
+# ==============================
 if __name__ == "__main__":
     test_connection()
- 
