@@ -215,7 +215,7 @@ def on_disconnect():
     logger.info(f"Socket disconnected: {request.sid}")
 
 # ==============================
-# 🍽️ ADMIN MENU CRUD
+# 🍽️ ADMIN MENU CRUD (ĐÃ SỬA CHUẨN)
 # ==============================
 @app.route("/api/admin/menu", methods=["GET"])
 def admin_list_menu():
@@ -226,109 +226,225 @@ def admin_list_menu():
                 FROM Menu ORDER BY IDMon DESC
             """)
             rows = fetch_all_as_dict(cur)
+
+        # ✅ Chuẩn hóa đường dẫn ảnh
+        for r in rows:
+            if r["HinhAnh"]:
+                path = r["HinhAnh"].replace("\\", "/")
+                if path.startswith("/static/"):
+                    path = path[len("/static/"):]
+                r["HinhAnh"] = f"http://127.0.0.1:5000/static/{path.lstrip('/')}"
+
         return jsonify(rows), 200
     except Exception as e:
         logger.exception("Lỗi admin_list_menu: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/api/admin/menu", methods=["POST"])
 def admin_create_menu():
     try:
         data = request.get_json(force=True)
         ten = data.get("TenMon")
-        if not ten: return jsonify({"status":"error","message":"TenMon required"}), 400
-        mota = data.get("MoTa","")
-        gia = float(data.get("Gia",0))
-        hinhanh = data.get("HinhAnh","")
-        danh_muc = data.get("DanhMuc","")
+        if not ten:
+            return jsonify({"status": "error", "message": "TenMon required"}), 400
+
+        mota = data.get("MoTa", "")
+        gia = float(data.get("Gia", 0))
+        hinhanh = data.get("HinhAnh", "")
+        danh_muc = data.get("DanhMuc", "")
+
         with get_cursor() as cur:
             cur.execute("""
                 INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc, TrangThai)
-                VALUES (?, ?, ?, ?, ?, 1); SELECT SCOPE_IDENTITY()
+                VALUES (?, ?, ?, ?, ?, 1);
+                SELECT SCOPE_IDENTITY();
             """, (ten, mota, gia, hinhanh, danh_muc))
             new_id = int(cur.fetchone()[0])
-            cur.execute("SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc, TrangThai FROM Menu WHERE IDMon=?", (new_id,))
+
+            cur.execute("""
+                SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc, TrangThai
+                FROM Menu WHERE IDMon=?
+            """, (new_id,))
             menu = fetch_all_as_dict(cur)[0]
-        return jsonify({"status":"ok","menu":menu}), 201
+
+        # ✅ Chuẩn hóa đường dẫn ảnh
+        if menu["HinhAnh"]:
+            path = menu["HinhAnh"].replace("\\", "/")
+            if path.startswith("/static/"):
+                path = path[len("/static/"):]
+            menu["HinhAnh"] = f"http://127.0.0.1:5000/static/{path.lstrip('/')}"
+
+        return jsonify({"status": "ok", "menu": menu}), 201
     except Exception as e:
         logger.exception("Lỗi admin_create_menu: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/api/admin/menu/<int:idmon>", methods=["PUT"])
 def admin_update_menu(idmon):
     try:
         data = request.get_json(force=True)
         sets, params = [], []
-        for field in ["TenMon","MoTa","Gia","HinhAnh","DanhMuc","TrangThai"]:
+
+        for field in ["TenMon", "MoTa", "Gia", "HinhAnh", "DanhMuc", "TrangThai"]:
             if field in data:
                 sets.append(f"{field}=?")
                 val = data[field]
-                if field=="Gia": val=float(val)
-                if field=="TrangThai": val=int(val)
+                if field == "Gia":
+                    val = float(val)
+                if field == "TrangThai":
+                    val = int(val)
                 params.append(val)
-        if not sets: return jsonify({"status":"error","message":"No fields to update"}), 400
+
+        if not sets:
+            return jsonify({"status": "error", "message": "No fields to update"}), 400
+
         params.append(idmon)
         with get_cursor() as cur:
             cur.execute(f"UPDATE Menu SET {', '.join(sets)} WHERE IDMon=?", tuple(params))
-        return jsonify({"status":"ok"}), 200
+
+        return jsonify({"status": "ok"}), 200
     except Exception as e:
         logger.exception("Lỗi admin_update_menu: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/api/admin/menu/<int:idmon>", methods=["DELETE"])
 def admin_delete_menu(idmon):
     try:
         with get_cursor() as cur:
             cur.execute("DELETE FROM Menu WHERE IDMon=?", (idmon,))
-        return jsonify({"status":"ok"}), 200
+        return jsonify({"status": "ok"}), 200
     except Exception as e:
         logger.exception("Lỗi admin_delete_menu: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
+## ==============================
+# 🍽️ TABLE + QR CRUD (Tái sử dụng ID bị xóa)
 # ==============================
-# 🍽️ TABLE + QR CRUD
-# ==============================
+
 @app.route("/api/admin/table", methods=["GET"])
 def admin_list_tables():
+    """📋 Lấy danh sách tất cả bàn"""
     try:
         with get_cursor() as cur:
-            cur.execute("SELECT IDBan, TenBan, MaQR, TrangThai, NgayTao FROM Ban ORDER BY IDBan")
+            cur.execute("""
+                SELECT IDBan, TenBan, MaQR, TrangThai, NgayTao
+                FROM Ban
+                ORDER BY IDBan
+            """)
             rows = fetch_all_as_dict(cur)
         return jsonify(rows), 200
     except Exception as e:
         logger.exception("Lỗi admin_list_tables: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/api/admin/table", methods=["POST"])
 def admin_create_table():
+    """Tạo bàn mới, IDBan tự tăng, tạo mã QR tự động."""
     try:
         data = request.get_json(force=True)
-        tenban = data.get("TenBan") or f"Ban-{int(datetime.utcnow().timestamp())}"
+        tenban = str(data.get("TenBan") or "").strip()
         base_url = data.get("base_url") or request.host_url.rstrip('/')
+
+        if not tenban:
+            return jsonify({"status": "error", "message": "Thiếu tên bàn!"}), 400
+
         with get_cursor() as cur:
-            cur.execute("INSERT INTO Ban (TenBan) VALUES (?); SELECT SCOPE_IDENTITY()", (tenban,))
-            idban = int(cur.fetchone()[0])
+            # Kiểm tra trùng tên bàn
+            cur.execute("SELECT COUNT(*) FROM Ban WHERE TenBan=?", (tenban,))
+            if cur.fetchone()[0] > 0:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Tên bàn '{tenban}' đã tồn tại!"
+                }), 400
+
+            # ✅ Tạo bàn mới và lấy IDBan vừa tạo
+            cur.execute("""
+                INSERT INTO Ban (TenBan)
+                OUTPUT INSERTED.IDBan
+                VALUES (?)
+            """, (tenban,))
+            id_result = cur.fetchone()
+            if not id_result or id_result[0] is None:
+                raise Exception("Không thể lấy ID bàn mới tạo!")
+
+            idban = int(id_result[0])
+
+            # ✅ Tạo QR Code
             qr_link = f"{base_url}/khach?table={idban}"
             qr = qrcode.QRCode(box_size=8, border=2)
             qr.add_data(qr_link)
             qr.make(fit=True)
             img = qr.make_image(fill_color="black", back_color="white")
             saved_rel = save_qr_image(img, f"qr_table_{idban}.png")
+
+            # ✅ Cập nhật mã QR vào DB
             cur.execute("UPDATE Ban SET MaQR=? WHERE IDBan=?", (saved_rel, idban))
-        return jsonify({"status":"ok","table":{"IDBan":idban,"TenBan":tenban,"MaQR":saved_rel,"qr_link":qr_link}}), 201
+
+        return jsonify({
+            "status": "ok",
+            "table": {
+                "IDBan": idban,
+                "TenBan": tenban,
+                "MaQR": saved_rel,
+                "qr_link": qr_link
+            }
+        }), 201
+
     except Exception as e:
         logger.exception("Lỗi admin_create_table: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/admin/table/<int:idban>", methods=["PUT"])
+def admin_update_table(idban):
+    """✏️ Sửa thông tin bàn"""
+    try:
+        data = request.get_json(force=True)
+        tenban = str(data.get("TenBan") or "").strip()
+        trangthai = str(data.get("TrangThai") or "").strip() or None
+
+        if not tenban:
+            return jsonify({"status": "error", "message": "Thiếu tên bàn!"}), 400
+
+        with get_cursor() as cur:
+            # Kiểm tra bàn tồn tại
+            cur.execute("SELECT COUNT(*) FROM Ban WHERE IDBan=?", (idban,))
+            if cur.fetchone()[0] == 0:
+                return jsonify({"status": "error", "message": "Bàn không tồn tại!"}), 404
+
+            # Kiểm tra trùng tên (trừ chính nó)
+            cur.execute("SELECT COUNT(*) FROM Ban WHERE TenBan=? AND IDBan<>?", (tenban, idban))
+            if cur.fetchone()[0] > 0:
+                return jsonify({
+                    "status": "error",
+                    "message": f"Tên bàn '{tenban}' đã được dùng!"
+                }), 400
+
+            cur.execute("""
+                UPDATE Ban
+                SET TenBan=?, TrangThai=ISNULL(?, TrangThai)
+                WHERE IDBan=?
+            """, (tenban, trangthai, idban))
+
+        return jsonify({"status": "ok"}), 200
+
+    except Exception as e:
+        logger.exception("Lỗi admin_update_table: %s", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/api/admin/table/<int:idban>", methods=["DELETE"])
 def admin_delete_table(idban):
+    """🗑️ Xóa bàn theo IDBan"""
     try:
         with get_cursor() as cur:
             cur.execute("DELETE FROM Ban WHERE IDBan=?", (idban,))
-        return jsonify({"status":"ok"}), 200
+        return jsonify({"status": "ok"}), 200
     except Exception as e:
         logger.exception("Lỗi admin_delete_table: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # ==============================
 # 📊 REPORT API

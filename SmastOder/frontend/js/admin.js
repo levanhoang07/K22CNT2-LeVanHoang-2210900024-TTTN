@@ -27,22 +27,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===== Tab Navigation =====
   const tabs = document.querySelectorAll("nav button");
   const sections = document.querySelectorAll("main .tab");
+  let currentTab = "menu-section"; // ✅ lưu tab hiện tại
 
-  const getActiveTab = () => document.querySelector("nav button.active")?.dataset.target || "menu-section";
+  const switchTab = (targetId) => {
+    currentTab = targetId;
+    tabs.forEach(b => b.classList.toggle("active", b.dataset.target === targetId));
+    sections.forEach(sec => sec.classList.toggle("active", sec.id === targetId));
+
+    // Load dữ liệu theo tab hiện tại
+    if(targetId === "menu-section") loadMenu();
+    else if(targetId === "table-section") loadTables();
+    else if(targetId === "report-section") loadReport(document.getElementById("report-period")?.value || "day");
+  };
 
   tabs.forEach(btn => {
-    btn.addEventListener("click", () => {
-      tabs.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      sections.forEach(sec => sec.classList.remove("active"));
-      const target = document.getElementById(btn.dataset.target);
-      if(target) target.classList.add("active");
-
-      // load dữ liệu riêng theo tab
-      if(target.id === "menu-section") loadMenu();
-      else if(target.id === "table-section") loadTables();
-      else if(target.id === "report-section") loadReport(document.getElementById("report-period")?.value || "day");
-    });
+    btn.addEventListener("click", () => switchTab(btn.dataset.target));
   });
 
   // ===== QUẢN LÝ MENU =====
@@ -51,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let editingMenuId = null;
 
   async function loadMenu() {
-    if(getActiveTab() !== "menu-section") return; // chỉ load khi tab active
+    if(currentTab !== "menu-section") return;
     showSpinner();
     try {
       const res = await fetch(`${API_BASE}/api/admin/menu`);
@@ -61,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       data.forEach(item => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><div class="food-name">${item.HinhAnh?`<img src="${API_BASE}/static/images/${item.HinhAnh}" class="food-thumb">`:''}<span>${item.TenMon}</span></div></td>
+          <td><div class="food-name">${item.HinhAnh?`<img src="${item.HinhAnh}" class="food-thumb">`:''}<span>${item.TenMon}</span></div></td>
           <td><strong>${item.Gia.toLocaleString()} ₫</strong></td>
           <td><span class="badge badge-category">${item.DanhMuc}</span></td>
           <td>
@@ -140,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const qrLink = document.getElementById("qr-link");
 
   async function loadTables() {
-    if(getActiveTab() !== "table-section") return;
+    if(currentTab !== "table-section") return;
     showSpinner();
     try {
       const res = await fetch(`${API_BASE}/api/admin/table`);
@@ -152,10 +151,10 @@ document.addEventListener("DOMContentLoaded", () => {
         tr.innerHTML = `
           <td><strong>Bàn ${table.IDBan}</strong></td>
           <td>${table.TenBan}</td>
-          <td>${table.QRPath?`<img src="${API_BASE}/static/images/${table.QRPath}" class="qr-thumb">`:'<span style="color:#94a3b8;">Chưam có QR</span>'}</td>
+          <td>${table.MaQR?`<img src="${API_BASE}/${table.MaQR}" class="qr-thumb">`:'<span style="color:#94a3b8;">Chưa có QR</span>'}</td>
           <td>
             <div class="action-buttons">
-              <button class="btn-view" onclick="showQR('${table.QRPath}',${table.IDBan},'${escapeHtml(table.TenBan)}')"><i class="fas fa-qrcode"></i> QR</button>
+              <button class="btn-view" onclick="showQR('${table.MaQR}',${table.IDBan},'${escapeHtml(table.TenBan)}')"><i class="fas fa-qrcode"></i> QR</button>
               <button class="btn-delete" onclick="deleteTable(${table.IDBan})"><i class="fas fa-trash"></i> Xóa</button>
             </div>
           </td>
@@ -179,30 +178,20 @@ document.addEventListener("DOMContentLoaded", () => {
     finally{ hideSpinner(); }
   }
 
-window.showQR = (path, id, tenBan) => {
-  qrResult.innerHTML = "";
-
-  if(path && typeof QRCode !== 'undefined'){
-    new QRCode(qrResult, {
-      text: `index.html?ban=${id}`,
-      width: 256,
-      height: 256
-    });
-  } else if(path) {
-    const img = document.createElement("img");
-    img.src = `static/images/${path}`;
-    img.alt = `QR ${tenBan}`;
-    img.style.maxWidth = '256px';
-    qrResult.appendChild(img);
-  } else {
-    qrResult.innerHTML = '<p style="color:#94a3b8;">Chưa có QR</p>';
+  window.showQR = (path, id, tenBan) => {
+    qrResult.innerHTML = "";
+    if(path){
+      const img = document.createElement("img");
+      img.src = `${API_BASE}/${path}`;
+      img.alt = `QR ${tenBan}`;
+      img.style.maxWidth = '256px';
+      qrResult.appendChild(img);
+    } else {
+      qrResult.innerHTML = '<p style="color:#94a3b8;">Chưa có QR</p>';
+    }
+    qrLink.innerHTML = `<strong>${tenBan || `Bàn ${id}`}</strong><br>Link: <a href="index.html?ban=${id}" target="_blank">index.html?ban=${id}</a>`;
+    document.getElementById("qr-modal").classList.add("show");
   }
-
-  qrLink.innerHTML = `<strong>${tenBan || `Bàn ${id}`}</strong><br>Link: <a href="index.html?ban=${id}" target="_blank">index.html?ban=${id}</a>`;
-
-  document.getElementById("qr-modal").classList.add("show");
-}
-
 
   document.getElementById("add-table")?.addEventListener("click",()=>document.getElementById("table-modal").classList.add("show"));
   document.getElementById("table-save-btn")?.addEventListener("click", async ()=>{
@@ -214,13 +203,11 @@ window.showQR = (path, id, tenBan) => {
     try{
       const res=await fetch(`${API_BASE}/api/admin/table`,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
       if(!res.ok) throw new Error("Không thể tạo bàn");
-      const newTable=await res.json();
       showNotification("Thêm bàn thành công!","success");
       document.getElementById("table-modal").classList.remove("show");
       document.getElementById("table-ten").value="";
       document.getElementById("table-base-url").value="";
-      await loadTables();
-      if(newTable.QRPath) showQR(newTable.QRPath,newTable.IDBan,newTable.TenBan);
+      await loadTables(); // ✅ vẫn ở tab QL bàn
     }catch(e){ showNotification("Lỗi tạo bàn","error"); }
     finally{ hideSpinner(); }
   });
@@ -229,7 +216,7 @@ window.showQR = (path, id, tenBan) => {
 
   // ===== BÁO CÁO =====
   async function loadReport(period="day"){
-    if(getActiveTab() !== "report-section") return;
+    if(currentTab !== "report-section") return;
     showSpinner();
     try{
       const res=await fetch(`${API_BASE}/api/report?period=${period}`);
@@ -244,15 +231,14 @@ window.showQR = (path, id, tenBan) => {
   document.getElementById("report-period")?.addEventListener("change", e=>loadReport(e.target.value));
 
   // ===== KHỞI TẠO =====
-  loadMenu();
-  loadTables();
-  loadReport();
+  switchTab("menu-section"); // Mặc định vào tab menu khi load lần đầu
+
+  // Tự động refresh dữ liệu trong tab hiện tại mỗi 30s
   setInterval(()=>{
-    const target=getActiveTab();
-    if(target==="menu-section") loadMenu();
-    else if(target==="table-section") loadTables();
-    else if(target==="report-section") loadReport(document.getElementById("report-period")?.value || "day");
+    if(currentTab==="menu-section") loadMenu();
+    else if(currentTab==="table-section") loadTables();
+    else if(currentTab==="report-section") loadReport(document.getElementById("report-period")?.value || "day");
   },30000);
 
-  console.log("✅ Admin đang chạy ngon em nhé, ngon lành!");
+  console.log("✅ Admin đang chạy ngon, giữ nguyên tab khi load xong!");
 });
