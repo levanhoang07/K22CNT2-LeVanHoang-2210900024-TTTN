@@ -30,33 +30,49 @@ async function fetchMenu() {
     container.innerHTML = `<p class="error">⚠️ Không thể tải thực đơn. Vui lòng thử lại.</p>`;
   }
 }
-
 // =============================
-// HIỂN THỊ MENU
+// HIỂN THỊ MENU (CẬP NHẬT - xử lý ảnh an toàn)
 // =============================
 function renderMenu(menu) {
   const container = document.getElementById("menu-container");
-
   if (!menu || menu.length === 0) {
     container.innerHTML = `<p>Không có món nào trong menu.</p>`;
     return;
   }
 
+  const noImage = `${API_BASE}/static/images/no-image.jpg`;
+
   container.innerHTML = menu
-    .map(
-      (item) => `
+    .map((item) => {
+      // Chuẩn hóa src ảnh
+      let imgSrc = item.HinhAnh || "";
+      // Nếu không phải full url
+      if (!/^https?:\/\//i.test(imgSrc)) {
+        // bỏ leading slash nếu có
+        imgSrc = imgSrc.replace(/^\/+/,'');
+        // nếu bắt đầu bằng "static/" thì nối host
+        if (imgSrc.startsWith("static/")) imgSrc = `${API_BASE}/${imgSrc}`;
+        else if (imgSrc.startsWith("images/") || imgSrc.startsWith("qrcodes/"))
+          imgSrc = `${API_BASE}/static/${imgSrc}`;
+        else if (imgSrc === "") imgSrc = noImage;
+        else imgSrc = `${API_BASE}/static/images/${imgSrc}`;
+      }
+      // Nếu cuối cùng rỗng thì dùng noImage
+      if (!imgSrc) imgSrc = noImage;
+
+      return `
       <div class="menu-item" role="listitem">
         <img 
-          src="http://127.0.0.1:5000/static${item.HinhAnh}"
-          alt="${item.TenMon}" 
+          src="${imgSrc}"
+          alt="${(item.TenMon||'')}"
           class="menu-img"
-          onerror="this.src='image/no-image.jpg';"
+          onerror="this.onerror=null; this.src='${noImage}';"
         />
         <div class="menu-body">
           <h3 class="menu-name">${item.TenMon}</h3>
           <p class="menu-desc">${item.MoTa || ""}</p>
           <div class="menu-footer">
-            <span class="menu-price">${parseInt(item.Gia).toLocaleString()} ₫</span>
+            <span class="menu-price">${parseInt(item.Gia || 0).toLocaleString()} ₫</span>
             <button 
               class="btn add-to-cart" 
               data-id="${item.IDMon}" 
@@ -67,8 +83,8 @@ function renderMenu(menu) {
           </div>
         </div>
       </div>
-    `
-    )
+    `;
+    })
     .join("");
 
   document.querySelectorAll(".add-to-cart").forEach((btn) =>

@@ -3,68 +3,85 @@
 import os
 import logging
 from datetime import datetime, timezone, timedelta
-from io import BytesIO
 
 import eventlet
-eventlet.monkey_patch()  # cần gọi càng sớm càng tốt
+eventlet.monkey_patch()
+
+from flask import request
+from datetime import datetime, timedelta
 
 import qrcode
 from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-from db import get_cursor, test_connection  # giả sử bạn đã có db.py
-
-# ==============================
-# 🔧 LOGGING
-# ==============================
+from db import get_cursor, test_connection  # giữ nguyên module DB của bạn
+import os
+from datetime import datetime, timedelta
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from flask_socketio import SocketIO
+import logging
+# ===== LOGGING =====
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - [FLASK] - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# ==============================
-# 🚀 KHỞI TẠO FLASK + SOCKET
-# ==============================
+# ===== INIT =====
 app = Flask(__name__, static_folder="static")
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
-# ==============================
-# 🔹 TIỆN ÍCH CHUNG
-# ==============================
+# ===== HELPERS =====
 def fetch_all_as_dict(cursor):
-    """Chuyển cursor.fetchall() → list[dict]"""
     if not cursor.description:
         return []
     cols = [c[0] for c in cursor.description]
     return [dict(zip(cols, row)) for row in cursor.fetchall()]
 
 def now_vietnam():
-    """Trả về datetime giờ VN (UTC+7)"""
     return datetime.now(timezone(timedelta(hours=7)))
 
-# ==============================
-# 🖼️ PHỤC VỤ ẢNH STATIC
-# ==============================
-@app.route("/images/<path:filename>")
-def serve_image(filename):
-    static_images = os.path.join(app.static_folder, "images")
-    return send_from_directory(static_images, filename)
+def make_full_image_url(raw_path: str):
+    host = request.host_url.rstrip('/')
+    if not raw_path:
+        return f"{host}/static/images/no-image.jpg"
+    path = raw_path.replace("\\", "/").strip()
+    if path.lower().startswith("http://") or path.lower().startswith("https://"):
+        return path
+    path = path.lstrip("/")
+    if path.startswith("static/"):
+        return f"{host}/{path}"
+    if path.startswith("images/") or path.startswith("qrcodes/"):
+        return f"{host}/static/{path}"
+    return f"{host}/static/images/{path}"
 
-# ==============================
-# 🧾 HELPER LƯU QR
-# ==============================
 def save_qr_image(img, filename):
     folder = os.path.join(app.static_folder, "images", "qrcodes")
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, filename)
     img.save(path)
-    return f"qrcodes/{filename}"  # relative path trả về frontend
+    return f"qrcodes/{filename}"
 
-# ==============================
-# 🍜 MENU PUBLIC
-# ==============================
+#baos caso
+def get_date_filter(period, alias="d"):
+    today = datetime.now().date()
+    if period == "day":
+        return f"CAST({alias}.NgayTao AS DATE) = '{today}'"
+    elif period == "week":
+        start_week = today - timedelta(days=today.weekday())
+        return f"CAST({alias}.NgayTao AS DATE) >= '{start_week}'"
+    elif period == "month":
+        return f"YEAR({alias}.NgayTao) = {today.year} AND MONTH({alias}.NgayTao) = {today.month}"
+    return "1=1"
+
+# ===== SERVE images =====
+@app.route("/images/<path:filename>")
+def serve_image(filename):
+    return send_from_directory(os.path.join(app.static_folder, "images"), filename)
+
+# ===== MENU PUBLIC =====
 @app.route("/api/menu", methods=["GET"])
 def api_menu():
     try:
@@ -74,14 +91,14 @@ def api_menu():
                 FROM Menu WHERE TrangThai=1 ORDER BY TenMon
             """)
             rows = fetch_all_as_dict(cur)
+        for r in rows:
+            r["HinhAnh"] = make_full_image_url(r.get("HinhAnh") or "")
         return jsonify(rows), 200
     except Exception as e:
         logger.exception("Lỗi lấy menu: %s", e)
         return jsonify({"status":"error","message":str(e)}), 500
 
-# ==============================
-# 📋 ORDER API
-# ==============================
+# ===== DON HANG =====
 @app.route("/api/donhang", methods=["GET"])
 def api_get_all_donhang():
     try:
@@ -109,7 +126,6 @@ def api_get_donhang_detail(iddon):
                 return jsonify({"status":"error","message":"Không tìm thấy đơn"}), 404
             cols = [c[0] for c in cur.description]
             order_dict = dict(zip(cols, row))
-
             cur.execute("""
                 SELECT ct.IDChiTiet, ct.IDMon, m.TenMon, m.HinhAnh, ct.SoLuong, ct.DonGia, ct.GhiChu,
                        (ct.SoLuong*ct.DonGia) AS ThanhTien
@@ -117,8 +133,10 @@ def api_get_donhang_detail(iddon):
                 JOIN Menu m ON ct.IDMon = m.IDMon
                 WHERE ct.IDDonHang=?
             """, (iddon,))
-            order_dict['Items'] = fetch_all_as_dict(cur)
-
+            items = fetch_all_as_dict(cur)
+            for it in items:
+                it["HinhAnh"] = make_full_image_url(it.get("HinhAnh") or "")
+            order_dict['Items'] = items
         return jsonify(order_dict), 200
     except Exception as e:
         logger.exception("Lỗi lấy chi tiết đơn hàng: %s", e)
@@ -130,21 +148,20 @@ def api_create_donhang():
         data = request.get_json(force=True)
         idban = data.get("IDBan") or data.get("table")
         items = data.get("Items") or data.get("items") or []
-
         if not idban or not items:
             return jsonify({"status":"error","message":"Thiếu IDBan hoặc danh sách món"}), 400
-
         normalized_items = []
         for it in items:
             idmon = it.get("IDMon") or it.get("id") or it.get("ID")
             soluong = it.get("SoLuong") or it.get("qty") or 1
             ghichu = it.get("GhiChu") or it.get("note") or ""
-            if not idmon: continue
-            normalized_items.append({"IDMon": int(idmon), "SoLuong": int(soluong), "GhiChu": str(ghichu)})
-
+            try:
+                idmi = int(idmon)
+            except Exception:
+                continue
+            normalized_items.append({"IDMon": idmi, "SoLuong": int(soluong), "GhiChu": str(ghichu)})
         if not normalized_items:
             return jsonify({"status":"error","message":"Danh sách món không hợp lệ"}), 400
-
         now_vn_naive = now_vietnam().replace(tzinfo=None)
         with get_cursor() as cur:
             cur.execute("""
@@ -152,40 +169,34 @@ def api_create_donhang():
                 OUTPUT INSERTED.IDDonHang
                 VALUES (?, NULL, N'Đang xử lý', 0, ?)
             """, (idban, now_vn_naive))
-            iddon = int(cur.fetchone()[0])
-
-            # Lấy giá món
+            iddon_row = cur.fetchone()
+            iddon = int(iddon_row[0])
             ids = [i["IDMon"] for i in normalized_items]
-            placeholders = ",".join("?"*len(ids))
+            placeholders = ",".join(["?"] * len(ids))
             cur.execute(f"SELECT IDMon, Gia FROM Menu WHERE IDMon IN ({placeholders})", tuple(ids))
             prices = {int(r[0]): float(r[1]) for r in cur.fetchall()}
-
             tong = 0.0
             for it in normalized_items:
                 gia = prices.get(it["IDMon"])
-                if gia is None: continue
+                if gia is None:
+                    logger.warning("Không tìm thấy giá cho IDMon=%s", it["IDMon"])
+                    continue
                 cur.execute("""
                     INSERT INTO ChiTietDonHang (IDDonHang, IDMon, SoLuong, DonGia, GhiChu)
                     VALUES (?, ?, ?, ?, ?)
                 """, (iddon, it["IDMon"], it["SoLuong"], gia, it["GhiChu"]))
                 tong += gia * it["SoLuong"]
-
             cur.execute("UPDATE DonHang SET TongTien=? WHERE IDDonHang=?", (tong, iddon))
-
-        # Emit socket event
         socketio.emit("new_order", {
             "IDDonHang": iddon, "IDBan": idban, "TrangThaiBep": "Đang xử lý",
             "TongTien": tong, "ThoiGianTao": now_vietnam().strftime("%Y-%m-%d %H:%M:%S")
         })
         return jsonify({"status":"ok","IDDonHang":iddon}), 201
-
     except Exception as e:
         logger.exception("Lỗi tạo đơn hàng: %s", e)
         return jsonify({"status":"error","message":str(e)}), 500
 
-# ==============================
-# 👨‍🍳 CẬP NHẬT TRẠNG THÁI BẾP
-# ==============================
+# ===== BẾP UPDATE =====
 @app.route("/api/bep/cap-nhat-trang-thai/<int:iddon>", methods=["PUT"])
 def api_bep_update(iddon):
     try:
@@ -193,18 +204,14 @@ def api_bep_update(iddon):
             cur.execute("UPDATE DonHang SET TrangThaiBep=N'Hoàn tất' WHERE IDDonHang=?", (iddon,))
             cur.execute("SELECT IDDonHang, IDBan, TrangThaiBep FROM DonHang WHERE IDDonHang=?", (iddon,))
             r = cur.fetchone()
-            if not r: return jsonify({"status":"error","message":"Không tìm thấy đơn"}), 404
             payload = {"IDDonHang": int(r[0]), "IDBan": r[1], "TrangThaiBep": r[2]}
-
         socketio.emit("bep_status_update", payload)
         return jsonify({"status":"ok","payload":payload}), 200
     except Exception as e:
         logger.exception("Lỗi cập nhật trạng thái: %s", e)
         return jsonify({"status":"error","message":str(e)}), 500
 
-# ==============================
-# 🔌 SOCKET.IO EVENTS
-# ==============================
+# ===== SOCKET EVENTS =====
 @socketio.on("connect")
 def on_connect():
     logger.info(f"Socket connected: {request.sid}")
@@ -214,9 +221,7 @@ def on_connect():
 def on_disconnect():
     logger.info(f"Socket disconnected: {request.sid}")
 
-# ==============================
-# 🍽️ ADMIN MENU CRUD (ĐÃ SỬA CHUẨN)
-# ==============================
+# ===== ADMIN MENU CRUD =====
 @app.route("/api/admin/menu", methods=["GET"])
 def admin_list_menu():
     try:
@@ -226,20 +231,12 @@ def admin_list_menu():
                 FROM Menu ORDER BY IDMon DESC
             """)
             rows = fetch_all_as_dict(cur)
-
-        # ✅ Chuẩn hóa đường dẫn ảnh
         for r in rows:
-            if r["HinhAnh"]:
-                path = r["HinhAnh"].replace("\\", "/")
-                if path.startswith("/static/"):
-                    path = path[len("/static/"):]
-                r["HinhAnh"] = f"http://127.0.0.1:5000/static/{path.lstrip('/')}"
-
+            r["HinhAnh"] = make_full_image_url(r.get("HinhAnh") or "")
         return jsonify(rows), 200
     except Exception as e:
         logger.exception("Lỗi admin_list_menu: %s", e)
         return jsonify({"status": "error", "message": str(e)}), 500
-
 
 @app.route("/api/admin/menu", methods=["POST"])
 def admin_create_menu():
@@ -248,207 +245,169 @@ def admin_create_menu():
         ten = data.get("TenMon")
         if not ten:
             return jsonify({"status": "error", "message": "TenMon required"}), 400
-
         mota = data.get("MoTa", "")
         gia = float(data.get("Gia", 0))
         hinhanh = data.get("HinhAnh", "")
         danh_muc = data.get("DanhMuc", "")
-
         with get_cursor() as cur:
             cur.execute("""
                 INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc, TrangThai)
-                VALUES (?, ?, ?, ?, ?, 1);
-                SELECT SCOPE_IDENTITY();
+                VALUES (?, ?, ?, ?, ?, 1)
             """, (ten, mota, gia, hinhanh, danh_muc))
+            cur.execute("SELECT MAX(IDMon) FROM Menu")
             new_id = int(cur.fetchone()[0])
-
-            cur.execute("""
-                SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc, TrangThai
-                FROM Menu WHERE IDMon=?
-            """, (new_id,))
+            cur.execute("SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc, TrangThai FROM Menu WHERE IDMon=?", (new_id,))
             menu = fetch_all_as_dict(cur)[0]
-
-        # ✅ Chuẩn hóa đường dẫn ảnh
-        if menu["HinhAnh"]:
-            path = menu["HinhAnh"].replace("\\", "/")
-            if path.startswith("/static/"):
-                path = path[len("/static/"):]
-            menu["HinhAnh"] = f"http://127.0.0.1:5000/static/{path.lstrip('/')}"
-
-        return jsonify({"status": "ok", "menu": menu}), 201
+        menu["HinhAnh"] = make_full_image_url(menu.get("HinhAnh") or "")
+        return jsonify({"status":"ok","menu":menu}), 201
     except Exception as e:
         logger.exception("Lỗi admin_create_menu: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+        return jsonify({"status":"error","message":str(e)}), 500
 
 @app.route("/api/admin/menu/<int:idmon>", methods=["PUT"])
 def admin_update_menu(idmon):
     try:
         data = request.get_json(force=True)
         sets, params = [], []
-
         for field in ["TenMon", "MoTa", "Gia", "HinhAnh", "DanhMuc", "TrangThai"]:
             if field in data:
                 sets.append(f"{field}=?")
                 val = data[field]
-                if field == "Gia":
-                    val = float(val)
-                if field == "TrangThai":
-                    val = int(val)
+                if field=="Gia": val=float(val)
+                if field=="TrangThai": val=int(val)
                 params.append(val)
-
         if not sets:
             return jsonify({"status": "error", "message": "No fields to update"}), 400
-
         params.append(idmon)
         with get_cursor() as cur:
             cur.execute(f"UPDATE Menu SET {', '.join(sets)} WHERE IDMon=?", tuple(params))
-
-        return jsonify({"status": "ok"}), 200
+            cur.execute("SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc, TrangThai FROM Menu WHERE IDMon=?", (idmon,))
+            menu = fetch_all_as_dict(cur)[0]
+        menu["HinhAnh"] = make_full_image_url(menu.get("HinhAnh") or "")
+        return jsonify({"status":"ok","menu":menu}), 200
     except Exception as e:
         logger.exception("Lỗi admin_update_menu: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+        return jsonify({"status": "error","message": str(e)}), 500
 
 @app.route("/api/admin/menu/<int:idmon>", methods=["DELETE"])
 def admin_delete_menu(idmon):
     try:
         with get_cursor() as cur:
+            # kiểm tra FK trước
+            cur.execute("SELECT COUNT(*) FROM ChiTietDonHang WHERE IDMon=?", (idmon,))
+            if cur.fetchone()[0] > 0:
+                return jsonify({"status":"error","message":"Không thể xóa món này vì đang có đơn hàng"}), 400
+
             cur.execute("DELETE FROM Menu WHERE IDMon=?", (idmon,))
-        return jsonify({"status": "ok"}), 200
+        return jsonify({"status":"ok"}), 200
     except Exception as e:
         logger.exception("Lỗi admin_delete_menu: %s", e)
         return jsonify({"status": "error", "message": str(e)}), 500
 
-## ==============================
-# 🍽️ TABLE + QR CRUD (Tái sử dụng ID bị xóa)
-# ==============================
-
+# ===== TABLE / QR CRUD =====
 @app.route("/api/admin/table", methods=["GET"])
 def admin_list_tables():
-    """📋 Lấy danh sách tất cả bàn"""
     try:
         with get_cursor() as cur:
-            cur.execute("""
-                SELECT IDBan, TenBan, MaQR, TrangThai, NgayTao
-                FROM Ban
-                ORDER BY IDBan
-            """)
+            cur.execute("SELECT IDBan, TenBan, MaQR, TrangThai, NgayTao FROM Ban ORDER BY IDBan")
             rows = fetch_all_as_dict(cur)
+        for r in rows:
+            if r.get("MaQR"): 
+                r["MaQR"] = make_full_image_url(r["MaQR"])
         return jsonify(rows), 200
     except Exception as e:
         logger.exception("Lỗi admin_list_tables: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error","message": str(e)}), 500
+
 
 @app.route("/api/admin/table", methods=["POST"])
 def admin_create_table():
-    """Tạo bàn mới, IDBan tự tăng, tạo mã QR tự động."""
     try:
         data = request.get_json(force=True)
         tenban = str(data.get("TenBan") or "").strip()
         base_url = data.get("base_url") or request.host_url.rstrip('/')
-
         if not tenban:
-            return jsonify({"status": "error", "message": "Thiếu tên bàn!"}), 400
+            return jsonify({"status":"error","message":"Thiếu tên bàn!"}),400
 
         with get_cursor() as cur:
-            # Kiểm tra trùng tên bàn
+            # Kiểm tra tên bàn trùng
             cur.execute("SELECT COUNT(*) FROM Ban WHERE TenBan=?", (tenban,))
-            if cur.fetchone()[0] > 0:
-                return jsonify({
-                    "status": "error",
-                    "message": f"Tên bàn '{tenban}' đã tồn tại!"
-                }), 400
+            if cur.fetchone()[0]>0:
+                return jsonify({"status":"error","message":f"Tên bàn '{tenban}' đã tồn tại!"}),400
 
-            # ✅ Tạo bàn mới và lấy IDBan vừa tạo
+            # Tìm IDBan trống nhỏ nhất
             cur.execute("""
-                INSERT INTO Ban (TenBan)
-                OUTPUT INSERTED.IDBan
-                VALUES (?)
-            """, (tenban,))
-            id_result = cur.fetchone()
-            if not id_result or id_result[0] is None:
-                raise Exception("Không thể lấy ID bàn mới tạo!")
+                SELECT ISNULL(MIN(t.IDBan)+1, 1) 
+                FROM Ban t 
+                WHERE t.IDBan+1 NOT IN (SELECT IDBan FROM Ban)
+            """)
+            idban = cur.fetchone()[0]
 
-            idban = int(id_result[0])
+            # Chèn bàn mới với IDBan cụ thể
+            cur.execute("SET IDENTITY_INSERT Ban ON")
+            cur.execute("INSERT INTO Ban (IDBan, TenBan) VALUES (?, ?)", (idban, tenban))
+            cur.execute("SET IDENTITY_INSERT Ban OFF")
 
-            # ✅ Tạo QR Code
+            # Tạo QR
             qr_link = f"{base_url}/khach?table={idban}"
-            qr = qrcode.QRCode(box_size=8, border=2)
-            qr.add_data(qr_link)
-            qr.make(fit=True)
+            qr = qrcode.QRCode(box_size=8,border=2)
+            qr.add_data(qr_link); qr.make(fit=True)
             img = qr.make_image(fill_color="black", back_color="white")
             saved_rel = save_qr_image(img, f"qr_table_{idban}.png")
-
-            # ✅ Cập nhật mã QR vào DB
             cur.execute("UPDATE Ban SET MaQR=? WHERE IDBan=?", (saved_rel, idban))
 
-        return jsonify({
-            "status": "ok",
-            "table": {
-                "IDBan": idban,
-                "TenBan": tenban,
-                "MaQR": saved_rel,
-                "qr_link": qr_link
-            }
-        }), 201
-
+        return jsonify({"status":"ok",
+                        "table":{"IDBan":idban,"TenBan":tenban,
+                                 "MaQR":make_full_image_url(saved_rel),"qr_link":qr_link}}),201
     except Exception as e:
         logger.exception("Lỗi admin_create_table: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status":"error","message":str(e)}),500
+
 
 @app.route("/api/admin/table/<int:idban>", methods=["PUT"])
 def admin_update_table(idban):
-    """✏️ Sửa thông tin bàn"""
     try:
         data = request.get_json(force=True)
         tenban = str(data.get("TenBan") or "").strip()
         trangthai = str(data.get("TrangThai") or "").strip() or None
-
         if not tenban:
-            return jsonify({"status": "error", "message": "Thiếu tên bàn!"}), 400
-
+            return jsonify({"status": "error","message": "Thiếu tên bàn!"}), 400
         with get_cursor() as cur:
             # Kiểm tra bàn tồn tại
             cur.execute("SELECT COUNT(*) FROM Ban WHERE IDBan=?", (idban,))
-            if cur.fetchone()[0] == 0:
-                return jsonify({"status": "error", "message": "Bàn không tồn tại!"}), 404
+            if cur.fetchone()[0]==0:
+                return jsonify({"status": "error","message": "Bàn không tồn tại!"}),404
 
-            # Kiểm tra trùng tên (trừ chính nó)
-            cur.execute("SELECT COUNT(*) FROM Ban WHERE TenBan=? AND IDBan<>?", (tenban, idban))
-            if cur.fetchone()[0] > 0:
-                return jsonify({
-                    "status": "error",
-                    "message": f"Tên bàn '{tenban}' đã được dùng!"
-                }), 400
+            # Kiểm tra tên bàn trùng
+            cur.execute("SELECT COUNT(*) FROM Ban WHERE TenBan=? AND IDBan<>?", (tenban,idban))
+            if cur.fetchone()[0]>0:
+                return jsonify({"status":"error","message":f"Tên bàn '{tenban}' đã được dùng!"}),400
 
-            cur.execute("""
-                UPDATE Ban
-                SET TenBan=?, TrangThai=ISNULL(?, TrangThai)
-                WHERE IDBan=?
-            """, (tenban, trangthai, idban))
+            # Cập nhật bàn
+            cur.execute("UPDATE Ban SET TenBan=?, TrangThai=ISNULL(?,TrangThai) WHERE IDBan=?", 
+                        (tenban,trangthai,idban))
 
-        return jsonify({"status": "ok"}), 200
-
+        return jsonify({"status":"ok"}),200
     except Exception as e:
         logger.exception("Lỗi admin_update_table: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status":"error","message":str(e)}),500
 
 
 @app.route("/api/admin/table/<int:idban>", methods=["DELETE"])
 def admin_delete_table(idban):
-    """🗑️ Xóa bàn theo IDBan"""
     try:
         with get_cursor() as cur:
+            # Xóa tất cả DonHang liên quan
+            cur.execute("DELETE FROM DonHang WHERE IDBan=?", (idban,))
+            # Xóa bàn
             cur.execute("DELETE FROM Ban WHERE IDBan=?", (idban,))
-        return jsonify({"status": "ok"}), 200
+        return jsonify({"status":"ok"}),200
     except Exception as e:
         logger.exception("Lỗi admin_delete_table: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status":"error","message":str(e)}),500
 
-# ==============================
-# 📊 REPORT API
-# ==============================
+
+# ===== REPORT, CALL STAFF, PAYMENT =====
 @app.route("/api/report", methods=["GET"])
 def get_report():
     try:
@@ -463,35 +422,29 @@ def get_report():
             start_date = now.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
         else:
             start_date = now
-
         with get_cursor() as cur:
             cur.execute("""
                 SELECT COUNT(*) as total_orders, ISNULL(SUM(TongTien),0) as total_revenue
                 FROM DonHang
                 WHERE TrangThaiThanhToan=1 AND NgayTao>=?
-            """, (start_date,))
+            """,(start_date,))
             row = cur.fetchone()
-            total_orders = row[0] if row else 0
-            total_revenue = float(row[1]) if row else 0
-        return jsonify({"totalOrders":total_orders,"totalRevenue":total_revenue,"period":period,"startDate":start_date.isoformat()}), 200
+        total_orders = row[0] if row else 0
+        total_revenue = float(row[1]) if row else 0
+        return jsonify({"totalOrders":total_orders,"totalRevenue":total_revenue,"period":period,"startDate":start_date.isoformat()}),200
     except Exception as e:
         logger.exception("Lỗi get_report: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status":"error","message":str(e)}),500
 
-# ==============================
-# 👥 CALL STAFF
-# ==============================
 @app.route("/api/call_staff", methods=["POST"])
 def call_staff():
     data = request.get_json()
     table = data.get("table")
-    if not table: return jsonify({"error":"Thiếu số bàn"}), 400
+    if not table:
+        return jsonify({"error":"Thiếu số bàn"}), 400
     socketio.emit("staff_call", {"table": table})
     return jsonify({"message": f"Bàn {table} đã gọi nhân viên"}), 200
 
-# ==============================
-# 🏠 ADMIN PAGE
-# ==============================
 @app.route("/admin")
 def admin_page():
     return render_template("admin.html")
@@ -500,34 +453,78 @@ def admin_page():
 def api_pay_donhang(iddon):
     try:
         with get_cursor() as cur:
-            # Kiểm tra đơn hàng
             cur.execute("SELECT TrangThaiThanhToan FROM DonHang WHERE IDDonHang=?", (iddon,))
             row = cur.fetchone()
             if not row:
-                return jsonify({"status":"error","message":"Không tìm thấy đơn hàng"}), 404
-            if row[0]:  # đã thanh toán
-                return jsonify({"status":"error","message":"Đơn đã được thanh toán"}), 400
-
-            # Cập nhật trạng thái thanh toán
+                return jsonify({"status":"error","message":"Không tìm thấy đơn hàng"}),404
+            if row[0]:
+                return jsonify({"status":"error","message":"Đơn đã được thanh toán"}),400
             cur.execute("UPDATE DonHang SET TrangThaiThanhToan=1 WHERE IDDonHang=?", (iddon,))
-        
-        # Gửi sự kiện socket nếu cần
         socketio.emit("order_paid", {"IDDonHang": iddon})
-
-        return jsonify({"status":"ok","IDDonHang": iddon, "message":"Thanh toán thành công"}), 200
+        return jsonify({"status":"ok","IDDonHang": iddon, "message":"Thanh toán thành công"}),200
     except Exception as e:
         logger.exception("Lỗi thanh toán đơn hàng: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status":"error","message":str(e)}),500
 
+#báo cáo theo biểu đồ
+@app.route("/api/report/total-paid-unpaid")
+def total_paid_unpaid():
+    period = request.args.get("period", "day")
+    date_filter = get_date_filter(period, alias="d")
+    try:
+        with get_cursor() as cur:
+            cur.execute(f"""
+                SELECT 
+                    SUM(CASE WHEN d.TrangThaiThanhToan=1 THEN d.TongTien ELSE 0 END) AS Paid,
+                    SUM(CASE WHEN d.TrangThaiThanhToan=0 THEN d.TongTien ELSE 0 END) AS Unpaid
+                FROM DonHang d
+                WHERE {date_filter}
+            """)
+            row = cur.fetchone()
+            return jsonify({"Paid": float(row.Paid or 0), "Unpaid": float(row.Unpaid or 0)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# ==============================
-# ⚙️ CHẠY SERVER
-# ==============================
+@app.route("/api/report/revenue-by-category")
+def revenue_by_category():
+    period = request.args.get("period", "day")
+    date_filter = get_date_filter(period, alias="d")
+    try:
+        with get_cursor() as cur:
+            cur.execute(f"""
+                SELECT 
+                    m.DanhMuc,
+                    SUM(ct.SoLuong * ct.DonGia) AS DoanhThu
+                FROM ChiTietDonHang ct
+                JOIN Menu m ON ct.IDMon = m.IDMon
+                JOIN DonHang d ON ct.IDDonHang = d.IDDonHang
+                WHERE d.TrangThaiThanhToan = 1 AND {date_filter}
+                GROUP BY m.DanhMuc
+                ORDER BY DoanhThu DESC
+            """)
+            rows = cur.fetchall()
+            result = [{"DanhMuc": r.DanhMuc, "DoanhThu": float(r.DoanhThu)} for r in rows]
+            return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ======= Socket Example =======
+@socketio.on("connect")
+def handle_connect():
+    print("Client connected")
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    print("Client disconnected")
+
+@socketio.on("call_staff")
+def handle_call_staff(data):
+    socketio.emit("staff_call", data)
+# ===== RUN SERVER =====
 if __name__ == "__main__":
     try:
         test_connection()
         logger.info("✅ Kết nối DB thành công.")
     except Exception as e:
         logger.critical("❌ Kết nối DB thất bại: %s", e)
-
     socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
