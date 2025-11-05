@@ -1,6 +1,3 @@
-/* ===== ADMIN PANEL STYLES ===== */
-
-/* Notification Toast */
 .notification {
   position: fixed;
   top: 20px;
@@ -43,6 +40,16 @@
 
 .notification-error i {
   color: #ef4444;
+}
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #e2e8f0;
+  color: #1e293b;
+  white-space: nowrap;
 }
 
 .notification-warning {
@@ -684,3 +691,4 @@ th { background:#f1f5f9; font-weight:600; font-size:0.875rem; text-transform:upp
 #qr-link a:hover { text-decoration:underline; }
 .charts-container { display:flex; gap:40px; flex-wrap:wrap; }
 .chart-box { flex:1; min-width:300px; text-align:center; }
+

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎛️ Admin - SmartOrder</title>
+<title>⚙️ Quản trị - Mì Cay One</title>
 
 <!-- Fonts & Icons -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,10 @@
 
 <header>
   <div class="header-content">
-    <div class="header-left"><i class="fas fa-cog"></i><h1>Admin Panel</h1></div>
+    <div class="header-left">
+      <img class="logo" src="image/logo.jpg" alt="Logo Mì Cay" style="height: 50px; width: auto;" />
+      <h1>Quản trị hệ thống</h1>
+    </div>
     <div class="header-right"><span>👤 Admin</span></div>
   </div>
 </header>
@@ -30,6 +33,7 @@
     <button class="active" data-target="menu-section"><i class="fas fa-utensils"></i> Quản lý Menu</button>
     <button data-target="table-section"><i class="fas fa-table"></i> Quản lý Bàn</button>
     <button data-target="report-section"><i class="fas fa-chart-bar"></i> Báo cáo</button>
+    <button data-target="staff-section"><i class="fas fa-user-friends"></i> Quản lý Nhân sự</button>
   </div>
 </nav>
 
@@ -40,12 +44,22 @@
       <h2><i class="fas fa-utensils"></i> Quản lý Menu</h2>
       <button id="add-food" class="btn-add"><i class="fas fa-plus"></i> Thêm món mới</button>
     </div>
-    <div class="stats-grid"><div class="stat-card"><h4>Tổng số món</h4><div class="stat-value" id="stat-menu">0</div></div></div>
+    <div class="stats-grid">
+      <div class="stat-card"><h4>Tổng số món</h4><div class="stat-value" id="stat-menu">0</div></div>
+    </div>
     <div class="content-card">
       <div class="table-container">
         <table id="menu-table">
-          <thead><tr><th>Tên món</th><th>Giá</th><th>Danh mục</th><th>Thao tác</th></tr></thead>
-          <tbody><tr><td colspan="4" style="text-align:center; padding:2rem; color:#94a3b8;">Đang tải dữ liệu...</td></tr></tbody>
+          <thead>
+            <tr>
+              <th>Tên món</th>
+              <th>Giá</th>
+              <th>Danh mục</th>
+              <th>Mô tả</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody><tr><td colspan="5" style="text-align:center; padding:2rem; color:#94a3b8;">Đang tải dữ liệu...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -61,39 +75,69 @@
     <div class="content-card">
       <div class="table-container">
         <table id="table-list">
-          <thead><tr><th>Số bàn</th><th>Tên bàn</th><th>QR Code</th><th>Thao tác</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Số bàn</th>
+              <th>Tên bàn</th>
+              <th>QR Code</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
           <tbody><tr><td colspan="4" style="text-align:center; padding:2rem; color:#94a3b8;">Đang tải dữ liệu...</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <div class="tab" id="report-section">
-  <h2>Báo cáo thống kê</h2>
-  
-  <div class="chart-container" style="width: 400px; display:inline-block; margin-right:40px;">
-    <h3>Tổng doanh thu</h3>
-    <canvas id="chart-paid-unpaid"></canvas>
+  <!-- REPORT SECTION -->
+  <div id="report-section" class="tab">
+    <h2>Báo cáo thống kê</h2>
+    <div class="chart-container" style="width: 400px; display:inline-block; margin-right:40px;">
+      <h3>Tổng doanh thu</h3>
+      <canvas id="chart-paid-unpaid"></canvas>
+    </div>
+    <div class="chart-container" style="width: 400px; display:inline-block;">
+      <h3>Doanh thu theo danh mục</h3>
+      <canvas id="chart-category"></canvas>
+    </div>
+    <label for="report-period">Chọn khoảng thời gian:</label>
+    <select id="report-period">
+      <option value="day">Hôm nay</option>
+      <option value="week">Tuần này</option>
+      <option value="month">Tháng này</option>
+    </select>
   </div>
 
-  <div class="chart-container" style="width: 400px; display:inline-block;">
-    <h3>Doanh thu theo danh mục</h3>
-    <canvas id="chart-category"></canvas>
+  <!-- STAFF SECTION -->
+<div id="staff-section" class="tab">
+  <div class="section-header">
+    <h2><i class="fas fa-user-friends"></i> Quản lý Nhân sự</h2>
+    <button id="add-staff-btn" class="btn-add"><i class="fas fa-plus"></i> Thêm nhân sự</button>
   </div>
-
-  <label for="report-period">Chọn khoảng thời gian:</label>
-  <select id="report-period">
-    <option value="day">Hôm nay</option>
-    <option value="week">Tuần này</option>
-    <option value="month">Tháng này</option>
-  </select>
+  <div class="content-card">
+    <div class="table-container">
+      <table id="staff-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Họ tên</th>
+            <th>Tên đăng nhập</th>
+            <th>Mật khẩu</th>
+            <th>Vai trò</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="staff-table-body">
+          <tr><td colspan="6" style="text-align:center; padding:2rem; color:#94a3b8;">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </main>
 
-<!-- MODALS (Menu, Table, QR) -->
+<!-- MODALS -->
 <!-- Menu Modal -->
 <div id="menu-modal" class="modal">
   <div class="modal-content">
@@ -102,23 +146,34 @@
       <button class="modal-close"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-group"><label>Tên món <span class="required">*</span></label><input type="text" id="menu-ten" placeholder="Nhập tên món ăn"></div>
-      <div class="form-group"><label>Giá <span class="required">*</span></label><input type="number" id="menu-gia" placeholder="0" min="0" step="1000"><small>Đơn vị: VNĐ</small></div>
-      <div class="form-group"><label>Danh mục <span class="required">*</span></label>
-        <select id="menu-danhmuc"><option value="">-- Chọn danh mục --</option><option value="Mì cay">Mì cay</option><option value="Cơm trộn">Cơm trộn</option><option value="Topping">Topping</option><option value="Đồ uống">Đồ uống</option></select>
+      <!-- Form menu -->
+      <div class="form-group">
+        <label>Tên món <span class="required">*</span></label>
+        <input type="text" id="menu-ten" placeholder="Nhập tên món ăn">
+      </div>
+      <div class="form-group">
+        <label>Giá <span class="required">*</span></label>
+        <input type="number" id="menu-gia" placeholder="0" min="0" step="1000">
+        <small>Đơn vị: VNĐ</small>
+      </div>
+      <div class="form-group">
+        <label>Danh mục <span class="required">*</span></label>
+        <select id="menu-danhmuc">
+          <option value="">-- Chọn danh mục --</option>
+          <option value="Mì cay">Mì cay</option>
+          <option value="Cơm trộn">Cơm trộn</option>
+          <option value="Topping">Topping</option>
+          <option value="Đồ uống">Đồ uống</option>
+        </select>
       </div>
       <div class="form-group">
         <label>Hình ảnh</label>
-        <div class="image-input-row">
-          <div class="col">
-            <input type="text" id="menu-hinhanh" placeholder="Link hoặc tên file (vd: pho.jpg)">
-            <small>Nhập tên file hoặc URL ảnh</small>
-          </div>
-          <div class="col">
-            <input type="file" id="menu-hinhanh-file" accept="image/*">
-            <small>Chọn file ảnh từ máy tính</small>
-          </div>
-        </div>
+        <input type="text" id="menu-hinhanh" placeholder="Link hoặc tên file">
+        <input type="file" id="menu-hinhanh-file" accept="image/*">
+      </div>
+      <div class="form-group">
+        <label>Mô tả</label>
+        <textarea id="menu-mota" placeholder="Nhập mô tả" rows="3"></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -136,8 +191,10 @@
       <button class="modal-close"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-group"><label>Tên bàn <span class="required">*</span></label><input type="text" id="table-ten" placeholder="VD: Bàn 1, Bàn VIP..."></div>
-      <div class="form-group"><label>Base URL</label><input type="text" id="table-base-url" placeholder="https://yourdomain.com"><small>Để trống sẽ dùng URL hiện tại</small></div>
+      <div class="form-group">
+        <label>Tên bàn <span class="required">*</span></label>
+        <input type="text" id="table-ten" placeholder="VD: Bàn 1, Bàn VIP...">
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel"><i class="fas fa-times"></i> Hủy</button>
@@ -160,10 +217,46 @@
   </div>
 </div>
 
+<!-- STAFF MODAL -->
+<div id="staff-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="staff-modal-title">Thêm nhân sự mới</h3>
+      <button class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Họ tên <span class="required">*</span></label>
+        <input type="text" id="staff-fullname" placeholder="Nhập họ tên">
+      </div>
+      <div class="form-group">
+        <label>Tên đăng nhập <span class="required">*</span></label>
+        <input type="text" id="staff-username" placeholder="Tên đăng nhập">
+      </div>
+      <div class="form-group">
+        <label>Mật khẩu <span class="required">*</span></label>
+        <input type="text" id="staff-password" placeholder="Mật khẩu">
+      </div>
+      <div class="form-group">
+        <label>Vai trò <span class="required">*</span></label>
+        <select id="staff-role">
+          <option value="">-- Chọn vai trò --</option>
+          <option value="Admin">Admin</option>
+          <option value="Nhân viên">Nhân viên</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"><i class="fas fa-times"></i> Hủy</button>
+      <button id="staff-save-btn" class="btn-save"><i class="fas fa-save"></i> Lưu</button>
+    </div>
+  </div>
+</div>
 
 <!-- Spinner -->
 <div id="loading-spinner"><div class="spinner"></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/admin.js"></script>
 </body>
 </html>

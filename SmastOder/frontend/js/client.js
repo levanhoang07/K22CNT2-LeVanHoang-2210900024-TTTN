@@ -199,6 +199,37 @@ function renderCart() {
     })
   );
 }
+// ======= LỊCH SỬ ĐẶT MÓN =======
+let orderHistory = [];
+
+function renderHistory() {
+  const historyList = document.getElementById("history-list");
+  if (!orderHistory || orderHistory.length === 0) {
+    historyList.innerHTML = `<div class="history-empty">📜 Chưa có đơn hàng nào được gửi.</div>`;
+    return;
+  }
+  historyList.innerHTML = '';
+  orderHistory.forEach((order) => {
+    const div = document.createElement('div');
+    div.classList.add('history-item');
+    div.innerHTML = `
+      <span class="item-name">${order.name} x${order.qty}</span>
+      ${order.level ? `<span>🌶️ Cấp độ: ${order.level}</span>` : ""}
+      ${order.note ? `<span>📝 ${order.note}</span>` : ""}
+      <span class="item-time">${order.time}</span>
+    `;
+    historyList.appendChild(div);
+  });
+}
+
+function addOrderToHistory(item) {
+  orderHistory.push({
+    ...item,
+    time: new Date().toLocaleTimeString()
+  });
+  renderHistory();
+}
+
 
 // =============================
 // TÌM KIẾM + DANH MỤC
@@ -269,42 +300,46 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnOrder = document.getElementById("btn-order");
   if (btnOrder)
     btnOrder.addEventListener("click", async () => {
-      if (cart.length === 0) return alert("Giỏ hàng trống!");
+  if (cart.length === 0) return alert("Giỏ hàng trống!");
 
-      const table = document.getElementById("table-input").value;
-      if (!table) return alert("Vui lòng nhập số bàn!");
+  const table = document.getElementById("table-input").value;
+  if (!table) return alert("Vui lòng nhập số bàn!");
 
-      const orderData = {
-        IDBan: table,
-        items: cart.map((i) => ({
-          id: i.id,
-          qty: i.qty,
-          note: i.note,
-          level: i.level,
-        })),
-        time: new Date().toLocaleString("vi-VN"),
-      };
+  const orderData = {
+    IDBan: table,
+    items: cart.map((i) => ({
+      id: i.id,
+      qty: i.qty,
+      note: i.note,
+      level: i.level,
+      name: i.name   // thêm name để hiển thị trong lịch sử
+    })),
+    time: new Date().toLocaleString("vi-VN"),
+  };
 
-      try {
-        const res = await fetch(ORDER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderData),
-        });
-
-        if (!res.ok) throw new Error();
-
-        const json = await res.json();
-        alert(
-          `✅ Đơn đã gửi! Mã đơn: ${json.IDDonHang || "—"}\n⏳ Vui lòng chờ 4–10 phút để quán chuẩn bị món ❤️`
-        );
-
-        cart = [];
-        renderCart();
-      } catch {
-        alert("❌ Không gửi được đơn. Vui lòng thử lại.");
-      }
+  try {
+    const res = await fetch(ORDER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData),
     });
+
+    if (!res.ok) throw new Error();
+    const json = await res.json();
+
+    alert(
+      `✅ Đơn đã gửi! Mã đơn: ${json.IDDonHang || "—"}\n⏳ Vui lòng chờ 4–10 phút để quán chuẩn bị món ❤️`
+    );
+
+    // ✅ THÊM VÀO LỊCH SỬ
+    cart.forEach(item => addOrderToHistory(item));
+
+    cart = [];
+    renderCart();
+  } catch {
+    alert("❌ Không gửi được đơn. Vui lòng thử lại.");
+  }
+});
 
   // ✅ GỌI NHÂN VIÊN
   const btnCallStaff = document.getElementById("btn-call-staff");
@@ -327,4 +362,12 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("❌ Không gửi được tín hiệu. Vui lòng thử lại.");
       }
     });
+    // Toggle popup lịch sử
+const historyBtn = document.getElementById("history-toggle");
+const historyPopup = document.getElementById("history-popup");
+
+historyBtn.addEventListener("click", () => {
+  historyPopup.classList.toggle("hidden");
+});
+
 });

@@ -11,7 +11,7 @@ from flask import request
 from datetime import datetime, timedelta
 
 import qrcode
-from flask import Flask, request, jsonify, send_from_directory, render_template
+from flask import Flask, request, jsonify, session,redirect, url_for, send_from_directory, render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from db import get_cursor, test_connection  # giữ nguyên module DB của bạn
@@ -328,13 +328,11 @@ def admin_create_table():
         base_url = data.get("base_url") or request.host_url.rstrip('/')
         if not tenban:
             return jsonify({"status":"error","message":"Thiếu tên bàn!"}),400
-
         with get_cursor() as cur:
             # Kiểm tra tên bàn trùng
             cur.execute("SELECT COUNT(*) FROM Ban WHERE TenBan=?", (tenban,))
             if cur.fetchone()[0]>0:
                 return jsonify({"status":"error","message":f"Tên bàn '{tenban}' đã tồn tại!"}),400
-
             # Tìm IDBan trống nhỏ nhất
             cur.execute("""
                 SELECT ISNULL(MIN(t.IDBan)+1, 1) 
@@ -342,12 +340,10 @@ def admin_create_table():
                 WHERE t.IDBan+1 NOT IN (SELECT IDBan FROM Ban)
             """)
             idban = cur.fetchone()[0]
-
             # Chèn bàn mới với IDBan cụ thể
             cur.execute("SET IDENTITY_INSERT Ban ON")
             cur.execute("INSERT INTO Ban (IDBan, TenBan) VALUES (?, ?)", (idban, tenban))
             cur.execute("SET IDENTITY_INSERT Ban OFF")
-
             # Tạo QR
             qr_link = f"{base_url}/khach?table={idban}"
             qr = qrcode.QRCode(box_size=8,border=2)
@@ -355,14 +351,12 @@ def admin_create_table():
             img = qr.make_image(fill_color="black", back_color="white")
             saved_rel = save_qr_image(img, f"qr_table_{idban}.png")
             cur.execute("UPDATE Ban SET MaQR=? WHERE IDBan=?", (saved_rel, idban))
-
         return jsonify({"status":"ok",
                         "table":{"IDBan":idban,"TenBan":tenban,
                                  "MaQR":make_full_image_url(saved_rel),"qr_link":qr_link}}),201
     except Exception as e:
         logger.exception("Lỗi admin_create_table: %s", e)
         return jsonify({"status":"error","message":str(e)}),500
-
 
 @app.route("/api/admin/table/<int:idban>", methods=["PUT"])
 def admin_update_table(idban):
@@ -507,6 +501,104 @@ def revenue_by_category():
             return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+# ===== ADMIN STAFF CRUD =====
+@app.route("/api/admin/staff", methods=["GET"])
+def admin_list_staff():
+    try:
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT IDNguoiDung, TenDangNhap, HoTen, MatKhau, VaiTro
+                FROM NguoiDung ORDER BY IDNguoiDung DESC
+            """)
+            rows = fetch_all_as_dict(cur)
+        return jsonify(rows), 200
+    except Exception as e:
+        logger.exception("Lỗi admin_list_staff: %s", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/admin/staff", methods=["POST"])
+def admin_create_staff():
+    try:
+        data = request.get_json(force=True)
+        username = data.get("TenDangNhap")
+        fullname = data.get("HoTen", "")
+        role = data.get("VaiTro", "")
+        password = data.get("MatKhau") or "123456"  # Nếu không nhập thì dùng mặc định
+
+        if not username or not fullname or not role or not password:
+            return jsonify({"status":"error","message":"Thiếu thông tin"}), 400
+
+        with get_cursor() as cur:
+            # Kiểm tra trùng username
+            cur.execute("SELECT COUNT(*) FROM NguoiDung WHERE TenDangNhap=?", (username,))
+            if cur.fetchone()[0] > 0:
+                return jsonify({"status":"error","message":"Tên đăng nhập đã tồn tại"}), 400
+
+            cur.execute("""
+                INSERT INTO NguoiDung (TenDangNhap, MatKhau, HoTen, VaiTro)
+                VALUES (?, ?, ?, ?)
+            """, (username, password, fullname, role))
+
+            cur.execute("SELECT MAX(IDNguoiDung) FROM NguoiDung")
+            new_id = int(cur.fetchone()[0])
+
+            cur.execute("SELECT IDNguoiDung, TenDangNhap, HoTen, MatKhau, VaiTro FROM NguoiDung WHERE IDNguoiDung=?", (new_id,))
+            staff = fetch_all_as_dict(cur)[0]
+
+        return jsonify({"status":"ok","staff":staff}), 201
+    except Exception as e:
+        logger.exception("Lỗi admin_create_staff: %s", e)
+        return jsonify({"status":"error","message":str(e)}), 500
+
+@app.route("/api/admin/staff/<int:iduser>", methods=["PUT"])
+def admin_update_staff(iduser):
+    try:
+        data = request.get_json(force=True)
+        sets, params = [], []
+        for field in ["TenDangNhap", "HoTen", "VaiTro", "MatKhau"]:
+            if field in data and data[field]:
+                sets.append(f"{field}=?")
+                params.append(data[field])
+
+        if not sets:
+            return jsonify({"status": "error", "message": "No fields to update"}), 400
+
+        params.append(iduser)
+
+        with get_cursor() as cur:
+            # Nếu cập nhật username, kiểm tra trùng
+            if "TenDangNhap" in data:
+                cur.execute("SELECT COUNT(*) FROM NguoiDung WHERE TenDangNhap=? AND IDNguoiDung<>?", (data["TenDangNhap"], iduser))
+                if cur.fetchone()[0] > 0:
+                    return jsonify({"status":"error","message":"Tên đăng nhập đã tồn tại"}), 400
+
+            cur.execute(f"UPDATE NguoiDung SET {', '.join(sets)} WHERE IDNguoiDung=?", tuple(params))
+            cur.execute("SELECT IDNguoiDung, TenDangNhap, HoTen, MatKhau, VaiTro FROM NguoiDung WHERE IDNguoiDung=?", (iduser,))
+            staff = fetch_all_as_dict(cur)[0]
+
+        return jsonify({"status":"ok","staff":staff}), 200
+    except Exception as e:
+        logger.exception("Lỗi admin_update_staff: %s", e)
+        return jsonify({"status":"error","message": str(e)}), 500
+
+@app.route("/api/admin/staff/<int:iduser>", methods=["DELETE"])
+def admin_delete_staff(iduser):
+    try:
+        with get_cursor() as cur:
+            # Kiểm tra ràng buộc nếu cần (ví dụ đơn hàng liên quan)
+            cur.execute("SELECT COUNT(*) FROM DonHang WHERE IDNguoiDung=?", (iduser,))
+            if cur.fetchone()[0] > 0:
+                return jsonify({"status":"error","message":"Không thể xóa nhân sự này vì có đơn hàng liên quan"}), 400
+
+            cur.execute("DELETE FROM NguoiDung WHERE IDNguoiDung=?", (iduser,))
+        return jsonify({"status":"ok"}), 200
+    except Exception as e:
+        logger.exception("Lỗi admin_delete_staff: %s", e)
+        return jsonify({"status":"error","message": str(e)}), 500
+
+
+# đăng nhập
 
 # ======= Socket Example =======
 @socketio.on("connect")

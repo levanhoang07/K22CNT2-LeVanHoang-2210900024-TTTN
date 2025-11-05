@@ -30,14 +30,12 @@
     </div>
 
     <div class="lang-switch">
-  <select id="lang-select">
-    <option value="vi" >Tiếng Việt</option>
-    <option value="en">🇺🇸 English</option>
-    <option value="ko">🇰🇷 한국어</option>
-    <option value="cn">🇨🇳 中文</option>
-  </select>
-</div>
-
+      <select id="lang-select">
+        <option value="vi" >Tiếng Việt</option>
+        <option value="en">English</option>
+        <option value="ko">한국어</option>
+      </select>
+      </div>
   </header>
   
 
@@ -108,6 +106,18 @@
       <a>Phát triển bởi - Hoang</a>
     </p>
   </footer>
+<!-- Nút mở lịch sử đặt --> 
+<button id="history-toggle" class="history-btn" title="Lịch sử đặt món">
+  🔊
+</button>
+
+<!-- Popup lịch sử -->
+<div id="history-popup" class="history-popup hidden">
+  <h4>Lịch sử đặt món</h4>
+  <div id="history-list" class="history-list">
+    <div class="history-empty">📜 Chưa có đơn hàng nào được gửi.</div>
+  </div>
+</div>
 
   <script>
     document.getElementById('current-year').textContent = new Date().getFullYear();
@@ -116,4 +126,5 @@
     if (table) document.getElementById('table-input').value = table;
   </script>
 </body>
+
 </html>

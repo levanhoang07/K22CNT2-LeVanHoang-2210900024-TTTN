@@ -342,7 +342,7 @@ body {
   margin-bottom: 6px;
   background-color: #efebeb;
   border-radius: 8px;
-  font-size: 1.2rem; /* tăng chữ */
+  font-size: 1.2rem;
 }
 
 #order-items .item-name {
