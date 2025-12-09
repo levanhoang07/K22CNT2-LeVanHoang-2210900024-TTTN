@@ -55,6 +55,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   tabs.forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.target)));
 
+  // ==== Tìm kiếmm =====
+function setupSearch(inputId, tableId, colIndexes = []) {
+  const input = document.getElementById(inputId);
+  const tableBody = document.querySelector(`#${tableId} tbody`);
+
+  input.addEventListener("input", () => {
+    const filter = input.value.toLowerCase();
+
+    [...tableBody.rows].forEach(row => {
+      const text = colIndexes.length
+        ? colIndexes.map(i => row.cells[i]?.textContent.toLowerCase() || "").join(" ")
+        : row.textContent.toLowerCase();
+
+      row.style.display = text.includes(filter) ? "" : "none";
+    });
+  });
+}
+
+// Khởi tạo
+setupSearch("staff-search-input", "staff-table", [0]);    
+setupSearch("table-search-input", "table-table", [0,1]);    
+setupSearch("order-search-input", "order-table", [1]);    
+setupSearch("menu-search-input", "menu-table", [0]);     
+
   // ===== MENU =====
   const menuBody = document.querySelector("#menu-table tbody");
   const statMenu = document.getElementById("stat-menu");
@@ -507,7 +531,155 @@ document.getElementById("staff-save-btn")?.addEventListener("click", async () =>
 });
 
 
-// ===== Cập nhật switchTab =====
+// ===== ORDER =====
+const orderBody = document.querySelector("#order-table tbody");
+let editingOrderId = null;
+
+// Load danh sách đơn
+async function loadOrders() {
+  if (currentTab !== "order-section") return;
+  showSpinner();
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/donhang`);
+    const data = await res.json();
+
+    orderBody.innerHTML = data.length
+      ? ""
+      : `<tr><td colspan="5" style="text-align:center;color:#64748b;">Chưa có đơn hàng</td></tr>`;
+
+    data.forEach(o => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${o.IDDonHang}</td>
+        <td>${escapeHtml(o.IDBan || "")}</td>
+        <td>${parseFloat(o.TongTien || 0).toLocaleString()} ₫</td>
+        <td>${new Date(o.NgayTao).toLocaleString()}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn-view" onclick="viewOrder(${o.IDDonHang})">
+              <i class="fas fa-eye"></i> Xem
+            </button>
+            <button class="btn-edit" onclick="editOrder(${o.IDDonHang})">
+              <i class="fas fa-edit"></i> Sửa
+            </button>
+            <button class="btn-delete" onclick="deleteOrder(${o.IDDonHang})">
+              <i class="fas fa-trash"></i> Xóa
+            </button>
+          </div>
+        </td>
+      `;
+      orderBody.appendChild(tr);
+    });
+    // Cập nhật tổng đơn
+const statOrder = document.getElementById("stat-order");
+statOrder && (statOrder.textContent = data.length);
+
+
+  } catch {
+    showNotification("Lỗi tải đơn hàng", "error");
+  } finally {
+    hideSpinner();
+  }
+}
+
+// Xem chi tiết đơn
+window.viewOrder = async id => {
+  showSpinner();
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/donhang/${id}`);
+    const data = await res.json();
+
+    const body = document.getElementById("order-detail-body");
+    body.innerHTML = `
+      <p><strong>Bàn:</strong> ${escapeHtml(data.IDBan)}</p>
+      <p><strong>Thời gian:</strong> ${new Date(data.NgayTao).toLocaleString()}</p>
+      <p><strong>Tổng tiền:</strong> ${parseFloat(data.TongTien).toLocaleString()} ₫</p>
+      <p><strong>Ghi chú:</strong> ${escapeHtml(data.GhiChu || "")}</p>
+      <p><strong>Danh sách món:</strong></p>
+      <ul>
+        ${data.Items.map(m => `<li>${escapeHtml(m.TenMon)} x ${m.SoLuong} - ${(m.DonGia*m.SoLuong).toLocaleString()} ₫</li>`).join("")}
+      </ul>
+    `;
+    document.getElementById("order-detail-modal").classList.add("show");
+  } catch {
+    showNotification("Lỗi tải chi tiết đơn", "error");
+  } finally {
+    hideSpinner();
+  }
+};
+
+// Sửa đơn (chỉ bàn & số lượng món)
+window.editOrder = async id => {
+  editingOrderId = id;
+  showSpinner();
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/donhang/${id}`);
+    const data = await res.json();
+
+    document.getElementById("order-edit-table").value = data.IDBan;
+    const container = document.getElementById("order-edit-items");
+    container.innerHTML = data.Items.map(m => `
+      <div>
+        ${escapeHtml(m.TenMon)} x 
+        <input type="number" value="${m.SoLuong}" min="1" data-id="${m.IDMon}" style="width:60px;">
+      </div>
+    `).join("");
+
+    document.getElementById("order-edit-modal").classList.add("show");
+  } catch {
+    showNotification("Lỗi tải đơn hàng để sửa", "error");
+  } finally {
+    hideSpinner();
+  }
+};
+
+// Cập nhật đơn
+document.getElementById("order-update-btn")?.addEventListener("click", async () => {
+  if (!editingOrderId) return;
+  showSpinner();
+  try {
+    const idban = document.getElementById("order-edit-table").value;
+    const items = [...document.getElementById("order-edit-items").querySelectorAll("input")].map(inp => ({
+      IDMon: parseInt(inp.dataset.id),
+      SoLuong: parseInt(inp.value)
+    }));
+
+    const res = await fetch(`${API_BASE}/api/admin/donhang/${editingOrderId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ IDBan: idban, Items: items })
+    });
+
+    if (!res.ok) throw new Error();
+
+    showNotification("Cập nhật đơn thành công", "success");
+    document.getElementById("order-edit-modal").classList.remove("show");
+    editingOrderId = null;
+    loadOrders();
+  } catch {
+    showNotification("Lỗi cập nhật đơn", "error");
+  } finally {
+    hideSpinner();
+  }
+});
+
+// Xóa đơn
+window.deleteOrder = async id => {
+  if (!confirm("Bạn có chắc muốn xóa đơn này?")) return;
+  showSpinner();
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/donhang/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error();
+    showNotification("Xóa đơn thành công", "success");
+    loadOrders();
+  } catch {
+    showNotification("Lỗi xóa đơn", "error");
+  } finally {
+    hideSpinner();
+  }
+};
+
+// Load orders khi switch tab
 function switchTab(targetId) {
   currentTab = targetId;
   tabs.forEach(b => b.classList.toggle("active", b.dataset.target === targetId));
@@ -516,8 +688,10 @@ function switchTab(targetId) {
   if (targetId === "menu-section") loadMenu();
   if (targetId === "table-section") loadTables();
   if (targetId === "report-section") loadReportCharts();
-  if (targetId === "staff-section") loadStaff(); // <-- thêm đây
+  if (targetId === "staff-section") loadStaff();
+  if (targetId === "order-section") loadOrders(); // <-- thêm đây
 }
+
 
 
   // ===== Init =====

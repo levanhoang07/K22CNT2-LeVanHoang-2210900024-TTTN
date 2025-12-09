@@ -3,128 +3,192 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mì Cay One - Nâng Tầng Hương Vị Việt</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <title data-i18n="page_title">Mì Cay One - Nâng Tầng Hương Vị Việt</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
   <!-- Font & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css" />
 
-  <!-- Script -->
+  <!-- Scripts -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
   <script src="js/client.js" defer></script>
+  <script src="js/i18n.js"></script>
 </head>
+
+<script>
+async function loadLang(lang) {
+  const res = await fetch(`lang/${lang}.json`);
+  const data = await res.json();
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (data[key]) {
+      if (el.placeholder !== undefined) el.placeholder = data[key];
+      else el.textContent = data[key];
+    }
+  });
+}
+
+document.getElementById("lang-select").addEventListener("change", e => {
+  loadLang(e.target.value);
+});
+
+// Load default
+loadLang("vi");
+</script>
+
 <body>
   <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
       <img class="logo" src="image/logo.jpg" alt="Logo Mì Cay" />
       <div class="brand-info">
-        <h1>Mì Cay One</h1>
-        <p>🍜<i> Nâng tầng hương vị Việt</i></p>
-        <p class="address">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phúc Yên, Vĩnh Phúc</p>
+        <h1 data-i18n="brand_name">Mì Cay One</h1>
+        <p data-i18n="brand_slogan">🍜<i> Nâng tầng hương vị Việt</i></p>
+        <p class="address" data-i18n="brand_address">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phúc Yên, Vĩnh Phúc</p>
       </div>
     </div>
+
     <div class="table-meta">
-      <label for="table-input">Bàn bạn đang sử dụng:</label>
-      <input id="table-input" value="" readonly />
+      <label data-i18n="table_label">Bàn bạn đang sử dụng:</label>
+      <input id="table-input" readonly />
     </div>
 
     <div class="lang-switch">
-      <select id="lang-select">
-        <option value="vi" >Tiếng Việt</option>
+    <select id="lang-select">
+        <option value="vi">Tiếng Việt</option>
         <option value="en">English</option>
         <option value="ko">한국어</option>
-      </select>
-      </div>
+    </select>
+</div>
+
   </header>
-  
 
   <!-- MAIN -->
   <main class="layout">
+
     <!-- MENU -->
     <section class="menu">
       <div class="menu-head">
-        <h2 class="text-center"><b>Thực đơn</b></h2>
-        <input id="search" type="search" placeholder="🔍 Tìm món (mì, nước, topping...)" />
+        <h2 class="text-center"><b data-i18n="menu_title">Thực đơn</b></h2>
+
+        <input id="search" 
+               type="search" 
+               placeholder="🔍 Tìm món (mì, nước, topping...)"
+               data-i18n="search_placeholder" />
+
         <div class="category-bar">
-          <button class="cat-btn active" data-cat="all">Tất cả</button>
+          <button class="cat-btn active" data-cat="all" data-i18n="cat_all">Tất cả</button>
         </div>
       </div>
 
       <div id="menu-container" class="menu-grid">
-        <div class="loading-state">⏳ Đang tải thực đơn...</div>
+        <div class="loading-state" data-i18n="menu_loading">⏳ Đang tải thực đơn...</div>
       </div>
     </section>
 
     <!-- CART -->
     <aside class="cart">
-      <h3>Giỏ hàng</h3>
-      <div id="cart-list" class="cart-list">
-        <div class="empty">🛒 Giỏ hàng trống. Hãy chọn món!</div>
-      </div>
-      <div class="cart-summary">
-        <p>Tạm tính: <strong id="cart-subtotal">0 ₫</strong></p>
-        <button id="btn-order" class="btn primary" disabled>Gửi đơn đặth hàng</button>
-        <button id="btn-call-staff" class="btn btn-warning mt-3">
-  📢 Gọi nhân viên
-</button>
+      <h3 data-i18n="cart_title">Giỏ hàng</h3>
 
+      <div id="cart-list" class="cart-list">
+        <div class="empty" data-i18n="cart_empty">🛒 Giỏ hàng trống. Hãy chọn món!</div>
+      </div>
+
+      <div class="cart-summary">
+        <p data-i18n="cart_subtotal">Tạm tính:</p>
+        <strong id="cart-subtotal">0 ₫</strong>
+
+        <button id="btn-order" class="btn primary" disabled data-i18n="btn_send_order">
+          Gửi đơn đặt hàng
+        </button>
+
+        <button id="btn-call-staff" class="btn btn-warning mt-3" data-i18n="btn_call_staff">
+          📢 Gọi nhân viên
+        </button>
       </div>
     </aside>
   </main>
 
-  <!-- MODAL -->
+  <!-- MODAL CHỌN TÙY CHỌN -->
   <div id="option-modal" class="modal hidden">
     <div class="modal-content">
-      <h3>Ghi chú: </h3>
-      <label for="level-select">Cấp độ cay:</label>
+      <h3 data-i18n="modal_note_title">Ghi chú:</h3>
+
+      <label for="level-select" data-i18n="modal_level_label">Cấp độ cay:</label>
       <select id="level-select">
-        <option value="1">Cấp 1</option>
-        <option value="2">Cấp 2</option>
-        <option value="3">Cấp 3</option>
-        <option value="4">Cấp 4</option>
-        <option value="5">Cấp 5</option>
-        <option value="6">Cấp 6</option>
-        <option value="7">Cấp 7</option>
-        <option value="khac">Khác</option>
+        <option value="1" data-i18n="level_1">Cấp 1</option>
+        <option value="2" data-i18n="level_2">Cấp 2</option>
+        <option value="3" data-i18n="level_3">Cấp 3</option>
+        <option value="4" data-i18n="level_4">Cấp 4</option>
+        <option value="5" data-i18n="level_5">Cấp 5</option>
+        <option value="6" data-i18n="level_6">Cấp 6</option>
+        <option value="7" data-i18n="level_7">Cấp 7</option>
+        <option value="khac" data-i18n="level_other">Khác</option>
       </select>
 
-      <label for="note-input">Ghi chú:</label>
-      <textarea id="note-input" rows="2" placeholder="Bạn cần gì hãy ghi chú cho quán biết nha"></textarea>
+      <label for="note-input" data-i18n="modal_note_label">Ghi chú:</label>
+      <textarea id="note-input" rows="2" 
+                placeholder="Bạn cần gì hãy ghi chú cho quán biết nha"
+                data-i18n="modal_note_placeholder"></textarea>
 
       <div class="modal-actions">
-        <button id="cancel-modal" class="btn secondary">Hủy</button>
-        <button id="confirm-modal" class="btn primary">Thêm vào giỏ</button>
+        <button id="cancel-modal" class="btn secondary" data-i18n="modal_cancel">Hủy</button>
+        <button id="confirm-modal" class="btn primary" data-i18n="modal_add">Thêm vào giỏ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL GỌI NHÂN VIÊN -->
+  <div id="staff-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3 data-i18n="staff_title">📢 Gọi nhân viên</h3>
+      <p data-i18n="staff_desc">Bạn cần hỗ trợ gì? (Ví dụ: thêm đũa, thêm nước, tính tiền…)</p>
+
+      <textarea id="staff-message" rows="2" 
+                placeholder="Nội dung cần hỗ trợ..."
+                data-i18n="staff_placeholder"></textarea>
+
+      <div class="modal-actions">
+        <button id="cancel-staff" class="btn secondary" data-i18n="modal_cancel">Hủy</button>
+        <button id="send-staff" class="btn primary" data-i18n="staff_send">Gửi yêu cầu</button>
       </div>
     </div>
   </div>
 
   <!-- FOOTER -->
   <footer class="site-footer">
-    <p>© <span id="current-year"></span> Mì Cay One — Hỗ trợ kỹ thuật: 
-      <a href="mailto:hotro@micayone.com">hotro@micayone.com</a><br>
-      <a>Phát triển bởi - Hoang</a>
+    <p data-i18n="footer_text">
+      © <span id="current-year"></span> Mì Cay One — Hỗ trợ kỹ thuật: 
+      <a href="mailto:levanhoang742004@gmail.com">levanhoang742004@gmail.com</a><br>
+      <a>Phát triển bởi - levanHoang</a>
     </p>
   </footer>
-<!-- Nút mở lịch sử đặt --> 
-<button id="history-toggle" class="history-btn" title="Lịch sử đặt món">
-  🔊
-</button>
 
-<!-- Popup lịch sử -->
-<div id="history-popup" class="history-popup hidden">
-  <h4>Lịch sử đặt món</h4>
-  <div id="history-list" class="history-list">
-    <div class="history-empty">📜 Chưa có đơn hàng nào được gửi.</div>
+  <!-- Lịch sử -->
+  <button id="history-toggle" class="history-btn" title="Lịch sử đặt món" data-i18n="history_btn">
+    🔊
+  </button>
+
+  <div id="history-popup" class="history-popup hidden">
+    <h4 data-i18n="history_title">Lịch sử đặt món</h4>
+
+    <div id="history-list" class="history-list">
+      <div class="history-empty" data-i18n="history_empty">
+        📜 Chưa có đơn hàng nào được gửi.
+      </div>
+    </div>
   </div>
-</div>
 
-  <script>
-    document.getElementById('current-year').textContent = new Date().getFullYear();
-    const params = new URLSearchParams(location.search);
-    const table = params.get('table') || params.get('ban');
-    if (table) document.getElementById('table-input').value = table;
-  </script>
+<script>
+  document.getElementById('current-year').textContent = new Date().getFullYear();
+  const params = new URLSearchParams(location.search);
+  const table = params.get('table') || params.get('ban');
+  if (table) document.getElementById('table-input').value = table;
+</script>
+
 </body>
-
 </html>

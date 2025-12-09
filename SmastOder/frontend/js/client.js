@@ -341,27 +341,59 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-  // ✅ GỌI NHÂN VIÊN
-  const btnCallStaff = document.getElementById("btn-call-staff");
-  if (btnCallStaff)
-    btnCallStaff.addEventListener("click", async () => {
-      try {
-        const table = document.getElementById("table-input").value;
-        if (!table) return alert("Bạn chưa nhập số bàn!");
+  // ======================= GỌI NHÂN VIÊN =======================
+const btnCallStaff = document.getElementById("btn-call-staff");
+const staffModal = document.getElementById("staff-modal");
+const cancelStaff = document.getElementById("cancel-staff");
+const sendStaff = document.getElementById("send-staff");
+const messageInput = document.getElementById("staff-message");
 
-        const res = await fetch(`${API_BASE}/api/staff-call`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ table }),
-        });
+if (btnCallStaff) {
+  btnCallStaff.addEventListener("click", () => {
+    staffModal.classList.remove("hidden");
+  });
+}
 
-        if (!res.ok) throw new Error();
-        alert("✅ Đã gửi tín hiệu gọi nhân viên!");
-      } catch (err) {
-        console.error("Lỗi gọi nhân viên:", err);
-        alert("❌ Không gửi được tín hiệu. Vui lòng thử lại.");
+if (cancelStaff) {
+  cancelStaff.addEventListener("click", () => {
+    messageInput.value = "";
+    staffModal.classList.add("hidden");
+  });
+}
+
+if (sendStaff) {
+  sendStaff.addEventListener("click", async () => {
+    try {
+      const table = document.getElementById("table-input").value;
+      const message = messageInput.value.trim() || "Không có ghi chú";
+
+      if (!table) {
+        alert("❌ Không xác định được số bàn!");
+        return;
       }
-    });
+
+      const confirmSend = confirm(`📢 Gửi yêu cầu gọi nhân viên?\nNội dung: "${message}"`);
+      if (!confirmSend) return;
+
+      const res = await fetch(`${API_BASE}/api/call_staff`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ table, message }),
+      });
+
+      if (!res.ok) throw new Error();
+
+      alert("✅ Đã gửi yêu cầu tới nhân viên!");
+      staffModal.classList.add("hidden");
+      messageInput.value = "";
+    } catch (err) {
+      console.error("Lỗi gọi nhân viên:", err);
+      alert("❌ Không gửi được yêu cầu. Vui lòng thử lại.");
+    }
+  });
+}
+
+
     // Toggle popup lịch sử
 const historyBtn = document.getElementById("history-toggle");
 const historyPopup = document.getElementById("history-popup");

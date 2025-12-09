@@ -30,8 +30,10 @@ logger = logging.getLogger(__name__)
 
 # ===== INIT =====
 app = Flask(__name__, static_folder="static")
+app.secret_key = "hoang@2004"   # ✅ thêm dòng này
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
+
 
 # ===== HELPERS =====
 def fetch_all_as_dict(cursor):
@@ -430,13 +432,30 @@ def get_report():
         logger.exception("Lỗi get_report: %s", e)
         return jsonify({"status":"error","message":str(e)}),500
 
-@app.route("/api/call_staff", methods=["POST"])
+
+# ✅ API GỌI NHÂN VIÊN
+@app.route("/api/call_staff", methods=["POST", "OPTIONS"])
 def call_staff():
+    if request.method == "OPTIONS":  # Xử lý preflight CORS
+        response = jsonify({"message": "CORS OK"})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response, 200
+
     data = request.get_json()
     table = data.get("table")
+    message = data.get("message", "Không có ghi chú")
+
     if not table:
-        return jsonify({"error":"Thiếu số bàn"}), 400
-    socketio.emit("staff_call", {"table": table})
+        return jsonify({"error": "Thiếu số bàn"}), 400
+
+    # ✅ Gửi tín hiệu cho tất cả máy thu ngân
+    socketio.emit("staff_call", {
+        "table": table,
+        "message": message
+    })
+
     return jsonify({"message": f"Bàn {table} đã gọi nhân viên"}), 200
 
 @app.route("/admin")
@@ -598,7 +617,185 @@ def admin_delete_staff(iduser):
         return jsonify({"status":"error","message": str(e)}), 500
 
 
-# đăng nhập
+# ===== GET tất cả đơn hàng =====
+@app.route("/api/admin/donhang", methods=["GET"])
+def admin_donhang_list():
+    try:
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT IDDonHang, IDBan, TongTien, GhiChu, NgayTao
+                FROM DonHang
+                ORDER BY NgayTao DESC
+            """)
+            orders = fetch_all_as_dict(cur)
+        return jsonify(orders), 200
+    except Exception as e:
+        logger.exception("Lỗi lấy danh sách đơn hàng: %s", e)
+        return jsonify({"status":"error","message":str(e)}), 500
+
+# ===== GET chi tiết đơn hàng =====
+@app.route("/api/admin/donhang/<int:iddon>", methods=["GET"])
+def admin_donhang_detail(iddon):
+    try:
+        with get_cursor() as cur:
+            # Lấy thông tin đơn hàng
+            cur.execute("SELECT IDDonHang, IDBan, TongTien, GhiChu, NgayTao FROM DonHang WHERE IDDonHang=?", (iddon,))
+            row = cur.fetchone()
+            if not row:
+                return jsonify({"status":"error","message":"Không tìm thấy đơn"}), 404
+            order = dict(zip([c[0] for c in cur.description], row))
+
+            # Lấy chi tiết món
+            cur.execute("""
+                SELECT ct.IDChiTiet, ct.IDMon, m.TenMon, m.HinhAnh, ct.SoLuong, ct.DonGia, ct.GhiChu,
+                       (ct.SoLuong*ct.DonGia) AS ThanhTien
+                FROM ChiTietDonHang ct
+                JOIN Menu m ON ct.IDMon = m.IDMon
+                WHERE ct.IDDonHang=?
+            """, (iddon,))
+            items = fetch_all_as_dict(cur)
+            order["Items"] = items
+
+        return jsonify(order), 200
+    except Exception as e:
+        logger.exception("Lỗi lấy chi tiết đơn hàng: %s", e)
+        return jsonify({"status":"error","message":str(e)}), 500
+
+# ===== Cập nhật đơn hàng (bàn, tổng tiền, ghi chú) =====
+@app.route("/api/admin/donhang/<int:iddon>", methods=["PUT"])
+def admin_donhang_update(iddon):
+    try:
+        data = request.get_json(force=True)
+        idban = data.get("IDBan")
+        ghichu = data.get("GhiChu")
+        items = data.get("Items") or []
+
+        if not idban or not items:
+            return jsonify({"status":"error","message":"Thiếu bàn hoặc danh sách món"}), 400
+
+        normalized_items = []
+        for it in items:
+            idmon = it.get("IDMon")
+            soluong = int(it.get("SoLuong", 1))
+            ghi = it.get("GhiChu", "")
+            if idmon is None:
+                continue
+            normalized_items.append({"IDMon": idmon, "SoLuong": soluong, "GhiChu": ghi})
+
+        if not normalized_items:
+            return jsonify({"status":"error","message":"Danh sách món không hợp lệ"}), 400
+
+        with get_cursor() as cur:
+            # Cập nhật bàn và ghi chú
+            cur.execute("UPDATE DonHang SET IDBan=?, GhiChu=? WHERE IDDonHang=?", (idban, ghichu or "", iddon))
+
+            # Xóa chi tiết cũ
+            cur.execute("DELETE FROM ChiTietDonHang WHERE IDDonHang=?", (iddon,))
+
+            # Thêm chi tiết mới
+            ids = [i["IDMon"] for i in normalized_items]
+            placeholders = ",".join(["?"]*len(ids))
+            cur.execute(f"SELECT IDMon, Gia FROM Menu WHERE IDMon IN ({placeholders})", tuple(ids))
+            prices = {r[0]: float(r[1]) for r in cur.fetchall()}
+
+            tong = 0
+            for it in normalized_items:
+                gia = prices.get(it["IDMon"])
+                if gia is None:
+                    continue
+                cur.execute("""
+                    INSERT INTO ChiTietDonHang (IDDonHang, IDMon, SoLuong, DonGia, GhiChu)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (iddon, it["IDMon"], it["SoLuong"], gia, it["GhiChu"]))
+                tong += gia * it["SoLuong"]
+
+            # Cập nhật tổng tiền
+            cur.execute("UPDATE DonHang SET TongTien=? WHERE IDDonHang=?", (tong, iddon))
+
+        return jsonify({"status":"ok","IDDonHang":iddon, "TongTien": tong}), 200
+    except Exception as e:
+        logger.exception("Lỗi cập nhật đơn hàng: %s", e)
+        return jsonify({"status":"error","message":str(e)}), 500
+
+# ===== Xóa đơn hàng =====
+@app.route("/api/admin/donhang/<int:iddon>", methods=["DELETE"])
+def admin_donhang_delete(iddon):
+    try:
+        with get_cursor() as cur:
+            cur.execute("DELETE FROM ChiTietDonHang WHERE IDDonHang=?", (iddon,))
+            cur.execute("DELETE FROM DonHang WHERE IDDonHang=?", (iddon,))
+        return jsonify({"status":"ok","IDDonHang":iddon}), 200
+    except Exception as e:
+        logger.exception("Lỗi xóa đơn hàng: %s", e)
+        return jsonify({"status":"error","message":str(e)}), 500
+
+# ========== API ĐĂNG NHẬP ==========
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
+    role     = data.get("role", "").strip()
+
+    if not username or not password or not role:
+        return jsonify({"status": "error", "message": "Thiếu thông tin"}), 400
+
+    with get_cursor() as cur:
+        cur.execute("""
+            SELECT TenDangNhap, MatKhau, VaiTro
+            FROM NguoiDung
+            WHERE TenDangNhap=? AND MatKhau=? AND VaiTro=?
+        """, username, password, role)
+
+        user = cur.fetchone()
+
+    if not user:
+        return jsonify({"status": "error", "message": "Sai tài khoản, mật khẩu hoặc vai trò"}), 401
+
+    session["logged_in"] = True
+    session["username"] = username
+    session["role"] = user[2]
+
+    return jsonify({"status": "ok", "role": user[2]})
+
+
+# ========== CHẶN TRUY CẬP THEO ROLE ==========
+def require_role(expected_role):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            if not session.get("logged_in"):
+                return redirect("/")
+            if session.get("role") != expected_role:
+                return "Không có quyền truy cập!", 403
+            return func(*args, **kwargs)
+        wrapper.__name__ = func.__name__
+        return wrapper
+    return decorator
+
+
+# ✅ TRANG ADMIN – ĐỔI TÊN KHÔNG TRÙNG
+@app.route("/admin")
+@require_role("Admin")
+def admin_dashboard():
+    return "<h1>Trang quản trị</h1> <p>Xin chào: {}</p>".format(session.get("username"))
+
+
+@app.route("/bep")
+@require_role("Bep")
+def bep_page():
+    return "<h1>Giao diện Bếp</h1>"
+
+
+@app.route("/thungan")
+@require_role("ThuNgan")
+def thu_ngan_page():
+    return "<h1>Màn hình Thu Ngân</h1>"
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
 
 # ======= Socket Example =======
 @socketio.on("connect")

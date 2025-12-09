@@ -95,6 +95,32 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+/* ===== Search input chung ===== */
+.search-container {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start; /* căn trái, đổi center nếu muốn */
+}
+
+.search-container input {
+  width: 250px; /* chiều rộng input */
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1; /* màu xám nhạt */
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease-in-out; 
+}
+
+.search-container input:focus {
+  border-color: #3b82f6; /* xanh dương nổi bật */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.search-container input::placeholder {
+  color: #94a3b8; /* màu placeholder nhạt */
+}
+
 
 /* Modal Styles */
 .modal {

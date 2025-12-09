@@ -14,6 +14,8 @@
 <!-- Socket.io & QR Code -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+
 <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
@@ -32,8 +34,10 @@
   <div class="nav-content">
     <button class="active" data-target="menu-section"><i class="fas fa-utensils"></i> Quản lý Menu</button>
     <button data-target="table-section"><i class="fas fa-table"></i> Quản lý Bàn</button>
-    <button data-target="report-section"><i class="fas fa-chart-bar"></i> Báo cáo</button>
+    <button data-target="order-section"><i class="fas fa-receipt"></i> Quản lý Đơn hàng</button>
     <button data-target="staff-section"><i class="fas fa-user-friends"></i> Quản lý Nhân sự</button>
+    <button data-target="report-section"><i class="fas fa-chart-bar"></i> Báo cáo</button>
+
   </div>
 </nav>
 
@@ -47,6 +51,10 @@
     <div class="stats-grid">
       <div class="stat-card"><h4>Tổng số món</h4><div class="stat-value" id="stat-menu">0</div></div>
     </div>
+    <div class="search-container menu-search">
+      <input type="text" id="menu-search-input" placeholder="Tìm món...">
+    </div>
+
     <div class="content-card">
       <div class="table-container">
         <table id="menu-table">
@@ -72,6 +80,10 @@
       <button id="add-table" class="btn-add"><i class="fas fa-plus"></i> Thêm bàn mới</button>
     </div>
     <div class="stats-grid"><div class="stat-card"><h4>Tổng số bàn</h4><div class="stat-value" id="stat-table">0</div></div></div>
+    <!-- Đơn hàng -->
+<div class="search-container table-search">
+  <input type="text" id="table-search-input" placeholder="Tìm kiếm bàn ...">
+</div>
     <div class="content-card">
       <div class="table-container">
         <table id="table-list">
@@ -114,6 +126,11 @@
     <h2><i class="fas fa-user-friends"></i> Quản lý Nhân sự</h2>
     <button id="add-staff-btn" class="btn-add"><i class="fas fa-plus"></i> Thêm nhân sự</button>
   </div>
+  <div class="search-container staff-search">
+    <input type="text" id="staff-search-input" placeholder="Tìm nhân sự...">
+  </div>
+
+
   <div class="content-card">
     <div class="table-container">
       <table id="staff-table">
@@ -129,6 +146,42 @@
         </thead>
         <tbody id="staff-table-body">
           <tr><td colspan="6" style="text-align:center; padding:2rem; color:#94a3b8;">Đang tải dữ liệu...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- ORDER SECTION -->
+<div id="order-section" class="tab">
+  <div class="section-header">
+    <h2><i class="fas fa-receipt"></i> Quản lý Đơn hàng</h2>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><h4>Tổng đơn</h4><div class="stat-value" id="stat-order">0</div></div>
+  </div>
+  <div class="search-container order-search">
+    <input type="text" id="order-search-input" placeholder="Tìm đơn hàng...">
+  </div>
+
+  <div class="content-card">
+    <div class="table-container">
+      <table id="order-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Bàn</th>
+            <th>Tổng tiền</th>
+            <th>Thời gian</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="6" style="text-align:center; padding:2rem; color:#94a3b8;">
+              Đang tải dữ liệu...
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -242,7 +295,9 @@
         <select id="staff-role">
           <option value="">-- Chọn vai trò --</option>
           <option value="Admin">Admin</option>
-          <option value="Nhân viên">Nhân viên</option>
+          <option value="Bep"> Bếp</option>
+          <option value="Thungan">Thu ngân</option>
+
         </select>
       </div>
     </div>
@@ -252,6 +307,66 @@
     </div>
   </div>
 </div>
+<!-- MODAL XEM CHI TIẾT ĐƠN -->
+<div id="order-detail-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="fas fa-info-circle"></i> Chi tiết đơn hàng</h3>
+      <button class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="order-detail-body">
+      Đang tải dữ liệu...
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SỬA ĐƠN -->
+<div id="order-edit-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="fas fa-edit"></i> Chỉnh sửa đơn hàng</h3>
+      <button class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Bàn</label>
+        <input type="text" id="order-edit-table" disabled>
+      </div>
+
+
+      <div class="form-group">
+        <label>Danh sách món</label>
+        <div id="order-edit-items">
+          <!-- JavaScript sẽ render: tên món + số lượng + giá + input chỉnh sửa -->
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"><i class="fas fa-times"></i> Hủy</button>
+      <button id="order-update-btn" class="btn-save"><i class="fas fa-save"></i> Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL XÁC NHẬN XÓA ĐƠN -->
+<div id="order-delete-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="fas fa-trash"></i> Xóa đơn hàng</h3>
+      <button class="modal-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Bạn có chắc chắn muốn xóa đơn này?</strong></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"><i class="fas fa-times"></i> Hủy</button>
+      <button id="order-delete-confirm" class="btn-save" style="background:#dc2626;">
+        <i class="fas fa-check"></i> Xóa
+      </button>
+    </div>
+  </div>
+</div>
+
 
 <!-- Spinner -->
 <div id="loading-spinner"><div class="spinner"></div></div>

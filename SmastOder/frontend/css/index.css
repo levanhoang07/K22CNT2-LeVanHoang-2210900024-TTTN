@@ -234,7 +234,19 @@ body {
   box-shadow: 0 4px 10px rgba(213, 33, 46, 0.3);
   font-weight: 700;
 }
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* khoảng cách giữa các nút */
+}
 
+.qty-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
 #search {
   padding: 12px 18px;
   border: 2px solid var(--border);
@@ -939,4 +951,11 @@ html {
   .cart-total .amount {
     font-size: 1.1rem;
   }
+}
+
+#lang-select {
+  padding-left: 32px;
+  background-repeat: no-repeat;
+  background-position: 6px center;
+  background-size: 20px;
 }

@@ -277,31 +277,33 @@ function updateChange(finalAmount){
 // ==============================
 // PHƯƠNG THỨC THANH TOÁN
 // ==============================
-function selectPaymentMethod(method){
-  paymentMethod=method;
-  document.querySelectorAll('.method-btn').forEach(btn=>btn.classList.remove('active'));
+function selectPaymentMethod(method) {
+  paymentMethod = method;
+  document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelector(`[data-method="${method}"]`)?.classList.add('active');
 
-  const cashSection=document.getElementById('cash-payment-section');
-  if(cashSection) cashSection.style.display=method==='cash'?'block':'none';
+  const cashSection = document.getElementById('cash-payment-section');
+  if (cashSection) cashSection.style.display = method === 'cash' ? 'block' : 'none';
 
-  const transferSection=document.getElementById('transfer-qr-section');
-  if(transferSection) transferSection.style.display=method==='transfer'?'block':'none';
+  const transferSection = document.getElementById('transfer-qr-section');
+  if (transferSection) transferSection.style.display = method === 'transfer' ? 'block' : 'none';
 
-  if(method==='transfer' && selectedOrder){
-    const amount=selectedOrder.TongTien||0;
-    const bankNumber='6982121680';
-    const bankName='Techcombank';
+  if (method === 'transfer' && selectedOrder) {
+    const amount = Math.round(selectedOrder.TongTien || 0); // Số nguyên
+    const bankNumber = '6982121680';
+    const bankName = 'Techcombank';
+    const accountName = 'LE VAN HOANG'; // Tên chủ tài khoản
+    const description = `Thanh toán đơn #${selectedOrder.IDDonHang}`; // Nội dung
 
-    document.getElementById('transfer-amount').textContent=formatMoney(amount);
-    document.getElementById('transfer-bank-info').textContent=`${bankNumber} - ${bankName}`;
+    document.getElementById('transfer-amount').textContent = formatMoney(amount);
+    document.getElementById('transfer-bank-info').textContent = `${bankNumber} - ${bankName}`;
 
-    // VietQR free (demo) format
-    const qrData=`Bank:${bankNumber};Amount:${amount};Name:${bankName}`;
-    document.getElementById('transfer-qr').src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+    // Link VietQR
+    const qrLink = `https://img.vietqr.io/image/TCB-${bankNumber}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(description)}&accountName=${encodeURIComponent(accountName)}`;
+
+    document.getElementById('transfer-qr').src = qrLink;
   }
 }
-
 // ==============================
 // THANH TOÁN
 // ==============================
@@ -339,39 +341,83 @@ function cancelPayment(){selectedOrder=null; renderPaymentPanel(); renderOrders(
 // ==============================
 async function viewOrderDetail(orderId){
   try{
-    const res=await fetch(`${API_BASE}/api/donhang/${orderId}`);
+    const res = await fetch(`${API_BASE}/api/donhang/${orderId}`);
     if(!res.ok) throw new Error("Không tải được chi tiết đơn");
-    const order=await res.json();
-    const items=order.Items||[];
-    const modalBody=document.getElementById("modal-body");
-    modalBody.innerHTML=`
+    const order = await res.json();
+    const items = order.Items || [];
+    const modalBody = document.getElementById("modal-body");
+    
+    modalBody.innerHTML = `
       <div class="modal-order-info">
         <h4><i class="fas fa-utensils"></i> Bàn ${order.IDBan} - Đơn #${order.IDDonHang}</h4>
         <p><i class="fas fa-clock"></i> ${formatDateTime(order.NgayTao)}</p>
-        <p><i class="fas fa-fire"></i> Trạng thái bếp: <strong>${order.TrangThaiBep||'Chưa có'}</strong></p>
-        <p><i class="fas fa-wallet"></i> Thanh toán: <strong>${order.TrangThaiThanhToan?'✅ Đã thanh toán':'❌ Chưa thanh toán'}</strong></p>
+        <p><i class="fas fa-fire"></i> Trạng thái bếp: <strong>${order.TrangThaiBep || 'Chưa có'}</strong></p>
+        <p><i class="fas fa-wallet"></i> Thanh toán: <strong>${order.TrangThaiThanhToan ? '✅ Đã thanh toán' : '❌ Chưa thanh toán'}</strong></p>
       </div>
       <div class="modal-items">
         <h4><i class="fas fa-list"></i> Chi tiết món</h4>
         <table class="modal-table">
-          <thead><tr><th>STT</th><th>Tên món</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
-          <tbody>${items.map((item,index)=>`
-            <tr><td>${index+1}</td><td>${item.TenMon}</td><td>${item.SoLuong}</td><td>${formatMoney(item.Gia)}</td><td><strong>${formatMoney(item.Gia*item.SoLuong)}</strong></td></tr>
-          `).join('')}</tbody>
+          <thead>
+            <tr><th>STT</th><th>Tên món</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr>
+          </thead>
+          <tbody>
+            ${items.map((item, index) => `
+              <tr>
+                <td>${index+1}</td>
+                <td>${item.TenMon}</td>
+                <td>${item.SoLuong}</td>
+                <td>${formatMoney(parseFloat(item.DonGia))}</td>
+                <td><strong>${formatMoney(parseFloat(item.DonGia) * item.SoLuong)}</strong></td>
+              </tr>
+            `).join('')}
+          </tbody>
         </table>
       </div>
-      <div class="modal-total"><h3>Tổng cộng: <span>${formatMoney(order.TongTien)}</span></h3></div>
+      <div class="modal-total">
+        <h3>Tổng cộng: <span>${formatMoney(parseFloat(order.TongTien))}</span></h3>
+      </div>
     `;
+    
     document.getElementById("order-detail-modal").classList.add("show");
-  }catch(err){console.error(err);showNotification("Không thể xem chi tiết đơn hàng","error");}
+  } catch(err){
+    console.error(err);
+    showNotification("Không thể xem chi tiết đơn hàng","error");
+  }
 }
 
-function closeModal(){document.getElementById("order-detail-modal").classList.remove("show");}
+function closeModal(){
+  document.getElementById("order-detail-modal").classList.remove("show");
+}
+
+// Đồng bộ tên hàm với button Xem
+window.viewOrder = viewOrderDetail;
+
 
 // ==============================
 // NHẬP NHANH TIỀN MẶT
 // ==============================
 function setQuickCash(amount){const input=document.getElementById("customer-cash");if(input){input.value=amount;const finalAmount=parseFloat(document.getElementById("final-amount").textContent.replace(/[^\d]/g,''))||0;updateChange(finalAmount);}}
+
+
+// Khi có bàn gọi nhân viên → hiển thị popup
+socket.on("staff_call", (data) => {
+  const { table, message } = data;
+
+  // ✅ Thông báo nổi
+  alert(`📢 BÀN ${table} GỌI NHÂN VIÊN\n📝 Nội dung: ${message}`);
+
+  // ✅ Nếu muốn hiển thị trong danh sách thông báo thu ngân:
+  const list = document.getElementById("staff-call-list");
+  if (list) {
+    const item = document.createElement("li");
+    item.className = "staff-call-item";
+    item.innerHTML = `
+      <strong>Bàn ${table}</strong> - ${message}
+      <span style="float:right;">${new Date().toLocaleTimeString()}</span>
+    `;
+    list.prepend(item);
+  }
+});
 
 // ==============================
 // EVENT LISTENERS

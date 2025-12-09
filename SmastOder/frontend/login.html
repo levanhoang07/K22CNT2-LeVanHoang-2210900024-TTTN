@@ -3,43 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đăng nhập hệ thống</title>
+<title>Đăng nhập - Mỳ Cay One</title>
+<link rel="stylesheet" href="css/login.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-body { font-family: Arial, sans-serif; background:#f3f4f6; display:flex; justify-content:center; align-items:center; height:100vh; }
-.login-card { background:white; padding:2rem; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); width:300px; }
-h2 { text-align:center; margin-bottom:1rem; }
-.form-group { margin-bottom:1rem; }
-input, select { width:100%; padding:0.5rem; border:1px solid #ccc; border-radius:4px; }
-button { width:100%; padding:0.5rem; background:#2563eb; color:white; border:none; border-radius:4px; cursor:pointer; }
-button:hover { background:#1e40af; }
-#error-msg { color:red; margin-top:0.5rem; text-align:center; }
-</style>
 </head>
 <body>
 
-<div class="login-card">
-  <h2>Đăng nhập hệ thống</h2>
-  <form id="login-form">
-    <div class="form-group">
-      <input type="text" id="username" placeholder="Tên đăng nhập" required>
+<div class="container">
+
+    <!-- LEFT CONTENT -->
+    <div class="left-box">
+        <div class="brand">
+            <i class="fa-solid fa-bowl-food"></i>
+            <h1>Mỳ Cay One</h1>
+        </div>
+
+        <h2>Xin chào!</h2>
+        <p class="slogan">Hệ thống Order chuyên nghiệp – nhanh chóng – chính xác</p>
     </div>
-    <div class="form-group">
-      <input type="password" id="password" placeholder="Mật khẩu" required>
+
+    <!-- RIGHT LOGIN FORM -->
+    <div class="login-box">
+        <h2>Đăng nhập</h2>
+
+        <form id="login-form">
+
+            <div class="input-field">
+                <i class="fa-solid fa-user"></i>
+                <input id="username" type="text" placeholder="Tài khoản" required>
+            </div>
+
+            <div class="input-field">
+                <i class="fa-solid fa-lock"></i>
+                <input id="password" type="password" placeholder="Mật khẩu" required>
+            </div>
+
+            <div class="input-field">
+                <i class="fa-solid fa-users"></i>
+                <select id="role" required>
+                    <option value="" disabled selected>Chọn vai trò</option>
+                    <option value="Admin">Quản trị</option>
+                    <option value="Bep">Bếp</option>
+                    <option value="ThuNgan">Thu ngân</option>
+                </select>
+            </div>
+
+            <div class="options">
+                <label><input type="checkbox"> Ghi nhớ đăng nhập</label>
+                <a class="forgot-btn" style="cursor:pointer;">Quên mật khẩu?</a>
+            </div>
+
+            <button class="btn" type="submit">Đăng nhập</button>
+
+            <span id="login-error" class="error-msg"></span>
+        </form>
     </div>
-    <div class="form-group">
-      <select id="role" required>
-        <option value="">-- Chọn vai trò --</option>
-        <option value="Admin">Admin</option>
-        <option value="Bep">Bếp</option>
-        <option value="ThuNgan">Thu ngân</option>
-      </select>
-    </div>
-    <button type="submit">Đăng nhập</button>
-    <div id="login-error"></div>
-  </form>
 </div>
 
-<script src="js/login.js"></script>
+<!-- POPUP QUÊN MẬT KHẨU -->
+<div class="forgot-popup" style="display:none;">
+    <div class="popup-box">
+        <h3>Quên mật khẩu</h3>
+        <p>Vui lòng liên hệ quản trị để cấp lại mật khẩu:</p>
+        <p class="admin-info">
+            <i class="fa-solid fa-phone"></i> 0909 999 999<br>
+            <i class="fa-solid fa-envelope"></i> admin@mycayone.com
+        </p>
+        <button class="close-popup">Đóng</button>
+    </div>
+</div>
+
+<script>
+/* ✅ Xử lý popup */
+const popup = document.querySelector('.forgot-popup');
+document.querySelector('.forgot-btn').onclick = () => popup.style.display = 'flex';
+document.querySelector('.close-popup').onclick = () => popup.style.display = 'none';
+
+/* ✅ Xử lý đăng nhập */
+document.getElementById("login-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const role     = document.getElementById("role").value;
+
+    const errorBox = document.getElementById("login-error");
+    errorBox.textContent = "";
+
+    if (!username || !password || !role) {
+        errorBox.textContent = "Vui lòng nhập đầy đủ thông tin!";
+        return;
+    }
+
+    try {
+        const res = await fetch("http://127.0.0.1:5000/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password, role })
+        });
+
+        const data = await res.json();
+
+        if (data.status !== "ok") {
+            errorBox.textContent = data.message || "Sai thông tin!";
+            return;
+        }
+
+        // ✅ Chuyển trang theo vai trò
+        if (data.role === "Admin") {
+            window.location.href = "admin.html";
+        } else if (data.role === "Bep") {
+            window.location.href = "bep.html";
+        } else if (data.role === "Thungan") {
+            window.location.href = "thungan.html";
+        } else {
+            errorBox.textContent = "Vai trò không hợp lệ!";
+        }
+
+    } catch (err) {
+        console.error(err);
+        errorBox.textContent = "Không thể kết nối server!";
+    }
+});
+</script>
+
 </body>
 </html>

@@ -1,0 +1,51 @@
+{
+  "page_title": "Mi Cay One - Elevating Vietnamese Flavor",
+
+  "brand_name": "Mi Cay One",
+  "brand_slogan": "🍜 Elevating Vietnamese Flavor",
+  "brand_address": "📍 88 Hoang Hoa Tham, Xuan Hoa, Phuc Yen, Vinh Phuc",
+
+  "table_label": "Your current table:",
+
+  "lang_vi": "Vietnamese",
+  "lang_en": "English",
+  "lang_ko": "Korean",
+
+  "menu_title": "Menu",
+  "search_placeholder": "🔍 Search food (noodles, drinks, toppings...)",
+  "cat_all": "All",
+  "menu_loading": "⏳ Loading menu...",
+
+  "cart_title": "Cart",
+  "cart_empty": "🛒 Your cart is empty. Please select a dish!",
+  "cart_subtotal": "Subtotal:",
+  "btn_send_order": "Send Order",
+  "btn_call_staff": "📢 Call Staff",
+
+  "modal_note_title": "Notes:",
+  "modal_level_label": "Spice level:",
+  "level_1": "Level 1",
+  "level_2": "Level 2",
+  "level_3": "Level 3",
+  "level_4": "Level 4",
+  "level_5": "Level 5",
+  "level_6": "Level 6",
+  "level_7": "Level 7",
+  "level_other": "Other",
+
+  "modal_note_label": "Notes:",
+  "modal_note_placeholder": "Write your preference so the staff can assist you",
+  "modal_cancel": "Cancel",
+  "modal_add": "Add to Cart",
+
+  "staff_title": "📢 Call Staff",
+  "staff_desc": "What do you need? (e.g., more chopsticks, water, bill…)",
+  "staff_placeholder": "What do you need help with...",
+  "staff_send": "Send Request",
+
+  "footer_text": "© Mi Cay One — Technical support: levanhoang742004@gmail.com | Developed by - levanHoang",
+
+  "history_btn": "🔊",
+  "history_title": "Order History",
+  "history_empty": "📜 No orders have been sent yet."
+}
