@@ -750,7 +750,7 @@ def login():
         user = cur.fetchone()
 
     if not user:
-        return jsonify({"status": "error", "message": "Sai tài khoản, mật khẩu hoặc vai trò"}), 401
+        return jsonify({"status": "error", "message": ""}), 401
 
     session["logged_in"] = True
     session["username"] = username

@@ -105,9 +105,13 @@ document.getElementById("login-form").addEventListener("submit", async function 
         const data = await res.json();
 
         if (data.status !== "ok") {
-            errorBox.textContent = data.message || "Sai thông tin!";
-            return;
-        }
+            errorBox.textContent = data.message || "Sai thông tin đăng nhập!";
+            errorBox.style.color = "red";       // Chữ màu đỏ
+            errorBox.style.fontSize = "18px";   // Chữ to hơn (bạn có thể điều chỉnh px)
+            errorBox.style.fontWeight = "bold"; // Làm chữ đậm, dễ thấy hơn
+        return;
+}
+
 
         // ✅ Chuyển trang theo vai trò
         if (data.role === "Admin") {
