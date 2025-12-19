@@ -20,16 +20,25 @@ async function fetchMenu() {
   try {
     const res = await fetch(API_URL);
     if (!res.ok) throw new Error(`Lỗi tải dữ liệu (${res.status})`);
-    const data = await res.json();
 
-    menuData = data;
+    const json = await res.json();
+    console.log("MENU API RESPONSE:", json); // DEBUG
+
+    // 🔥 FIX CHÍNH Ở ĐÂY
+    if (!json.data || !Array.isArray(json.data)) {
+      throw new Error("API menu không trả về mảng");
+    }
+
+    menuData = json.data;       // ✅ PHẢI LÀ ARRAY
     renderMenu(menuData);
     renderCategoryButtons();
+
   } catch (err) {
     console.error("Lỗi khi tải menu:", err);
     container.innerHTML = `<p class="error">⚠️ Không thể tải thực đơn. Vui lòng thử lại.</p>`;
   }
 }
+
 // =============================
 // HIỂN THỊ MENU (CẬP NHẬT - xử lý ảnh an toàn)
 // =============================

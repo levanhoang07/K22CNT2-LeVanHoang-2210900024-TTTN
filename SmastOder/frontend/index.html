@@ -18,27 +18,6 @@
   <script src="js/i18n.js"></script>
 </head>
 
-<script>
-async function loadLang(lang) {
-  const res = await fetch(`lang/${lang}.json`);
-  const data = await res.json();
-
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if (data[key]) {
-      if (el.placeholder !== undefined) el.placeholder = data[key];
-      else el.textContent = data[key];
-    }
-  });
-}
-
-document.getElementById("lang-select").addEventListener("change", e => {
-  loadLang(e.target.value);
-});
-
-// Load default
-loadLang("vi");
-</script>
 
 <body>
   <!-- HEADER -->
@@ -188,6 +167,34 @@ loadLang("vi");
   const params = new URLSearchParams(location.search);
   const table = params.get('table') || params.get('ban');
   if (table) document.getElementById('table-input').value = table;
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+  async function loadLang(lang) {
+    const res = await fetch(`lang/${lang}.json`);
+    const data = await res.json();
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      if (data[key]) {
+        if ("placeholder" in el) el.placeholder = data[key];
+        else el.textContent = data[key];
+      }
+    });
+  }
+
+  const langSelect = document.getElementById("lang-select");
+  if (langSelect) {
+    langSelect.addEventListener("change", e => {
+      loadLang(e.target.value);
+    });
+  }
+
+  // Load mặc định
+  loadLang("vi");
+
+});
 </script>
 
 </body>

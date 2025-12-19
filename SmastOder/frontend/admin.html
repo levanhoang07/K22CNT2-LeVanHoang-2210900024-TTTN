@@ -61,9 +61,11 @@
           <thead>
             <tr>
               <th>Tên món</th>
+              <th>Tên món</th>
               <th>Giá</th>
               <th>Danh mục</th>
               <th>Mô tả</th>
+              <th>Trạng thái</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -227,6 +229,13 @@
       <div class="form-group">
         <label>Mô tả</label>
         <textarea id="menu-mota" placeholder="Nhập mô tả" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Trạng thái <span class="required">*</span></label>
+        <select id="menu-trangthai">
+          <option value="1">Còn bán</option>
+          <option value="0">Ngừng bán</option>
+        </select>
       </div>
     </div>
     <div class="modal-footer">

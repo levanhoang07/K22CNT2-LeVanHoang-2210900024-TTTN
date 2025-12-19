@@ -9,6 +9,11 @@ eventlet.monkey_patch()
 
 from flask import request
 from datetime import datetime, timedelta
+from db import (
+    get_cursor,
+    fetch_one_as_dict,
+    fetch_all_as_dict
+)
 
 import qrcode
 from flask import Flask, request, jsonify, session,redirect, url_for, send_from_directory, render_template
@@ -18,7 +23,6 @@ from db import get_cursor, test_connection  # giữ nguyên module DB của bạ
 import os
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 from flask_socketio import SocketIO
 import logging
 # ===== LOGGING =====
@@ -89,129 +93,244 @@ def api_menu():
     try:
         with get_cursor() as cur:
             cur.execute("""
-                SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc
-                FROM Menu WHERE TrangThai=1 ORDER BY TenMon
+                SELECT 
+                    m.IDMon,
+                    m.TenMon,
+                    m.MoTa,
+                    m.Gia,
+                    m.HinhAnh,
+                    dm.TenDanhMuc
+                FROM Menu m
+                JOIN DanhMuc dm ON m.IDDanhMuc = dm.IDDanhMuc
+                WHERE m.TrangThai = 1
+                ORDER BY m.TenMon
             """)
             rows = fetch_all_as_dict(cur)
+
+        # xử lý đường dẫn ảnh
         for r in rows:
             r["HinhAnh"] = make_full_image_url(r.get("HinhAnh") or "")
-        return jsonify(rows), 200
+
+        return jsonify({
+            "status": "ok",
+            "data": rows
+        }), 200
+
     except Exception as e:
         logger.exception("Lỗi lấy menu: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
-# ===== DON HANG =====
+# ===== DON HANG - GET ALL =====
 @app.route("/api/donhang", methods=["GET"])
 def api_get_all_donhang():
     try:
         with get_cursor() as cur:
             cur.execute("""
-                SELECT IDDonHang, IDBan, IDNguoiDung, TrangThaiBep, TrangThaiThanhToan, TongTien, NgayTao
-                FROM DonHang ORDER BY NgayTao DESC
+                SELECT 
+                    d.IDDonHang,
+                    d.IDBan,
+                    d.IDNguoiDung,
+                    d.TrangThaiThanhToan,
+                    d.TongTien,
+                    d.NgayTao,
+                    ls.TrangThai
+                FROM DonHang d
+                OUTER APPLY (
+                    SELECT TOP 1 TrangThai
+                    FROM LichSuTrangThaiDonHang
+                    WHERE IDDonHang = d.IDDonHang
+                    ORDER BY ThoiGian DESC
+                ) ls
+                ORDER BY d.NgayTao DESC
             """)
             orders = fetch_all_as_dict(cur)
-        return jsonify(orders), 200
+
+        return jsonify({"status": "ok", "data": orders}), 200
+
     except Exception as e:
         logger.exception("Lỗi lấy danh sách đơn hàng: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
-
+        return jsonify({"status": "error", "message": str(e)}), 500
+# ===== DON HANG - DETAIL =====
 @app.route("/api/donhang/<int:iddon>", methods=["GET"])
 def api_get_donhang_detail(iddon):
     try:
         with get_cursor() as cur:
             cur.execute("""
-                SELECT IDDonHang, IDBan, IDNguoiDung, TrangThaiBep, TrangThaiThanhToan, TongTien, NgayTao
-                FROM DonHang WHERE IDDonHang=?
+                SELECT 
+                    d.IDDonHang,
+                    d.IDBan,
+                    d.IDNguoiDung,
+                    d.TrangThaiThanhToan,
+                    d.TongTien,
+                    d.NgayTao,
+                    ls.TrangThai
+                FROM DonHang d
+                OUTER APPLY (
+                    SELECT TOP 1 TrangThai
+                    FROM LichSuTrangThaiDonHang
+                    WHERE IDDonHang = d.IDDonHang
+                    ORDER BY ThoiGian DESC
+                ) ls
+                WHERE d.IDDonHang = ?
             """, (iddon,))
-            row = cur.fetchone()
-            if not row:
-                return jsonify({"status":"error","message":"Không tìm thấy đơn"}), 404
-            cols = [c[0] for c in cur.description]
-            order_dict = dict(zip(cols, row))
+            order = fetch_one_as_dict(cur)
+
+            if not order:
+                return jsonify({"status": "error", "message": "Không tìm thấy đơn"}), 404
+
             cur.execute("""
-                SELECT ct.IDChiTiet, ct.IDMon, m.TenMon, m.HinhAnh, ct.SoLuong, ct.DonGia, ct.GhiChu,
-                       (ct.SoLuong*ct.DonGia) AS ThanhTien
+                SELECT 
+                    ct.IDChiTiet,
+                    ct.IDMon,
+                    m.TenMon,
+                    m.HinhAnh,
+                    ct.SoLuong,
+                    ct.DonGia,
+                    ct.GhiChu,
+                    ct.ThanhTien
                 FROM ChiTietDonHang ct
                 JOIN Menu m ON ct.IDMon = m.IDMon
-                WHERE ct.IDDonHang=?
+                WHERE ct.IDDonHang = ?
             """, (iddon,))
             items = fetch_all_as_dict(cur)
+
             for it in items:
                 it["HinhAnh"] = make_full_image_url(it.get("HinhAnh") or "")
-            order_dict['Items'] = items
-        return jsonify(order_dict), 200
+
+            order["Items"] = items
+
+        return jsonify({"status": "ok", "data": order}), 200
+
     except Exception as e:
         logger.exception("Lỗi lấy chi tiết đơn hàng: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
-
+        return jsonify({"status": "error", "message": str(e)}), 500
+# ===== DON HANG - CREATE =====
 @app.route("/api/donhang", methods=["POST"])
 def api_create_donhang():
     try:
         data = request.get_json(force=True)
         idban = data.get("IDBan") or data.get("table")
         items = data.get("Items") or data.get("items") or []
+
         if not idban or not items:
-            return jsonify({"status":"error","message":"Thiếu IDBan hoặc danh sách món"}), 400
+            return jsonify({"status": "error", "message": "Thiếu IDBan hoặc danh sách món"}), 400
+
         normalized_items = []
         for it in items:
-            idmon = it.get("IDMon") or it.get("id") or it.get("ID")
-            soluong = it.get("SoLuong") or it.get("qty") or 1
-            ghichu = it.get("GhiChu") or it.get("note") or ""
             try:
-                idmi = int(idmon)
+                normalized_items.append({
+                    "IDMon": int(it.get("IDMon") or it.get("id")),
+                    "SoLuong": int(it.get("SoLuong") or it.get("qty") or 1),
+                    "GhiChu": it.get("GhiChu") or ""
+                })
             except Exception:
                 continue
-            normalized_items.append({"IDMon": idmi, "SoLuong": int(soluong), "GhiChu": str(ghichu)})
+
         if not normalized_items:
-            return jsonify({"status":"error","message":"Danh sách món không hợp lệ"}), 400
-        now_vn_naive = now_vietnam().replace(tzinfo=None)
+            return jsonify({"status": "error", "message": "Danh sách món không hợp lệ"}), 400
+
+        now_vn = now_vietnam().replace(tzinfo=None)
+
         with get_cursor() as cur:
+            # 1. Tạo đơn hàng
             cur.execute("""
-                INSERT INTO DonHang (IDBan, IDNguoiDung, TrangThaiBep, TrangThaiThanhToan, NgayTao)
+                INSERT INTO DonHang (IDBan, TrangThaiThanhToan, NgayTao)
                 OUTPUT INSERTED.IDDonHang
-                VALUES (?, NULL, N'Đang xử lý', 0, ?)
-            """, (idban, now_vn_naive))
-            iddon_row = cur.fetchone()
-            iddon = int(iddon_row[0])
+                VALUES (?, 0, ?)
+            """, (idban, now_vn))
+            iddon = cur.fetchone()[0]
+
+            # 2. Lưu trạng thái ban đầu
+            cur.execute("""
+                INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai)
+                VALUES (?, N'Đã đặt')
+            """, (iddon,))
+
+            # 3. Lấy giá món
             ids = [i["IDMon"] for i in normalized_items]
-            placeholders = ",".join(["?"] * len(ids))
-            cur.execute(f"SELECT IDMon, Gia FROM Menu WHERE IDMon IN ({placeholders})", tuple(ids))
-            prices = {int(r[0]): float(r[1]) for r in cur.fetchall()}
-            tong = 0.0
+            placeholders = ",".join("?" * len(ids))
+            cur.execute(f"""
+                SELECT IDMon, Gia FROM Menu WHERE IDMon IN ({placeholders})
+            """, tuple(ids))
+            price_map = {r[0]: float(r[1]) for r in cur.fetchall()}
+
+            # 4. Thêm chi tiết đơn (TRIGGER tự cập nhật tổng tiền)
             for it in normalized_items:
-                gia = prices.get(it["IDMon"])
+                gia = price_map.get(it["IDMon"])
                 if gia is None:
-                    logger.warning("Không tìm thấy giá cho IDMon=%s", it["IDMon"])
                     continue
                 cur.execute("""
                     INSERT INTO ChiTietDonHang (IDDonHang, IDMon, SoLuong, DonGia, GhiChu)
                     VALUES (?, ?, ?, ?, ?)
                 """, (iddon, it["IDMon"], it["SoLuong"], gia, it["GhiChu"]))
-                tong += gia * it["SoLuong"]
-            cur.execute("UPDATE DonHang SET TongTien=? WHERE IDDonHang=?", (tong, iddon))
+
         socketio.emit("new_order", {
-            "IDDonHang": iddon, "IDBan": idban, "TrangThaiBep": "Đang xử lý",
-            "TongTien": tong, "ThoiGianTao": now_vietnam().strftime("%Y-%m-%d %H:%M:%S")
+            "IDDonHang": iddon,
+            "IDBan": idban,
+            "TrangThai": "Đã đặt",
+            "ThoiGian": now_vn.strftime("%Y-%m-%d %H:%M:%S")
         })
-        return jsonify({"status":"ok","IDDonHang":iddon}), 201
+
+        return jsonify({"status": "ok", "IDDonHang": iddon}), 201
+
     except Exception as e:
         logger.exception("Lỗi tạo đơn hàng: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
-# ===== BẾP UPDATE =====
+# ===== BẾP UPDATE TRẠNG THÁI =====
 @app.route("/api/bep/cap-nhat-trang-thai/<int:iddon>", methods=["PUT"])
 def api_bep_update(iddon):
     try:
         with get_cursor() as cur:
-            cur.execute("UPDATE DonHang SET TrangThaiBep=N'Hoàn tất' WHERE IDDonHang=?", (iddon,))
-            cur.execute("SELECT IDDonHang, IDBan, TrangThaiBep FROM DonHang WHERE IDDonHang=?", (iddon,))
-            r = cur.fetchone()
-            payload = {"IDDonHang": int(r[0]), "IDBan": r[1], "TrangThaiBep": r[2]}
+            # 1. Kiểm tra đơn tồn tại
+            cur.execute("SELECT IDBan FROM DonHang WHERE IDDonHang=?", (iddon,))
+            row = cur.fetchone()
+            if not row:
+                return jsonify({
+                    "status": "error",
+                    "message": "Không tìm thấy đơn hàng"
+                }), 404
+
+            idban = row[0]
+
+            # 2. Ghi lịch sử trạng thái (KHÔNG UPDATE DonHang)
+            cur.execute("""
+                INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai)
+                VALUES (?, N'Hoàn tất')
+            """, (iddon,))
+
+            # 3. Lấy trạng thái mới nhất
+            cur.execute("""
+                SELECT TOP 1 TrangThai
+                FROM LichSuTrangThaiDonHang
+                WHERE IDDonHang=?
+                ORDER BY ThoiGian DESC
+            """, (iddon,))
+            trangthai = cur.fetchone()[0]
+
+        payload = {
+            "IDDonHang": iddon,
+            "IDBan": idban,
+            "TrangThai": trangthai
+        }
+
+        # 4. Realtime cho frontend / thu ngân
         socketio.emit("bep_status_update", payload)
-        return jsonify({"status":"ok","payload":payload}), 200
+
+        return jsonify({
+            "status": "ok",
+            "payload": payload
+        }), 200
+
     except Exception as e:
-        logger.exception("Lỗi cập nhật trạng thái: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
+        logger.exception("Lỗi cập nhật trạng thái bếp: %s", e)
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 # ===== SOCKET EVENTS =====
 @socketio.on("connect")
@@ -223,561 +342,634 @@ def on_connect():
 def on_disconnect():
     logger.info(f"Socket disconnected: {request.sid}")
 
+
 # ===== ADMIN MENU CRUD =====
 @app.route("/api/admin/menu", methods=["GET"])
 def admin_list_menu():
     try:
         with get_cursor() as cur:
             cur.execute("""
-                SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc, TrangThai
-                FROM Menu ORDER BY IDMon DESC
+                SELECT 
+                    m.IDMon,
+                    m.TenMon,
+                    m.MoTa,
+                    m.Gia,
+                    m.HinhAnh,
+                    m.IDDanhMuc,
+                    dm.TenDanhMuc,
+                    m.TrangThai
+                FROM Menu m
+                JOIN DanhMuc dm ON m.IDDanhMuc = dm.IDDanhMuc
+                ORDER BY m.IDMon DESC
             """)
             rows = fetch_all_as_dict(cur)
+
         for r in rows:
             r["HinhAnh"] = make_full_image_url(r.get("HinhAnh") or "")
-        return jsonify(rows), 200
+
+        return jsonify({"status": "ok", "data": rows}), 200
+
     except Exception as e:
         logger.exception("Lỗi admin_list_menu: %s", e)
         return jsonify({"status": "error", "message": str(e)}), 500
-
 @app.route("/api/admin/menu", methods=["POST"])
 def admin_create_menu():
     try:
         data = request.get_json(force=True)
+
         ten = data.get("TenMon")
-        if not ten:
-            return jsonify({"status": "error", "message": "TenMon required"}), 400
+        iddm = data.get("IDDanhMuc")
+
+        if not ten or not iddm:
+            return jsonify({
+                "status": "error",
+                "message": "Thiếu TenMon hoặc IDDanhMuc"
+            }), 400
+
         mota = data.get("MoTa", "")
         gia = float(data.get("Gia", 0))
         hinhanh = data.get("HinhAnh", "")
-        danh_muc = data.get("DanhMuc", "")
+
         with get_cursor() as cur:
+            # kiểm tra danh mục tồn tại
+            cur.execute("SELECT COUNT(*) FROM DanhMuc WHERE IDDanhMuc=?", (iddm,))
+            if cur.fetchone()[0] == 0:
+                return jsonify({"status":"error","message":"Danh mục không tồn tại"}),400
+
             cur.execute("""
-                INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc, TrangThai)
+                INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, IDDanhMuc, TrangThai)
+                OUTPUT INSERTED.IDMon
                 VALUES (?, ?, ?, ?, ?, 1)
-            """, (ten, mota, gia, hinhanh, danh_muc))
-            cur.execute("SELECT MAX(IDMon) FROM Menu")
-            new_id = int(cur.fetchone()[0])
-            cur.execute("SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc, TrangThai FROM Menu WHERE IDMon=?", (new_id,))
-            menu = fetch_all_as_dict(cur)[0]
+            """, (ten, mota, gia, hinhanh, iddm))
+            new_id = cur.fetchone()[0]
+
+            cur.execute("""
+                SELECT 
+                    m.IDMon, m.TenMon, m.MoTa, m.Gia, m.HinhAnh,
+                    m.IDDanhMuc, dm.TenDanhMuc, m.TrangThai
+                FROM Menu m
+                JOIN DanhMuc dm ON m.IDDanhMuc = dm.IDDanhMuc
+                WHERE m.IDMon=?
+            """, (new_id,))
+            menu = fetch_one_as_dict(cur)
+
         menu["HinhAnh"] = make_full_image_url(menu.get("HinhAnh") or "")
         return jsonify({"status":"ok","menu":menu}), 201
+
     except Exception as e:
         logger.exception("Lỗi admin_create_menu: %s", e)
         return jsonify({"status":"error","message":str(e)}), 500
-
 @app.route("/api/admin/menu/<int:idmon>", methods=["PUT"])
 def admin_update_menu(idmon):
     try:
         data = request.get_json(force=True)
         sets, params = [], []
-        for field in ["TenMon", "MoTa", "Gia", "HinhAnh", "DanhMuc", "TrangThai"]:
-            if field in data:
-                sets.append(f"{field}=?")
-                val = data[field]
-                if field=="Gia": val=float(val)
-                if field=="TrangThai": val=int(val)
+
+        mapping = {
+            "TenMon": "TenMon",
+            "MoTa": "MoTa",
+            "Gia": "Gia",
+            "HinhAnh": "HinhAnh",
+            "IDDanhMuc": "IDDanhMuc",
+            "TrangThai": "TrangThai"
+        }
+
+        for k, col in mapping.items():
+            if k in data:
+                sets.append(f"{col}=?")
+                val = data[k]
+                if k == "Gia": val = float(val)
+                if k == "TrangThai": val = int(val)
                 params.append(val)
+
         if not sets:
-            return jsonify({"status": "error", "message": "No fields to update"}), 400
+            return jsonify({"status":"error","message":"Không có dữ liệu cập nhật"}),400
+
         params.append(idmon)
+
         with get_cursor() as cur:
-            cur.execute(f"UPDATE Menu SET {', '.join(sets)} WHERE IDMon=?", tuple(params))
-            cur.execute("SELECT IDMon, TenMon, MoTa, Gia, HinhAnh, ISNULL(DanhMuc,'') AS DanhMuc, TrangThai FROM Menu WHERE IDMon=?", (idmon,))
-            menu = fetch_all_as_dict(cur)[0]
+            cur.execute(
+                f"UPDATE Menu SET {', '.join(sets)} WHERE IDMon=?",
+                tuple(params)
+            )
+
+            cur.execute("""
+                SELECT 
+                    m.IDMon, m.TenMon, m.MoTa, m.Gia, m.HinhAnh,
+                    m.IDDanhMuc, dm.TenDanhMuc, m.TrangThai
+                FROM Menu m
+                JOIN DanhMuc dm ON m.IDDanhMuc = dm.IDDanhMuc
+                WHERE m.IDMon=?
+            """, (idmon,))
+            menu = fetch_one_as_dict(cur)
+
         menu["HinhAnh"] = make_full_image_url(menu.get("HinhAnh") or "")
         return jsonify({"status":"ok","menu":menu}), 200
+
     except Exception as e:
         logger.exception("Lỗi admin_update_menu: %s", e)
-        return jsonify({"status": "error","message": str(e)}), 500
-
+        return jsonify({"status":"error","message":str(e)}), 500
 @app.route("/api/admin/menu/<int:idmon>", methods=["DELETE"])
 def admin_delete_menu(idmon):
     try:
         with get_cursor() as cur:
-            # kiểm tra FK trước
-            cur.execute("SELECT COUNT(*) FROM ChiTietDonHang WHERE IDMon=?", (idmon,))
+            cur.execute(
+                "SELECT COUNT(*) FROM ChiTietDonHang WHERE IDMon=?",
+                (idmon,)
+            )
             if cur.fetchone()[0] > 0:
-                return jsonify({"status":"error","message":"Không thể xóa món này vì đang có đơn hàng"}), 400
+                return jsonify({
+                    "status":"error",
+                    "message":"Không thể xóa món vì đã có đơn hàng"
+                }), 400
 
             cur.execute("DELETE FROM Menu WHERE IDMon=?", (idmon,))
+
         return jsonify({"status":"ok"}), 200
+
     except Exception as e:
         logger.exception("Lỗi admin_delete_menu: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status":"error","message":str(e)}), 500
+    
+    
 
-# ===== TABLE / QR CRUD =====
-@app.route("/api/admin/table", methods=["GET"])
-def admin_list_tables():
-    try:
-        with get_cursor() as cur:
-            cur.execute("SELECT IDBan, TenBan, MaQR, TrangThai, NgayTao FROM Ban ORDER BY IDBan")
-            rows = fetch_all_as_dict(cur)
-        for r in rows:
-            if r.get("MaQR"): 
-                r["MaQR"] = make_full_image_url(r["MaQR"])
-        return jsonify(rows), 200
-    except Exception as e:
-        logger.exception("Lỗi admin_list_tables: %s", e)
-        return jsonify({"status": "error","message": str(e)}), 500
-
-
-@app.route("/api/admin/table", methods=["POST"])
-def admin_create_table():
-    try:
-        data = request.get_json(force=True)
-        tenban = str(data.get("TenBan") or "").strip()
-        base_url = data.get("base_url") or request.host_url.rstrip('/')
-        if not tenban:
-            return jsonify({"status":"error","message":"Thiếu tên bàn!"}),400
-        with get_cursor() as cur:
-            # Kiểm tra tên bàn trùng
-            cur.execute("SELECT COUNT(*) FROM Ban WHERE TenBan=?", (tenban,))
-            if cur.fetchone()[0]>0:
-                return jsonify({"status":"error","message":f"Tên bàn '{tenban}' đã tồn tại!"}),400
-            # Tìm IDBan trống nhỏ nhất
-            cur.execute("""
-                SELECT ISNULL(MIN(t.IDBan)+1, 1) 
-                FROM Ban t 
-                WHERE t.IDBan+1 NOT IN (SELECT IDBan FROM Ban)
-            """)
-            idban = cur.fetchone()[0]
-            # Chèn bàn mới với IDBan cụ thể
-            cur.execute("SET IDENTITY_INSERT Ban ON")
-            cur.execute("INSERT INTO Ban (IDBan, TenBan) VALUES (?, ?)", (idban, tenban))
-            cur.execute("SET IDENTITY_INSERT Ban OFF")
-            # Tạo QR
-            qr_link = f"{base_url}/khach?table={idban}"
-            qr = qrcode.QRCode(box_size=8,border=2)
-            qr.add_data(qr_link); qr.make(fit=True)
-            img = qr.make_image(fill_color="black", back_color="white")
-            saved_rel = save_qr_image(img, f"qr_table_{idban}.png")
-            cur.execute("UPDATE Ban SET MaQR=? WHERE IDBan=?", (saved_rel, idban))
-        return jsonify({"status":"ok",
-                        "table":{"IDBan":idban,"TenBan":tenban,
-                                 "MaQR":make_full_image_url(saved_rel),"qr_link":qr_link}}),201
-    except Exception as e:
-        logger.exception("Lỗi admin_create_table: %s", e)
-        return jsonify({"status":"error","message":str(e)}),500
-
-@app.route("/api/admin/table/<int:idban>", methods=["PUT"])
-def admin_update_table(idban):
-    try:
-        data = request.get_json(force=True)
-        tenban = str(data.get("TenBan") or "").strip()
-        trangthai = str(data.get("TrangThai") or "").strip() or None
-        if not tenban:
-            return jsonify({"status": "error","message": "Thiếu tên bàn!"}), 400
-        with get_cursor() as cur:
-            # Kiểm tra bàn tồn tại
-            cur.execute("SELECT COUNT(*) FROM Ban WHERE IDBan=?", (idban,))
-            if cur.fetchone()[0]==0:
-                return jsonify({"status": "error","message": "Bàn không tồn tại!"}),404
-
-            # Kiểm tra tên bàn trùng
-            cur.execute("SELECT COUNT(*) FROM Ban WHERE TenBan=? AND IDBan<>?", (tenban,idban))
-            if cur.fetchone()[0]>0:
-                return jsonify({"status":"error","message":f"Tên bàn '{tenban}' đã được dùng!"}),400
-
-            # Cập nhật bàn
-            cur.execute("UPDATE Ban SET TenBan=?, TrangThai=ISNULL(?,TrangThai) WHERE IDBan=?", 
-                        (tenban,trangthai,idban))
-
-        return jsonify({"status":"ok"}),200
-    except Exception as e:
-        logger.exception("Lỗi admin_update_table: %s", e)
-        return jsonify({"status":"error","message":str(e)}),500
-
-
-@app.route("/api/admin/table/<int:idban>", methods=["DELETE"])
-def admin_delete_table(idban):
-    try:
-        with get_cursor() as cur:
-            # Xóa tất cả DonHang liên quan
-            cur.execute("DELETE FROM DonHang WHERE IDBan=?", (idban,))
-            # Xóa bàn
-            cur.execute("DELETE FROM Ban WHERE IDBan=?", (idban,))
-        return jsonify({"status":"ok"}),200
-    except Exception as e:
-        logger.exception("Lỗi admin_delete_table: %s", e)
-        return jsonify({"status":"error","message":str(e)}),500
-
-
-# ===== REPORT, CALL STAFF, PAYMENT =====
+# ===== REPORT =====
 @app.route("/api/report", methods=["GET"])
 def get_report():
     try:
-        period = request.args.get("period","day")
+        period = request.args.get("period", "day")
         now = now_vietnam().replace(tzinfo=None)
-        if period=="day":
+
+        # ===== XÁC ĐỊNH MỐC THỜI GIAN =====
+        if period == "day":
             start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif period=="week":
+        elif period == "week":
+            # Thứ 2 đầu tuần
             start_date = now - timedelta(days=now.weekday())
             start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        elif period=="month":
-            start_date = now.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
+        elif period == "month":
+            start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         else:
-            start_date = now
+            return jsonify({
+                "status": "error",
+                "message": "period không hợp lệ (day | week | month)"
+            }), 400
+
         with get_cursor() as cur:
+            # ===== TỔNG ĐƠN + DOANH THU =====
             cur.execute("""
-                SELECT COUNT(*) as total_orders, ISNULL(SUM(TongTien),0) as total_revenue
+                SELECT 
+                    COUNT(*) AS TotalOrders,
+                    ISNULL(SUM(TongTien), 0) AS TotalRevenue
                 FROM DonHang
-                WHERE TrangThaiThanhToan=1 AND NgayTao>=?
-            """,(start_date,))
-            row = cur.fetchone()
-        total_orders = row[0] if row else 0
-        total_revenue = float(row[1]) if row else 0
-        return jsonify({"totalOrders":total_orders,"totalRevenue":total_revenue,"period":period,"startDate":start_date.isoformat()}),200
+                WHERE TrangThaiThanhToan = 1
+                  AND NgayTao >= ?
+            """, (start_date,))
+            summary = fetch_one_as_dict(cur)
+
+            # ===== CHI TIẾT DOANH THU THEO DANH MỤC =====
+            cur.execute("""
+                SELECT 
+                    TenDanhMuc,
+                    SUM(DoanhThu) AS DoanhThu
+                FROM vBaoCaoDoanhThu
+                WHERE Ngay >= ?
+                GROUP BY TenDanhMuc
+                ORDER BY DoanhThu DESC
+            """, (start_date,))
+            by_category = fetch_all_as_dict(cur)
+
+        return jsonify({
+            "status": "ok",
+            "period": period,
+            "startDate": start_date.isoformat(),
+            "summary": {
+                "totalOrders": summary["TotalOrders"],
+                "totalRevenue": float(summary["TotalRevenue"])
+            },
+            "byCategory": by_category
+        }), 200
+
     except Exception as e:
         logger.exception("Lỗi get_report: %s", e)
-        return jsonify({"status":"error","message":str(e)}),500
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
-
-# ✅ API GỌI NHÂN VIÊN
-@app.route("/api/call_staff", methods=["POST", "OPTIONS"])
+# ===== GỌI NHÂN VIÊN =====
+@app.route("/api/call_staff", methods=["POST"])
 def call_staff():
-    if request.method == "OPTIONS":  # Xử lý preflight CORS
-        response = jsonify({"message": "CORS OK"})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
-        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
-        return response, 200
+    try:
+        data = request.get_json(force=True)
+        idban = data.get("IDBan") or data.get("table")
+        noidung = data.get("message", "Gọi nhân viên")
 
-    data = request.get_json()
-    table = data.get("table")
-    message = data.get("message", "Không có ghi chú")
+        if not idban:
+            return jsonify({"status":"error","message":"Thiếu IDBan"}), 400
 
-    if not table:
-        return jsonify({"error": "Thiếu số bàn"}), 400
+        with get_cursor() as cur:
+            # kiểm tra bàn tồn tại
+            cur.execute("SELECT COUNT(*) FROM Ban WHERE IDBan=?", (idban,))
+            if cur.fetchone()[0] == 0:
+                return jsonify({"status":"error","message":"Bàn không tồn tại"}), 404
 
-    # ✅ Gửi tín hiệu cho tất cả máy thu ngân
-    socketio.emit("staff_call", {
-        "table": table,
-        "message": message
-    })
+            # ghi thông báo
+            cur.execute("""
+                INSERT INTO ThongBao (IDBan, NoiDung)
+                VALUES (?, ?)
+            """, (idban, noidung))
 
-    return jsonify({"message": f"Bàn {table} đã gọi nhân viên"}), 200
+        payload = {
+            "IDBan": idban,
+            "NoiDung": noidung
+        }
 
-@app.route("/admin")
-def admin_page():
-    return render_template("admin.html")
+        socketio.emit("staff_call", payload)
 
+        return jsonify({
+            "status": "ok",
+            "message": f"Bàn {idban} đã gọi nhân viên"
+        }), 200
+
+    except Exception as e:
+        logger.exception("Lỗi call_staff: %s", e)
+        return jsonify({"status":"error","message":str(e)}), 500
+# ===== THANH TOÁN =====
 @app.route("/api/donhang/thanh-toan/<int:iddon>", methods=["PUT"])
 def api_pay_donhang(iddon):
     try:
-        with get_cursor() as cur:
-            cur.execute("SELECT TrangThaiThanhToan FROM DonHang WHERE IDDonHang=?", (iddon,))
-            row = cur.fetchone()
-            if not row:
-                return jsonify({"status":"error","message":"Không tìm thấy đơn hàng"}),404
-            if row[0]:
-                return jsonify({"status":"error","message":"Đơn đã được thanh toán"}),400
-            cur.execute("UPDATE DonHang SET TrangThaiThanhToan=1 WHERE IDDonHang=?", (iddon,))
-        socketio.emit("order_paid", {"IDDonHang": iddon})
-        return jsonify({"status":"ok","IDDonHang": iddon, "message":"Thanh toán thành công"}),200
-    except Exception as e:
-        logger.exception("Lỗi thanh toán đơn hàng: %s", e)
-        return jsonify({"status":"error","message":str(e)}),500
+        data = request.get_json(force=True)
+        idphuongthuc = data.get("IDPhuongThuc", 1)  # mặc định tiền mặt
+        idnguoidung = data.get("IDNguoiDung")      # thu ngân
 
-#báo cáo theo biểu đồ
+        with get_cursor() as cur:
+            # kiểm tra đơn
+            cur.execute("""
+                SELECT TongTien, TrangThaiThanhToan
+                FROM DonHang WHERE IDDonHang=?
+            """, (iddon,))
+            row = cur.fetchone()
+
+            if not row:
+                return jsonify({"status":"error","message":"Không tìm thấy đơn"}), 404
+
+            if row[1]:
+                return jsonify({"status":"error","message":"Đơn đã thanh toán"}), 400
+
+            tongtien = float(row[0])
+
+            # update đơn hàng
+            cur.execute("""
+                UPDATE DonHang
+                SET TrangThaiThanhToan=1, IDNguoiDung=?
+                WHERE IDDonHang=?
+            """, (idnguoidung, iddon))
+
+            # ghi thanh toán
+            cur.execute("""
+                INSERT INTO ThanhToan (IDDonHang, IDPhuongThuc, SoTien)
+                VALUES (?, ?, ?)
+            """, (iddon, idphuongthuc, tongtien))
+
+        socketio.emit("order_paid", {
+            "IDDonHang": iddon,
+            "TongTien": tongtien
+        })
+
+        return jsonify({
+            "status": "ok",
+            "IDDonHang": iddon,
+            "TongTien": tongtien,
+            "message": "Thanh toán thành công"
+        }), 200
+
+    except Exception as e:
+        logger.exception("Lỗi thanh toán: %s", e)
+        return jsonify({"status":"error","message":str(e)}), 500
+# ===== REPORT: PAID / UNPAID =====
 @app.route("/api/report/total-paid-unpaid")
 def total_paid_unpaid():
-    period = request.args.get("period", "day")
-    date_filter = get_date_filter(period, alias="d")
     try:
-        with get_cursor() as cur:
-            cur.execute(f"""
-                SELECT 
-                    SUM(CASE WHEN d.TrangThaiThanhToan=1 THEN d.TongTien ELSE 0 END) AS Paid,
-                    SUM(CASE WHEN d.TrangThaiThanhToan=0 THEN d.TongTien ELSE 0 END) AS Unpaid
-                FROM DonHang d
-                WHERE {date_filter}
-            """)
-            row = cur.fetchone()
-            return jsonify({"Paid": float(row.Paid or 0), "Unpaid": float(row.Unpaid or 0)})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        period = request.args.get("period", "day")
+        now = now_vietnam().replace(tzinfo=None)
 
+        if period == "day":
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == "week":
+            start = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == "month":
+            start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            return jsonify({"status":"error","message":"period không hợp lệ"}),400
+
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT
+                    SUM(CASE WHEN TrangThaiThanhToan=1 THEN TongTien ELSE 0 END) AS Paid,
+                    SUM(CASE WHEN TrangThaiThanhToan=0 THEN TongTien ELSE 0 END) AS Unpaid
+                FROM DonHang
+                WHERE NgayTao >= ?
+            """, (start,))
+            r = cur.fetchone()
+
+        return jsonify({
+            "Paid": float(r[0] or 0),
+            "Unpaid": float(r[1] or 0)
+        })
+
+    except Exception as e:
+        return jsonify({"status":"error","message":str(e)}), 500
+# ===== REPORT: REVENUE BY CATEGORY =====
 @app.route("/api/report/revenue-by-category")
 def revenue_by_category():
-    period = request.args.get("period", "day")
-    date_filter = get_date_filter(period, alias="d")
     try:
+        period = request.args.get("period", "day")
+        now = now_vietnam().replace(tzinfo=None)
+
+        if period == "day":
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == "week":
+            start = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+        elif period == "month":
+            start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            return jsonify({"status":"error","message":"period không hợp lệ"}),400
+
         with get_cursor() as cur:
-            cur.execute(f"""
-                SELECT 
-                    m.DanhMuc,
-                    SUM(ct.SoLuong * ct.DonGia) AS DoanhThu
-                FROM ChiTietDonHang ct
-                JOIN Menu m ON ct.IDMon = m.IDMon
-                JOIN DonHang d ON ct.IDDonHang = d.IDDonHang
-                WHERE d.TrangThaiThanhToan = 1 AND {date_filter}
-                GROUP BY m.DanhMuc
+            cur.execute("""
+                SELECT TenDanhMuc, SUM(DoanhThu) AS DoanhThu
+                FROM vBaoCaoDoanhThu
+                WHERE Ngay >= ?
+                GROUP BY TenDanhMuc
                 ORDER BY DoanhThu DESC
-            """)
-            rows = cur.fetchall()
-            result = [{"DanhMuc": r.DanhMuc, "DoanhThu": float(r.DoanhThu)} for r in rows]
-            return jsonify(result)
+            """, (start,))
+            rows = fetch_all_as_dict(cur)
+
+        return jsonify({"status":"ok","data":rows})
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-# ===== ADMIN STAFF CRUD =====
+        return jsonify({"status":"error","message":str(e)}), 500
+
+ 
+
+# ========== ADMIN STAFF ==========
+
+# ========== GET STAFF ==========
 @app.route("/api/admin/staff", methods=["GET"])
 def admin_list_staff():
     try:
         with get_cursor() as cur:
             cur.execute("""
-                SELECT IDNguoiDung, TenDangNhap, HoTen, MatKhau, VaiTro
-                FROM NguoiDung ORDER BY IDNguoiDung DESC
+                SELECT 
+                    IDNguoiDung,
+                    TenDangNhap,
+                    HoTen,
+                    VaiTro,
+                    TrangThai,
+                    NgayTao
+                FROM NguoiDung
+                ORDER BY IDNguoiDung DESC
             """)
             rows = fetch_all_as_dict(cur)
-        return jsonify(rows), 200
+
+        return jsonify({"status":"ok","data":rows}), 200
+
     except Exception as e:
         logger.exception("Lỗi admin_list_staff: %s", e)
-        return jsonify({"status": "error", "message": str(e)}), 500
-
+        return jsonify({"status":"error","message":str(e)}), 500
+# ========== CREATE STAFF==========
 @app.route("/api/admin/staff", methods=["POST"])
 def admin_create_staff():
     try:
         data = request.get_json(force=True)
-        username = data.get("TenDangNhap")
-        fullname = data.get("HoTen", "")
-        role = data.get("VaiTro", "")
-        password = data.get("MatKhau") or "123456"  # Nếu không nhập thì dùng mặc định
 
-        if not username or not fullname or not role or not password:
-            return jsonify({"status":"error","message":"Thiếu thông tin"}), 400
+        username = data.get("TenDangNhap")
+        fullname = data.get("HoTen")
+        role = data.get("VaiTro")
+        password = data.get("MatKhau") or "123456"
+
+        if not username or not fullname or role not in ("Admin","Bep","ThuNgan"):
+            return jsonify({"status":"error","message":"Dữ liệu không hợp lệ"}), 400
 
         with get_cursor() as cur:
-            # Kiểm tra trùng username
             cur.execute("SELECT COUNT(*) FROM NguoiDung WHERE TenDangNhap=?", (username,))
             if cur.fetchone()[0] > 0:
                 return jsonify({"status":"error","message":"Tên đăng nhập đã tồn tại"}), 400
 
             cur.execute("""
                 INSERT INTO NguoiDung (TenDangNhap, MatKhau, HoTen, VaiTro)
+                OUTPUT INSERTED.IDNguoiDung
                 VALUES (?, ?, ?, ?)
             """, (username, password, fullname, role))
+            new_id = cur.fetchone()[0]
 
-            cur.execute("SELECT MAX(IDNguoiDung) FROM NguoiDung")
-            new_id = int(cur.fetchone()[0])
-
-            cur.execute("SELECT IDNguoiDung, TenDangNhap, HoTen, MatKhau, VaiTro FROM NguoiDung WHERE IDNguoiDung=?", (new_id,))
-            staff = fetch_all_as_dict(cur)[0]
+            cur.execute("""
+                SELECT IDNguoiDung, TenDangNhap, HoTen, VaiTro, TrangThai
+                FROM NguoiDung WHERE IDNguoiDung=?
+            """, (new_id,))
+            staff = fetch_one_as_dict(cur)
 
         return jsonify({"status":"ok","staff":staff}), 201
+
     except Exception as e:
         logger.exception("Lỗi admin_create_staff: %s", e)
         return jsonify({"status":"error","message":str(e)}), 500
-
+# ========== UPDATE STAFF ==========
 @app.route("/api/admin/staff/<int:iduser>", methods=["PUT"])
 def admin_update_staff(iduser):
     try:
         data = request.get_json(force=True)
         sets, params = [], []
-        for field in ["TenDangNhap", "HoTen", "VaiTro", "MatKhau"]:
-            if field in data and data[field]:
+
+        for field in ["TenDangNhap","HoTen","VaiTro","MatKhau","TrangThai"]:
+            if field in data:
                 sets.append(f"{field}=?")
                 params.append(data[field])
 
         if not sets:
-            return jsonify({"status": "error", "message": "No fields to update"}), 400
+            return jsonify({"status":"error","message":"Không có dữ liệu cập nhật"}), 400
 
         params.append(iduser)
 
         with get_cursor() as cur:
-            # Nếu cập nhật username, kiểm tra trùng
             if "TenDangNhap" in data:
-                cur.execute("SELECT COUNT(*) FROM NguoiDung WHERE TenDangNhap=? AND IDNguoiDung<>?", (data["TenDangNhap"], iduser))
+                cur.execute("""
+                    SELECT COUNT(*) FROM NguoiDung
+                    WHERE TenDangNhap=? AND IDNguoiDung<>?
+                """, (data["TenDangNhap"], iduser))
                 if cur.fetchone()[0] > 0:
                     return jsonify({"status":"error","message":"Tên đăng nhập đã tồn tại"}), 400
 
-            cur.execute(f"UPDATE NguoiDung SET {', '.join(sets)} WHERE IDNguoiDung=?", tuple(params))
-            cur.execute("SELECT IDNguoiDung, TenDangNhap, HoTen, MatKhau, VaiTro FROM NguoiDung WHERE IDNguoiDung=?", (iduser,))
-            staff = fetch_all_as_dict(cur)[0]
+            cur.execute(f"""
+                UPDATE NguoiDung SET {', '.join(sets)}
+                WHERE IDNguoiDung=?
+            """, tuple(params))
+
+            cur.execute("""
+                SELECT IDNguoiDung, TenDangNhap, HoTen, VaiTro, TrangThai
+                FROM NguoiDung WHERE IDNguoiDung=?
+            """, (iduser,))
+            staff = fetch_one_as_dict(cur)
 
         return jsonify({"status":"ok","staff":staff}), 200
+
     except Exception as e:
         logger.exception("Lỗi admin_update_staff: %s", e)
-        return jsonify({"status":"error","message": str(e)}), 500
-
-@app.route("/api/admin/staff/<int:iduser>", methods=["DELETE"])
-def admin_delete_staff(iduser):
-    try:
-        with get_cursor() as cur:
-            # Kiểm tra ràng buộc nếu cần (ví dụ đơn hàng liên quan)
-            cur.execute("SELECT COUNT(*) FROM DonHang WHERE IDNguoiDung=?", (iduser,))
-            if cur.fetchone()[0] > 0:
-                return jsonify({"status":"error","message":"Không thể xóa nhân sự này vì có đơn hàng liên quan"}), 400
-
-            cur.execute("DELETE FROM NguoiDung WHERE IDNguoiDung=?", (iduser,))
-        return jsonify({"status":"ok"}), 200
-    except Exception as e:
-        logger.exception("Lỗi admin_delete_staff: %s", e)
-        return jsonify({"status":"error","message": str(e)}), 500
-
-
-# ===== GET tất cả đơn hàng =====
+        return jsonify({"status":"error","message":str(e)}), 500
+# ==========ADMIN GET ĐƠN HÀNG ==========
 @app.route("/api/admin/donhang", methods=["GET"])
 def admin_donhang_list():
     try:
         with get_cursor() as cur:
             cur.execute("""
-                SELECT IDDonHang, IDBan, TongTien, GhiChu, NgayTao
-                FROM DonHang
-                ORDER BY NgayTao DESC
+                SELECT 
+                    d.IDDonHang,
+                    d.IDBan,
+                    d.TongTien,
+                    d.TrangThaiThanhToan,
+                    d.NgayTao,
+                    ls.TrangThai
+                FROM DonHang d
+                OUTER APPLY (
+                    SELECT TOP 1 TrangThai
+                    FROM LichSuTrangThaiDonHang
+                    WHERE IDDonHang=d.IDDonHang
+                    ORDER BY ThoiGian DESC
+                ) ls
+                ORDER BY d.NgayTao DESC
             """)
             orders = fetch_all_as_dict(cur)
-        return jsonify(orders), 200
+
+        return jsonify({"status":"ok","data":orders}), 200
+
     except Exception as e:
-        logger.exception("Lỗi lấy danh sách đơn hàng: %s", e)
+        logger.exception("Lỗi admin_donhang_list: %s", e)
         return jsonify({"status":"error","message":str(e)}), 500
-
-# ===== GET chi tiết đơn hàng =====
-@app.route("/api/admin/donhang/<int:iddon>", methods=["GET"])
-def admin_donhang_detail(iddon):
-    try:
-        with get_cursor() as cur:
-            # Lấy thông tin đơn hàng
-            cur.execute("SELECT IDDonHang, IDBan, TongTien, GhiChu, NgayTao FROM DonHang WHERE IDDonHang=?", (iddon,))
-            row = cur.fetchone()
-            if not row:
-                return jsonify({"status":"error","message":"Không tìm thấy đơn"}), 404
-            order = dict(zip([c[0] for c in cur.description], row))
-
-            # Lấy chi tiết món
-            cur.execute("""
-                SELECT ct.IDChiTiet, ct.IDMon, m.TenMon, m.HinhAnh, ct.SoLuong, ct.DonGia, ct.GhiChu,
-                       (ct.SoLuong*ct.DonGia) AS ThanhTien
-                FROM ChiTietDonHang ct
-                JOIN Menu m ON ct.IDMon = m.IDMon
-                WHERE ct.IDDonHang=?
-            """, (iddon,))
-            items = fetch_all_as_dict(cur)
-            order["Items"] = items
-
-        return jsonify(order), 200
-    except Exception as e:
-        logger.exception("Lỗi lấy chi tiết đơn hàng: %s", e)
-        return jsonify({"status":"error","message":str(e)}), 500
-
-# ===== Cập nhật đơn hàng (bàn, tổng tiền, ghi chú) =====
+    
+# ========== ADMIN UPDATE ĐƠN HÀNG ==========
 @app.route("/api/admin/donhang/<int:iddon>", methods=["PUT"])
 def admin_donhang_update(iddon):
     try:
         data = request.get_json(force=True)
         idban = data.get("IDBan")
-        ghichu = data.get("GhiChu")
+        ghichu = data.get("GhiChu","")
         items = data.get("Items") or []
 
         if not idban or not items:
-            return jsonify({"status":"error","message":"Thiếu bàn hoặc danh sách món"}), 400
-
-        normalized_items = []
-        for it in items:
-            idmon = it.get("IDMon")
-            soluong = int(it.get("SoLuong", 1))
-            ghi = it.get("GhiChu", "")
-            if idmon is None:
-                continue
-            normalized_items.append({"IDMon": idmon, "SoLuong": soluong, "GhiChu": ghi})
-
-        if not normalized_items:
-            return jsonify({"status":"error","message":"Danh sách món không hợp lệ"}), 400
+            return jsonify({"status":"error","message":"Thiếu dữ liệu"}), 400
 
         with get_cursor() as cur:
-            # Cập nhật bàn và ghi chú
-            cur.execute("UPDATE DonHang SET IDBan=?, GhiChu=? WHERE IDDonHang=?", (idban, ghichu or "", iddon))
+            cur.execute("""
+                UPDATE DonHang SET IDBan=?, GhiChu=?
+                WHERE IDDonHang=?
+            """, (idban, ghichu, iddon))
 
-            # Xóa chi tiết cũ
+            # Xóa & thêm lại chi tiết → TRIGGER tự tính
             cur.execute("DELETE FROM ChiTietDonHang WHERE IDDonHang=?", (iddon,))
 
-            # Thêm chi tiết mới
-            ids = [i["IDMon"] for i in normalized_items]
-            placeholders = ",".join(["?"]*len(ids))
-            cur.execute(f"SELECT IDMon, Gia FROM Menu WHERE IDMon IN ({placeholders})", tuple(ids))
+            ids = [i["IDMon"] for i in items]
+            placeholders = ",".join("?"*len(ids))
+            cur.execute(
+                f"SELECT IDMon, Gia FROM Menu WHERE IDMon IN ({placeholders})",
+                tuple(ids)
+            )
             prices = {r[0]: float(r[1]) for r in cur.fetchall()}
 
-            tong = 0
-            for it in normalized_items:
+            for it in items:
                 gia = prices.get(it["IDMon"])
                 if gia is None:
                     continue
                 cur.execute("""
-                    INSERT INTO ChiTietDonHang (IDDonHang, IDMon, SoLuong, DonGia, GhiChu)
+                    INSERT INTO ChiTietDonHang
+                    (IDDonHang, IDMon, SoLuong, DonGia, GhiChu)
                     VALUES (?, ?, ?, ?, ?)
-                """, (iddon, it["IDMon"], it["SoLuong"], gia, it["GhiChu"]))
-                tong += gia * it["SoLuong"]
+                """, (iddon, it["IDMon"], it["SoLuong"], gia, it.get("GhiChu","")))
 
-            # Cập nhật tổng tiền
-            cur.execute("UPDATE DonHang SET TongTien=? WHERE IDDonHang=?", (tong, iddon))
+        return jsonify({"status":"ok","IDDonHang":iddon}), 200
 
-        return jsonify({"status":"ok","IDDonHang":iddon, "TongTien": tong}), 200
     except Exception as e:
-        logger.exception("Lỗi cập nhật đơn hàng: %s", e)
+        logger.exception("Lỗi admin_donhang_update: %s", e)
         return jsonify({"status":"error","message":str(e)}), 500
-
-# ===== Xóa đơn hàng =====
+# ========== ADMIN DELETE ĐƠN HÀNG ==========
 @app.route("/api/admin/donhang/<int:iddon>", methods=["DELETE"])
 def admin_donhang_delete(iddon):
     try:
         with get_cursor() as cur:
-            cur.execute("DELETE FROM ChiTietDonHang WHERE IDDonHang=?", (iddon,))
             cur.execute("DELETE FROM DonHang WHERE IDDonHang=?", (iddon,))
         return jsonify({"status":"ok","IDDonHang":iddon}), 200
     except Exception as e:
         logger.exception("Lỗi xóa đơn hàng: %s", e)
         return jsonify({"status":"error","message":str(e)}), 500
+from functools import wraps
 
 # ========== API ĐĂNG NHẬP ==========
 @app.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
+    data = request.get_json(force=True)
+
     username = data.get("username", "").strip()
     password = data.get("password", "").strip()
     role     = data.get("role", "").strip()
 
     if not username or not password or not role:
-        return jsonify({"status": "error", "message": "Thiếu thông tin"}), 400
+        return jsonify({
+            "status": "error",
+            "message": "Thiếu thông tin đăng nhập"
+        }), 400
 
     with get_cursor() as cur:
         cur.execute("""
-            SELECT TenDangNhap, MatKhau, VaiTro
+            SELECT IDNguoiDung, TenDangNhap, MatKhau, VaiTro, TrangThai
             FROM NguoiDung
-            WHERE TenDangNhap=? AND MatKhau=? AND VaiTro=?
-        """, username, password, role)
+            WHERE TenDangNhap = ?
+              AND MatKhau = ?
+              AND VaiTro = ?
+        """, (username, password, role))
 
         user = cur.fetchone()
 
     if not user:
-        return jsonify({"status": "error", "message": ""}), 401
+        return jsonify({
+            "status": "error",
+            "message": "Sai tài khoản, mật khẩu hoặc vai trò"
+        }), 401
 
+    if not user[4]:  # TrangThai = 0
+        return jsonify({
+            "status": "error",
+            "message": "Tài khoản đã bị khóa"
+        }), 403
+
+    # ===== LƯU SESSION =====
     session["logged_in"] = True
-    session["username"] = username
-    session["role"] = user[2]
+    session["user_id"] = user[0]
+    session["username"] = user[1]
+    session["role"] = user[3]
 
-    return jsonify({"status": "ok", "role": user[2]})
-
-
+    return jsonify({
+        "status": "ok",
+        "role": user[3]
+    }), 200
 # ========== CHẶN TRUY CẬP THEO ROLE ==========
 def require_role(expected_role):
     def decorator(func):
+        @wraps(func)
         def wrapper(*args, **kwargs):
             if not session.get("logged_in"):
                 return redirect("/")
             if session.get("role") != expected_role:
-                return "Không có quyền truy cập!", 403
+                return jsonify({
+                    "status": "error",
+                    "message": "Không có quyền truy cập"
+                }), 403
             return func(*args, **kwargs)
-        wrapper.__name__ = func.__name__
         return wrapper
     return decorator
-
-
-# ✅ TRANG ADMIN – ĐỔI TÊN KHÔNG TRÙNG
 @app.route("/admin")
 @require_role("Admin")
 def admin_dashboard():
-    return "<h1>Trang quản trị</h1> <p>Xin chào: {}</p>".format(session.get("username"))
+    return f"<h1>Trang quản trị</h1><p>Xin chào: {session.get('username')}</p>"
 
 
 @app.route("/bep")
@@ -790,14 +982,10 @@ def bep_page():
 @require_role("ThuNgan")
 def thu_ngan_page():
     return "<h1>Màn hình Thu Ngân</h1>"
-
-
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
-
-# ======= Socket Example =======
 @socketio.on("connect")
 def handle_connect():
     print("Client connected")
@@ -806,9 +994,6 @@ def handle_connect():
 def handle_disconnect():
     print("Client disconnected")
 
-@socketio.on("call_staff")
-def handle_call_staff(data):
-    socketio.emit("staff_call", data)
 # ===== RUN SERVER =====
 if __name__ == "__main__":
     try:

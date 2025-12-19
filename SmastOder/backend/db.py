@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# db.py - Kết nối SQL Server với pyodbc, hỗ trợ get_cursor() và get_connection()
+# db.py - Kết nối SQL Server với pyodbc, hỗ trợ get_cursor()
 
 import os
 import logging
@@ -27,7 +27,7 @@ _PREFERRED_DRIVERS = [
 ]
 
 def _find_driver():
-    """Tìm và trả về driver SQL Server phù hợp nhất."""
+    """Tìm driver SQL Server phù hợp nhất."""
     env_driver = os.getenv("MSSQL_DRIVER", "").strip()
     available = pyodbc.drivers()
 
@@ -64,7 +64,7 @@ DB_CONFIG = {
 def build_conn_str(cfg: dict) -> str:
     """Tạo chuỗi kết nối SQL Server."""
     if not cfg["DRIVER"]:
-        raise RuntimeError("❌ Không tìm thấy driver hợp lệ cho SQL Server.")
+        raise RuntimeError("❌ Không tìm thấy driver SQL Server.")
 
     base = [
         f"DRIVER={cfg['DRIVER']}",
@@ -73,7 +73,11 @@ def build_conn_str(cfg: dict) -> str:
         f"Encrypt={cfg['ENCRYPT']}",
         f"TrustServerCertificate={cfg['TRUST_SERVER_CERT']}"
     ]
-    auth = [f"UID={cfg['UID']}", f"PWD={cfg['PWD']}"] if cfg["UID"] else ["Trusted_Connection=yes"]
+    auth = (
+        [f"UID={cfg['UID']}", f"PWD={cfg['PWD']}"]
+        if cfg["UID"]
+        else ["Trusted_Connection=yes"]
+    )
     return ";".join(base + auth)
 
 try:
@@ -89,30 +93,23 @@ except Exception as e:
 def connect() -> pyodbc.Connection:
     """Tạo kết nối mới tới SQL Server."""
     if not CONN_STR:
-        raise RuntimeError("Không thể kết nối: chuỗi kết nối chưa được tạo.")
-    try:
-        conn = pyodbc.connect(CONN_STR, timeout=DB_CONFIG["TIMEOUT"])
-        conn.autocommit = DB_CONFIG["AUTOCOMMIT"]
-        return conn
-    except pyodbc.Error as e:
-        msg = str(e)
-        if "IM002" in msg:
-            raise RuntimeError("❌ Lỗi ODBC Driver: chưa cài hoặc sai tên driver.") from e
-        elif "08001" in msg:
-            raise RuntimeError("❌ Lỗi kết nối SQL Server: không tìm thấy server hoặc instance.") from e
-        raise
+        raise RuntimeError("Chuỗi kết nối chưa được tạo.")
+    conn = pyodbc.connect(CONN_STR, timeout=DB_CONFIG["TIMEOUT"])
+    conn.autocommit = DB_CONFIG["AUTOCOMMIT"]
+    return conn
 
-# Alias để app.py còn dùng get_connection()
+# Alias để app.py dùng
 get_connection = connect
 
 # ==============================
-# 🧠 QUẢN LÝ CURSOR
+# 🧠 CONTEXT MANAGER CURSOR
 # ==============================
 @contextmanager
 def get_cursor():
     """
-    Context manager an toàn cho giao dịch DB.
-    Tự động commit nếu thành công, rollback nếu lỗi.
+    Context manager cho cursor.
+    - Auto commit nếu OK
+    - Rollback nếu lỗi
     """
     conn = None
     cur = None
@@ -122,15 +119,10 @@ def get_cursor():
         yield cur
         if not conn.autocommit:
             conn.commit()
-    except pyodbc.Error as e:
-        if conn and not conn.autocommit:
-            conn.rollback()
-        logger.error(f"❌ Database error: {e}")
-        raise
     except Exception as e:
         if conn and not conn.autocommit:
             conn.rollback()
-        logger.error(f"⚠️ Application error in get_cursor(): {e}")
+        logger.error(f"❌ Database error: {e}")
         raise
     finally:
         try:
@@ -142,18 +134,38 @@ def get_cursor():
             conn.close()
 
 # ==============================
-# 🧪 KIỂM TRA KẾT NỐI
+# 📦 FETCH HELPER FUNCTIONS
+# ==============================
+def fetch_one_as_dict(cur):
+    """
+    Lấy 1 dòng từ cursor và trả về dict.
+    """
+    row = cur.fetchone()
+    if not row:
+        return None
+    cols = [c[0] for c in cur.description]
+    return dict(zip(cols, row))
+
+
+def fetch_all_as_dict(cur):
+    """
+    Lấy nhiều dòng từ cursor và trả về list[dict].
+    """
+    cols = [c[0] for c in cur.description]
+    return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+# ==============================
+# 🧪 TEST KẾT NỐI
 # ==============================
 def test_connection():
-    """Kiểm tra kết nối CSDL."""
     try:
         with get_cursor() as cur:
             cur.execute("SELECT 1 AS Test")
             row = cur.fetchone()
-            logger.info(f"✅ Database connected successfully. Test result: {row[0]}")
+            logger.info(f"✅ Database connected. Test result: {row[0]}")
             return True
     except Exception as e:
-        logger.critical(f"❌ Lỗi kết nối database: {e}")
+        logger.critical(f"❌ Database connection failed: {e}")
         raise
 
 # ==============================
