@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mì Cay One - Admin Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="static/css/admin.css">
+</head>
+<body>
+
+    <!-- ========== SIDEBAR ========== -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="static/image/logo.jpg" alt="Logo" class="sidebar-logo">
+            <h4>Mì Cay One</h4>
+            <p>Admin Panel</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#orders" class="nav-item" data-section="orders">
+                <i class="fas fa-receipt"></i>
+                <span>Đơn hàng</span>
+                <span class="badge">0</span>
+            </a>
+            <a href="#menu" class="nav-item" data-section="menu">
+                <i class="fas fa-utensils"></i>
+                <span>Thực đơn</span>
+            </a>
+            <a href="#categories" class="nav-item" data-section="categories">
+                <i class="fas fa-tags"></i>
+                <span>Danh mục</span>
+            </a>
+            <a href="#tables" class="nav-item" data-section="tables">
+                <i class="fas fa-table"></i>
+                <span>Quản lý bàn</span>
+            </a>
+            <a href="#users" class="nav-item" data-section="users">
+                <i class="fas fa-users"></i>
+                <span>Nhân viên</span>
+            </a>
+            <a href="#customers" class="nav-item" data-section="customers">
+                <i class="fas fa-user-friends"></i>
+                <span>Khách hàng</span>
+            </a>
+            <a href="#promotions" class="nav-item" data-section="promotions">
+                <i class="fas fa-gift"></i>
+                <span>Khuyến mãi</span>
+            </a>
+            <a href="#payments" class="nav-item" data-section="payments">
+                <i class="fas fa-credit-card"></i>
+                <span>Thanh toán</span>
+            </a>
+            <a href="#reviews" class="nav-item" data-section="reviews">
+                <i class="fas fa-star"></i>
+                <span>Đánh giá</span>
+            </a>
+            <a href="#reports" class="nav-item" data-section="reports">
+                <i class="fas fa-chart-bar"></i>
+                <span>Báo cáo</span>
+            </a>
+            <a href="#notifications" class="nav-item" data-section="notifications">
+                <i class="fas fa-bell"></i>
+                <span>Thông báo</span>
+                <span class="badge">0</span>
+            </a>
+        </nav>
+      </div>
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <div class="main-content">
+        
+        <!-- ========== TOPBAR ========== -->
+        <div class="topbar">
+            <button class="menu-toggle" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="topbar-left">
+                <h2 id="page-title">Dashboard</h2>
+            </div>
+
+            <div class="topbar-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Tìm kiếm...">
+                </div>
+
+                <div class="notification-icon" id="notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">0</span>
+                </div>
+
+                <div class="user-profile">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=ff6b35&color=fff" alt="User">
+                    <div class="user-info">
+                        <span class="user-name">Admin</span>
+                        <span class="user-role">Quản trị viên</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== CONTENT AREA ========== -->
+        <div class="content-area">
+            
+            <!-- ========== DASHBOARD SECTION ========== -->
+            <section id="section-dashboard" class="content-section active">
+                
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card stat-primary">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-revenue">0 ₫</h3>
+                            <p>Doanh thu hôm nay</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-success">
+                        <div class="stat-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-orders">0</h3>
+                            <p>Đơn hàng hôm nay</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-warning">
+                        <div class="stat-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-menu-items">0</h3>
+                            <p>Món ăn</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-info">
+                        <div class="stat-icon">
+                            <i class="fas fa-table"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-tables">0</h3>
+                            <p>Số bàn</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts & Recent Orders -->
+                <div class="dashboard-grid">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <h3>Doanh thu 7 ngày</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card recent-orders">
+                        <div class="card-header">
+                            <h3>Đơn hàng gần đây</h3>
+                            <a href="#orders" class="btn-link">Xem tất cả</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table" id="recent-orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã ĐH</th>
+                                            <th>Bàn</th>
+                                            <th>Tổng tiền</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="4" class="text-center">Đang tải...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ========== ORDERS SECTION ========== -->
+            <section id="section-orders" class="content-section">
+                <div class="section-header">
+                    <h2>Quản lý đơn hàng</h2>
+                    <div class="filter-group">
+                        <select id="order-status-filter" class="form-select">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="pending">Chờ xử lý</option>
+                            <option value="processing">Đang chế biến</option>
+                            <option value="completed">Hoàn thành</option>
+                            <option value="cancelled">Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="orders-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Bàn</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Thanh toán</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Đang tải...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== MENU SECTION ========== -->
+            <section id="section-menu" class="content-section">
+                <div class="section-header">
+                    <h2>Quản lý thực đơn</h2>
+                    <button class="btn btn-primary" id="add-menu-btn">
+                        <i class="fas fa-plus"></i> Thêm món
+                    </button>
+                </div>
+
+                <div class="menu-grid" id="menu-grid">
+                    <div class="loading-state">Đang tải...</div>
+                </div>
+            </section>
+
+            <!-- ========== CATEGORIES SECTION ========== -->
+            <section id="section-categories" class="content-section">
+                <div class="section-header">
+                    <h2>Quản lý danh mục</h2>
+                    <button class="btn btn-primary" id="add-category-btn">
+                        <i class="fas fa-plus"></i> Thêm danh mục
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="categories-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tên danh mục</th>
+                                        <th>Số món</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="4" class="text-center">Đang tải...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== TABLES SECTION ========== -->
+            <section id="section-tables" class="content-section">
+                <div class="section-header">
+                    <h2>Quản lý bàn</h2>
+                    <button class="btn btn-primary" id="add-table-btn">
+                        <i class="fas fa-plus"></i> Thêm bàn
+                    </button>
+                </div>
+
+                <div class="tables-grid" id="tables-grid">
+                    <div class="loading-state">Đang tải...</div>
+                </div>
+            </section>
+
+            <!-- ========== USERS SECTION ========== -->
+            <section id="section-users" class="content-section">
+                <div class="section-header">
+                    <h2>Quản lý nhân viên</h2>
+                    <button class="btn btn-primary" id="add-user-btn">
+                        <i class="fas fa-plus"></i> Thêm nhân viên
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tên đăng nhập</th>
+                                        <th>Họ tên</th>
+                                        <th>Vai trò</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Đang tải...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== CUSTOMERS SECTION ========== -->
+            <section id="section-customers" class="content-section">
+                <div class="section-header">
+                    <h2>Quản lý khách hàng</h2>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="customers-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tên khách hàng</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Điểm tích lũy</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center">Đang tải...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== PROMOTIONS SECTION ========== -->
+            <section id="section-promotions" class="content-section">
+                <div class="section-header">
+                    <h2>Quản lý khuyến mãi</h2>
+                    <button class="btn btn-primary" id="add-promotion-btn">
+                        <i class="fas fa-plus"></i> Thêm khuyến mãi
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="promotions-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Tên khuyến mãi</th>
+                                        <th>Loại giảm giá</th>
+                                        <th>Giá trị</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="6" class="text-center">Đang tải...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== PAYMENTS SECTION ========== -->
+            <section id="section-payments" class="content-section">
+                <div class="section-header">
+                    <h2>Lịch sử thanh toán</h2>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="payments-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Mã đơn hàng</th>
+                                        <th>Phương thức</th>
+                                        <th>Số tiền</th>
+                                        <th>Thời gian</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center">Đang tải...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== REVIEWS SECTION ========== -->
+            <section id="section-reviews" class="content-section">
+                <div class="section-header">
+                    <h2>Quản lý đánh giá</h2>
+                </div>
+
+                <div class="reviews-grid" id="reviews-grid">
+                    <div class="loading-state">Đang tải...</div>
+                </div>
+            </section>
+
+            <!-- ========== REPORTS SECTION ========== -->
+            <section id="section-reports" class="content-section">
+                <div class="section-header">
+                    <h2>Báo cáo doanh thu</h2>
+                    <div class="filter-group">
+                        <input type="date" class="form-control" id="report-from-date">
+                        <input type="date" class="form-control" id="report-to-date">
+                        <button class="btn btn-primary" id="generate-report-btn">
+                            <i class="fas fa-chart-line"></i> Tạo báo cáo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <canvas id="reportChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ngày</th>
+                                        <th>Danh mục</th>
+                                        <th>Doanh thu</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="3" class="text-center">Chọn khoảng thời gian để tạo báo cáo</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========== NOTIFICATIONS SECTION ========== -->
+            <section id="section-notifications" class="content-section">
+                <div class="section-header">
+                    <h2>Thông báo từ khách hàng</h2>
+                    <button class="btn btn-primary" id="mark-all-read-btn">
+                        <i class="fas fa-check-double"></i> Đánh dấu đã đọc tất cả
+                    </button>
+                </div>
+
+                <div class="notifications-list" id="notifications-list">
+                    <div class="loading-state">Đang tải...</div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- ========== MODALS ========== -->
+    
+    <!-- Add/Edit Menu Modal -->
+    <div class="modal" id="menu-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="menu-modal-title">Thêm món mới</h3>
+                    <button class="btn-close" data-modal="menu-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="menu-form">
+                        <input type="hidden" id="menu-id">
+                        <div class="form-group">
+                            <label>Tên món</label>
+                            <input type="text" class="form-control" id="menu-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Mô tả</label>
+                            <textarea class="form-control" id="menu-description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Giá</label>
+                            <input type="number" class="form-control" id="menu-price" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Danh mục</label>
+                            <select class="form-control" id="menu-category" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Hình ảnh (URL)</label>
+                            <input type="text" class="form-control" id="menu-image">
+                        </div>
+                        <div class="form-group">
+                            <label>Trạng thái</label>
+                            <select class="form-control" id="menu-status">
+                                <option value="1">Hoạt động</option>
+                                <option value="0">Tạm ngừng</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-modal="menu-modal">Hủy</button>
+                    <button class="btn btn-primary" id="save-menu-btn">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal" id="order-detail-modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Chi tiết đơn hàng</h3>
+                    <button class="btn-close" data-modal="order-detail-modal">&times;</button>
+                </div>
+                <div class="modal-body" id="order-detail-content">
+                    <div class="loading-state">Đang tải...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>

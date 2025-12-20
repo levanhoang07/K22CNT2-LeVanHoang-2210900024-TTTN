@@ -1,189 +1,360 @@
--- =============================================
--- 1. TẠO DATABASE
--- =============================================
+/* =====================================================
+   1. TẠO DATABASE
+===================================================== */
 CREATE DATABASE MyCay_Oder;
 GO
 USE MyCay_Oder;
 GO
 
--- =============================================
--- 2. BẢNG NGƯỜI DÙNG (User)
--- =============================================
+/* =====================================================
+   2. NGƯỜI DÙNG
+===================================================== */
 CREATE TABLE NguoiDung (
-    IDNguoiDung INT IDENTITY(1,1) PRIMARY KEY,
+    IDNguoiDung INT IDENTITY PRIMARY KEY,
     TenDangNhap NVARCHAR(50) NOT NULL UNIQUE,
     MatKhau NVARCHAR(255) NOT NULL,
     HoTen NVARCHAR(100),
-    VaiTro NVARCHAR(20) CHECK (VaiTro IN ('Bep', 'ThuNgan', 'Admin')),
+    VaiTro NVARCHAR(20) CHECK (VaiTro IN (N'Admin', N'Bep', N'ThuNgan')),
+    TrangThai BIT DEFAULT 1,
     NgayTao DATETIME DEFAULT GETDATE()
 );
 
--- =============================================
--- 3. BẢNG BÀN (Ban)
--- =============================================
+/* =====================================================
+   3. BÀN
+===================================================== */
 CREATE TABLE Ban (
-    IDBan INT IDENTITY(1,1) PRIMARY KEY,
-    TenBan NVARCHAR(50) NOT NULL UNIQUE, -- Tên bàn không trùng
+    IDBan INT IDENTITY PRIMARY KEY,
+    TenBan NVARCHAR(50) NOT NULL UNIQUE,
     MaQR NVARCHAR(255) UNIQUE,
     TrangThai NVARCHAR(20) DEFAULT N'Trống',
     NgayTao DATETIME DEFAULT GETDATE()
 );
 
--- =============================================
--- 4. BẢNG MENU (Món ăn / thức uống)
--- =============================================
+/* =====================================================
+   4. DANH MỤC
+===================================================== */
+CREATE TABLE DanhMuc (
+    IDDanhMuc INT IDENTITY PRIMARY KEY,
+    TenDanhMuc NVARCHAR(50) NOT NULL UNIQUE
+);
+
+/* =====================================================
+   5. MENU
+===================================================== */
 CREATE TABLE Menu (
-    IDMon INT IDENTITY(1,1) PRIMARY KEY,
+    IDMon INT IDENTITY PRIMARY KEY,
     TenMon NVARCHAR(100) NOT NULL,
     MoTa NVARCHAR(255),
-    Gia DECIMAL(18,2) NOT NULL,
+    Gia DECIMAL(18,2) CHECK (Gia >= 0),
     HinhAnh NVARCHAR(255),
-    DanhMuc NVARCHAR(50) NOT NULL, --  Thêm DanhMuc
-    TrangThai BIT DEFAULT 1,  -- 1: đang bán, 0: ngừng bán
-    NgayTao DATETIME DEFAULT GETDATE()
+    IDDanhMuc INT NOT NULL,
+    TrangThai BIT DEFAULT 1,
+    NgayTao DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_Menu_DanhMuc
+        FOREIGN KEY (IDDanhMuc) REFERENCES DanhMuc(IDDanhMuc)
 );
 
--- =============================================
--- 5. BẢNG ĐƠN HÀNG (DonHang)
--- =============================================
+/* =====================================================
+   6. ĐƠN HÀNG
+===================================================== */
 CREATE TABLE DonHang (
-    IDDonHang INT IDENTITY(1,1) PRIMARY KEY,
-    IDBan INT FOREIGN KEY REFERENCES Ban(IDBan),
-    IDNguoiDung INT NULL FOREIGN KEY REFERENCES NguoiDung(IDNguoiDung),
+    IDDonHang INT IDENTITY PRIMARY KEY,
+    IDBan INT NOT NULL,
+    IDNguoiDung INT NULL,
     TongTien DECIMAL(18,2) DEFAULT 0,
-    TrangThaiBep NVARCHAR(30) DEFAULT N'Đang xử lý', 
-    TrangThaiThanhToan BIT DEFAULT 0, 
+    TrangThaiThanhToan BIT DEFAULT 0,
     GhiChu NVARCHAR(255),
-    NgayTao DATETIME DEFAULT GETDATE()
+    NgayTao DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (IDBan) REFERENCES Ban(IDBan),
+    FOREIGN KEY (IDNguoiDung) REFERENCES NguoiDung(IDNguoiDung)
 );
 
--- =============================================
--- 6. BẢNG CHI TIẾT ĐƠN HÀNG
--- =============================================
+/* =====================================================
+   7. CHI TIẾT ĐƠN HÀNG
+===================================================== */
 CREATE TABLE ChiTietDonHang (
-    IDChiTiet INT IDENTITY(1,1) PRIMARY KEY,
-    IDDonHang INT FOREIGN KEY REFERENCES DonHang(IDDonHang) ON DELETE CASCADE,
-    IDMon INT FOREIGN KEY REFERENCES Menu(IDMon),
-    SoLuong INT NOT NULL,
-    DonGia DECIMAL(18,2) NOT NULL,
-    GhiChu NVARCHAR(255),
+    IDChiTiet INT IDENTITY PRIMARY KEY,
+    IDDonHang INT NOT NULL,
+    IDMon INT NOT NULL,
+    SoLuong INT CHECK (SoLuong > 0),
+    DonGia DECIMAL(18,2) CHECK (DonGia >= 0),
     CapDoCay NVARCHAR(10),
-    ThanhTien AS (SoLuong * DonGia) PERSISTED
+    GhiChu NVARCHAR(255),
+    ThanhTien AS (SoLuong * DonGia) PERSISTED,
+    FOREIGN KEY (IDDonHang) REFERENCES DonHang(IDDonHang) ON DELETE CASCADE,
+    FOREIGN KEY (IDMon) REFERENCES Menu(IDMon)
 );
 
--- =============================================
--- 7. TRIGGER TỰ ĐỘNG CẬP NHẬT TỔNG TIỀN
--- =============================================
+/* =====================================================
+   8. TRIGGER CẬP NHẬT TỔNG TIỀN
+===================================================== */
+GO
 CREATE TRIGGER trg_UpdateTongTien
 ON ChiTietDonHang
 AFTER INSERT, UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
+
     UPDATE DonHang
-    SET TongTien = (
-        SELECT SUM(SoLuong * DonGia)
+    SET TongTien = ISNULL((
+        SELECT SUM(ThanhTien)
         FROM ChiTietDonHang
-        WHERE ChiTietDonHang.IDDonHang = DonHang.IDDonHang
-    )
+        WHERE IDDonHang = DonHang.IDDonHang
+    ), 0)
     WHERE IDDonHang IN (
-        SELECT DISTINCT IDDonHang FROM inserted
+        SELECT IDDonHang FROM inserted
         UNION
-        SELECT DISTINCT IDDonHang FROM deleted
+        SELECT IDDonHang FROM deleted
     );
 END;
-GO							
+GO
 
--- =============================================
--- 8. VIEW: BÁO CÁO DOANH THU
--- =============================================
-CREATE VIEW vBaoCaoDoanhThuTongHop AS
+/* =====================================================
+   9. LỊCH SỬ TRẠNG THÁI ĐƠN
+===================================================== */
+CREATE TABLE LichSuTrangThaiDonHang (
+    ID INT IDENTITY PRIMARY KEY,
+    IDDonHang INT NOT NULL,
+    TrangThai NVARCHAR(50),
+    ThoiGian DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (IDDonHang) REFERENCES DonHang(IDDonHang) ON DELETE CASCADE
+);
+
+/* =====================================================
+   10. PHƯƠNG THỨC THANH TOÁN
+===================================================== */
+CREATE TABLE PhuongThucThanhToan (
+    IDPhuongThuc INT IDENTITY PRIMARY KEY,
+    TenPhuongThuc NVARCHAR(50) UNIQUE,
+    TrangThai BIT DEFAULT 1
+);
+
+/* =====================================================
+   11. THANH TOÁN
+===================================================== */
+CREATE TABLE ThanhToan (
+    IDThanhToan INT IDENTITY PRIMARY KEY,
+    IDDonHang INT NOT NULL,
+    IDPhuongThuc INT NOT NULL,
+    SoTien DECIMAL(18,2) CHECK (SoTien >= 0),
+    ThoiGian DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (IDDonHang) REFERENCES DonHang(IDDonHang),
+    FOREIGN KEY (IDPhuongThuc) REFERENCES PhuongThucThanhToan(IDPhuongThuc)
+);
+
+/* =====================================================
+   12. KHÁCH HÀNG
+===================================================== */
+CREATE TABLE KhachHang (
+    IDKhachHang INT IDENTITY PRIMARY KEY,
+    TenKhachHang NVARCHAR(100),
+    SoDienThoai NVARCHAR(15) UNIQUE,
+    DiemTichLuy INT DEFAULT 0
+);
+
+/* =====================================================
+   13. LỊCH SỬ TÍCH ĐIỂM
+===================================================== */
+CREATE TABLE LichSuTichDiem (
+    ID INT IDENTITY PRIMARY KEY,
+    IDKhachHang INT,
+    IDDonHang INT,
+    SoDiem INT,
+    ThoiGian DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (IDKhachHang) REFERENCES KhachHang(IDKhachHang),
+    FOREIGN KEY (IDDonHang) REFERENCES DonHang(IDDonHang)
+);
+
+/* =====================================================
+   14. KHUYẾN MÃI
+===================================================== */
+CREATE TABLE KhuyenMai (
+    IDKhuyenMai INT IDENTITY PRIMARY KEY,
+    TenKhuyenMai NVARCHAR(100),
+    LoaiGiamGia NVARCHAR(20),
+    GiaTri DECIMAL(10,2),
+    TrangThai BIT DEFAULT 1
+);
+
+CREATE TABLE DonHang_KhuyenMai (
+    ID INT IDENTITY PRIMARY KEY,
+    IDDonHang INT,
+    IDKhuyenMai INT,
+    SoTienGiam DECIMAL(18,2),
+    FOREIGN KEY (IDDonHang) REFERENCES DonHang(IDDonHang),
+    FOREIGN KEY (IDKhuyenMai) REFERENCES KhuyenMai(IDKhuyenMai)
+);
+
+/* =====================================================
+   15. THÔNG BÁO
+===================================================== */
+CREATE TABLE ThongBao (
+    IDThongBao INT IDENTITY PRIMARY KEY,
+    IDBan INT,
+    NoiDung NVARCHAR(255),
+    TrangThai BIT DEFAULT 0,
+    ThoiGian DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (IDBan) REFERENCES Ban(IDBan)
+);
+/* =====================================================
+   16. VIEW BÁO CÁO DOANH THU
+===================================================== */
+GO
+CREATE VIEW vBaoCaoDoanhThu
+AS
 SELECT
     CONVERT(DATE, d.NgayTao) AS Ngay,
-    DATEPART(WEEK, d.NgayTao) AS Tuan,
-    DATEPART(MONTH, d.NgayTao) AS Thang,
-    SUM(CASE WHEN m.DanhMuc = 'Mì cay' THEN ct.SoLuong * ct.DonGia ELSE 0 END) AS DoanhThu_MiCay,
-    SUM(CASE WHEN m.DanhMuc = 'Cơm trộn' THEN ct.SoLuong * ct.DonGia ELSE 0 END) AS DoanhThu_ComTron,
-    SUM(CASE WHEN m.DanhMuc = 'Topping' THEN ct.SoLuong * ct.DonGia ELSE 0 END) AS DoanhThu_Topping,
-    SUM(CASE WHEN m.DanhMuc = 'Đồ uống' THEN ct.SoLuong * ct.DonGia ELSE 0 END) AS DoanhThu_DoUong
+    dm.TenDanhMuc,
+    SUM(ct.ThanhTien) AS DoanhThu
 FROM DonHang d
 JOIN ChiTietDonHang ct ON d.IDDonHang = ct.IDDonHang
 JOIN Menu m ON ct.IDMon = m.IDMon
+JOIN DanhMuc dm ON m.IDDanhMuc = dm.IDDanhMuc
 WHERE d.TrangThaiThanhToan = 1
-GROUP BY
-    CONVERT(DATE, d.NgayTao),
-    DATEPART(WEEK, d.NgayTao),
-    DATEPART(MONTH, d.NgayTao);
+GROUP BY CONVERT(DATE, d.NgayTao), dm.TenDanhMuc;
 GO
-SELECT * 
-FROM vBaoCaoDoanhThuTongHop
-ORDER BY Thang;
+IF OBJECT_ID('vBaoCaoDoanhThu', 'V') IS NOT NULL
+    DROP VIEW vBaoCaoDoanhThu;
+GO
+/* =====================================================
+   17. Bảng đánh giá
+===================================================== */
+CREATE TABLE DanhGia (
+    IDDanhGia INT IDENTITY PRIMARY KEY,
+    TenKhachHang NVARCHAR(100) NULL,   -- Có thể để trống (ẩn danh)
+    NoiDung NVARCHAR(500) NOT NULL,    -- Nội dung đánh giá
+    IDBan INT NULL,                    -- Biết đánh giá từ bàn nào (optional)
+    NgayDanhGia DATETIME DEFAULT GETDATE(),
+    TrangThai BIT DEFAULT 1            -- Admin duyệt / ẩn
+);
+GO
 
+/* =====================================================
+   18. DỮ LIỆU MẪU
+===================================================== */
 
-ALTER TABLE DonHang ALTER COLUMN IDBan NVARCHAR(10)
--- =============================================
--- 9. DỮ LIỆU MẪU
--- =============================================
--- Người dùng
 INSERT INTO NguoiDung (TenDangNhap, MatKhau, HoTen, VaiTro)
-VALUES 
-('admin', '123456', N'Quản trị viên', 'Admin'),
-('bep1', '123456', N'Nhân viên bếp', 'Bep'),
-('cashier', '123456', N'Thu ngân', 'ThuNgan');
+VALUES
+('admin', '123456', N'Quản trị viên', N'Admin'),
+('bep01', '123456', N'Nhân viên bếp', N'Bep'),
+('cashier01', '123456', N'Thu ngân', N'ThuNgan');
 
--- Bàn
 INSERT INTO Ban (TenBan, MaQR)
-VALUES 
+VALUES
 (N'Bàn 1', 'QR_BAN_1'),
 (N'Bàn 2', 'QR_BAN_2'),
 (N'Bàn 3', 'QR_BAN_3');
 
--- Menu với Danh mục
-INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc)
+INSERT INTO DanhMuc (TenDanhMuc)
 VALUES
-(N'Mì Cay Hải Sản Tươi Sống', N'Mì cay hải sản tươi ngon, nước dùng đậm đà', 55000, '/images/mi1.jpg', N'Mì cay'),
-(N'Mỳ Cay Bò Cuộn Nấm Kim', N'Mì cay bò cuộn nấm thơm ngon, nước dùng cay nồng.', 50000, '/images/mi2.jpg', N'Mì cay'),
-(N'Trà Tắc', N'Trà tắc giải khát', 20000, '/images/tra.jpg', N'Đồ uống'),
-(N'Topping Phô Mai', N'Phô mai béo ngậy', 10000, '/images/top1.jpg', N'Topping');
+(N'Mì cay'),
+(N'Cơm trộn'),
+(N'Đồ uống'),
+(N'Topping');
 
-
-
-DROP TABLE IF EXISTS ChiTietDonHang;
-DROP TABLE IF EXISTS DonHang;
-DROP TABLE IF EXISTS Menu;
-DROP TABLE IF EXISTS Ban;
-DROP TABLE IF EXISTS NguoiDung;
-
-select*from ban
-
--- 🌶️ Các món Mì Cay
-INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc)
+INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, IDDanhMuc)
 VALUES
-(N'Mì Cay Gà', N'Mì cay thịt gà mềm thơm, nước dùng cay nhẹ, đậm đà hương vị', 55000, '/images/miga.jpg', N'Mì cay'),
-(N'Mì Cay Rau Củ', N'Mì cay thanh đạm với nấm, bắp non, cà rốt và bông cải, thích hợp cho người ăn chay', 50000, '/images/mirau.jpg', N'Mì cay'),
-(N'Mì Cay Thập Cẩm Đặc Biệt', N'Mì cay đặc biệt gồm tôm, mực, bò cuộn nấm, trứng và rau nấm tươi. Nước dùng đậm đà, cay nồng chuẩn vị Hàn Quốc.', 70000, '/images/midb.jpg', N'Mì cay');
+(N'Mì Cay Gà', N'Mì cay thịt gà', 55000, '/images/miga.jpg', 1),
+(N'Coca Cola', N'Nước ngọt', 15000, '/images/coca.jpg', 3);
 
--- 🥤 Các loại Đồ Uống
-INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc)
+INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, IDDanhMuc)
 VALUES
-(N'Coca Cola', N'Nước ngọt có gas, giải khát tức thì', 15000, '/images/coca.jpg', N'Đồ uống'),
-(N'Nước Cam Ép', N'Nước cam ép tươi, bổ sung vitamin C', 20000, '/images/camep.jpg', N'Đồ uống'),
-(N'Nước Ép Dưa Hấu', N'Nước ép dưa hấu mát lạnh, giải nhiệt mùa hè', 20000, '/images/duaep.jpg', N'Đồ uống'),
-(N'Chanh Tuyết', N'Nước chanh xay đá tuyết, vị chua ngọt dễ uống', 25000, '/images/chanh.jpg', N'Đồ uống');
+(N'Mì Cay Gà',
+ N'Mì cay thịt gà mềm thơm, nước dùng cay nhẹ, đậm đà hương vị',
+ 55000, '/images/miga.jpg', 1),
 
--- 🍚 Các món Cơm
-INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc)
+(N'Mì Cay Rau Củ',
+ N'Mì cay thanh đạm với nấm, bắp non, cà rốt và bông cải, thích hợp cho người ăn chay',
+ 50000, '/images/mirau.jpg', 1),
+
+(N'Mì Cay Thập Cẩm Đặc Biệt',
+ N'Mì cay đặc biệt gồm tôm, mực, bò cuộn nấm, trứng và rau nấm tươi. Nước dùng đậm đà, cay nồng chuẩn vị Hàn Quốc.',
+ 70000, '/images/midb.jpg', 1);
+GO
+
+
+/* ======================================================
+   🥤 ĐỒ UỐNG (IDDanhMuc = 3)
+====================================================== */
+INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, IDDanhMuc)
 VALUES
-(N'Cơm Trộn Bò', N'Cơm trộn kiểu Hàn Quốc với thịt bò và rau củ tươi', 60000, '/images/combo.jpg', N'Cơm trộn'),
-(N'Cơm Trộn Gà Nấm', N'Cơm trộn gà cùng nấm, trứng và rau củ thơm ngon', 55000, '/images/comga.jpg', N'Cơm trộn');
+(N'Coca Cola',
+ N'Nước ngọt có gas, giải khát tức thì',
+ 15000, '/images/coca.jpg', 3),
 
--- ➕ Món thêm / topping
-INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, DanhMuc)
+(N'Nước Cam Ép',
+ N'Nước cam ép tươi, bổ sung vitamin C',
+ 20000, '/images/camep.jpg', 3),
+
+(N'Nước Ép Dưa Hấu',
+ N'Nước ép dưa hấu mát lạnh, giải nhiệt mùa hè',
+ 20000, '/images/duaep.jpg', 3),
+
+(N'Chanh Tuyết',
+ N'Nước chanh xay đá tuyết, vị chua ngọt dễ uống',
+ 25000, '/images/chanh.jpg', 3);
+GO
+
+
+/* ======================================================
+   🍚 CƠM TRỘN (IDDanhMuc = 2)
+====================================================== */
+INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, IDDanhMuc)
 VALUES
-(N'Cơm Thêm', N'Suất cơm thêm cho khách có nhu cầu', 5000, '/images/themcom.jpg', N'Topping'),
-(N'Thêm Bò', N'Thêm phần thịt bò tươi mềm', 20000, '/images/thembo.jpg', N'Topping'),
-(N'Thêm Mì', N'Thêm phần mì cho món mì cay', 10000, '/images/themmi.jpg', N'Topping');
+(N'Cơm Trộn Bò',
+ N'Cơm trộn kiểu Hàn Quốc với thịt bò và rau củ tươi',
+ 60000, '/images/combo.jpg', 2),
 
+(N'Cơm Trộn Gà Nấm',
+ N'Cơm trộn gà cùng nấm, trứng và rau củ thơm ngon',
+ 55000, '/images/comga.jpg', 2);
+GO
+/* ======================================================
+   ➕ TOPPING / MÓN THÊM (IDDanhMuc = 4)
+====================================================== */
+INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, IDDanhMuc)
+VALUES
+(N'Cơm Thêm',
+ N'Suất cơm thêm cho khách có nhu cầu',
+ 5000, '/images/themcom.jpg', 4),
 
+(N'Thêm Bò',
+ N'Thêm phần thịt bò tươi mềm',
+ 20000, '/images/thembo.jpg', 4),
 
-select *from menu
+(N'Thêm Mì',
+ N'Thêm phần mì cho món mì cay',
+ 10000, '/images/themmi.jpg', 4);
+GO
+INSERT INTO DanhGia (TenKhachHang, NoiDung, IDBan)
+VALUES
+-- 🔹 Có tên
+(N'Nguyễn Văn A', N'Mì cay rất ngon, nước dùng đậm đà, sẽ quay lại lần sau ❤️', 1),
+(N'Lê Thị B', N'Không gian quán sạch sẽ, nhân viên phục vụ nhiệt tình 👍', 2),
+(N'Trần Minh C', N'Cơm trộn ngon, phần ăn đầy đặn, giá hợp lý.', 3),
+
+-- 🔹 Ẩn danh
+(NULL, N'Mì cay cấp 3 vừa ăn, không quá cay. Rất ổn!', 1),
+(NULL, N'Đồ uống mát, giải khát tốt. Chanh tuyết rất ngon 🍋', 2),
+
+-- 🔹 Góp ý nhẹ
+(N'Hoàng Anh', N'Quán đông nên chờ hơi lâu, nhưng đồ ăn ngon nên chấp nhận được.', 1),
+(NULL, N'Nên mở nhạc nhẹ hơn một chút để dễ nói chuyện.', 3);
+GO
+-- bỏ /images/
+UPDATE Menu
+SET HinhAnh = REPLACE(HinhAnh, '/images/', '')
+WHERE HinhAnh LIKE '%/images/%';
+
+-- bỏ images/
+UPDATE Menu
+SET HinhAnh = REPLACE(HinhAnh, 'images/', '')
+WHERE HinhAnh LIKE '%images/%';
+
+-- bỏ /static/images/
+UPDATE Menu
+SET HinhAnh = REPLACE(HinhAnh, '/static/images/', '')
+WHERE HinhAnh LIKE '%static/images%';
+SELECT IDMon, HinhAnh FROM Menu;
+SELECT * FROM DonHang

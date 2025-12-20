@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thu Ngân - Mỳ Cay Order</title>
+    <link rel="stylesheet" href="static/css/thungan.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <i class="fas fa-pepper-hot"></i>
+            <h1>Mỳ Cay Order - Thu Ngân</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Thu Ngân 01</span>
+            </span>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar - Danh sách bàn -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-table"></i> Danh Sách Bàn</h2>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Tất cả</button>
+                    <button class="filter-btn" data-filter="occupied">Có khách</button>
+                    <button class="filter-btn" data-filter="empty">Trống</button>
+                </div>
+            </div>
+            <div class="tables-list" id="tablesList">
+                <!-- Tables will be loaded here -->
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Order Details -->
+            <section class="order-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-receipt"></i> Chi Tiết Đơn Hàng</h2>
+                    <div class="table-info" id="selectedTableInfo">
+                        <span class="table-name">Chưa chọn bàn</span>
+                    </div>
+                </div>
+
+                <div class="order-content" id="orderContent">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>Vui lòng chọn bàn để xem chi tiết đơn hàng</p>
+                    </div>
+                </div>
+
+                <div class="order-items" id="orderItems" style="display: none;">
+                    <!-- Order items will be loaded here -->
+                </div>
+
+                <div class="order-summary" id="orderSummary" style="display: none;">
+                    <div class="summary-row">
+                        <span>Tạm tính:</span>
+                        <span class="amount" id="subtotal">0đ</span>
+                    </div>
+                    <div class="summary-row discount">
+                        <span><i class="fas fa-tag"></i> Giảm giá:</span>
+                        <span class="amount" id="discount">0đ</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Tổng cộng:</span>
+                        <span class="amount" id="total">0đ</span>
+                    </div>
+                    <button class="btn-payment" onclick="showPaymentModal()">
+                        <i class="fas fa-credit-card"></i> Thanh Toán
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Right Panel - Quick Actions -->
+        <aside class="right-panel">
+            <div class="quick-stats">
+                <h3><i class="fas fa-chart-line"></i> Thống Kê Nhanh</h3>
+                <div class="stat-card">
+                    <i class="fas fa-coins"></i>
+                    <div class="stat-info">
+                        <span class="stat-label">Doanh thu hôm nay</span>
+                        <span class="stat-value" id="todayRevenue">0đ</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-receipt"></i>
+                    <div class="stat-info">
+                        <span class="stat-label">Số đơn đã thanh toán</span>
+                        <span class="stat-value" id="todayOrders">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <div class="stat-info">
+                        <span class="stat-label">Đơn chờ thanh toán</span>
+                        <span class="stat-value" id="pendingOrders">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-payments">
+                <h3><i class="fas fa-history"></i> Thanh Toán Gần Đây</h3>
+                <div id="recentPayments">
+                    <!-- Recent payments will be loaded here -->
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content payment-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-cash-register"></i> Thanh Toán</h2>
+                <button class="btn-close" onclick="closePaymentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="payment-info">
+                    <div class="info-row">
+                        <span>Bàn:</span>
+                        <strong id="paymentTable">-</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Tổng tiền:</span>
+                        <strong class="total-amount" id="paymentTotal">0đ</strong>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="payment-methods">
+                    <h3>Chọn phương thức thanh toán</h3>
+                    <div class="method-tabs">
+                        <button class="method-tab active" data-method="cash" onclick="selectPaymentMethod('cash')">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Tiền Mặt</span>
+                        </button>
+                        <button class="method-tab" data-method="transfer" onclick="selectPaymentMethod('transfer')">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Chuyển Khoản</span>
+                        </button>
+                        <button class="method-tab" data-method="crypto" onclick="selectPaymentMethod('crypto')">
+                            <i class="fab fa-bitcoin"></i>
+                            <span>Crypto</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cash Payment -->
+                <div class="payment-form active" id="cashForm">
+                    <div class="form-group">
+                        <label>Số tiền khách đưa</label>
+                        <input type="text" id="cashReceived" class="input-amount" placeholder="0" oninput="calculateChange()">
+                    </div>
+                    <div class="quick-amounts">
+                        <button class="quick-amount" onclick="quickCash(50000)">50k</button>
+                        <button class="quick-amount" onclick="quickCash(100000)">100k</button>
+                        <button class="quick-amount" onclick="quickCash(200000)">200k</button>
+                        <button class="quick-amount" onclick="quickCash(500000)">500k</button>
+                        <button class="quick-amount" onclick="exactAmount()">Vừa đủ</button>
+                    </div>
+                    <div class="change-display" id="changeDisplay">
+                        <span>Tiền thừa:</span>
+                        <strong id="changeAmount">0đ</strong>
+                    </div>
+                </div>
+
+                <!-- Transfer Payment -->
+                <div class="payment-form" id="transferForm">
+                    <div class="qr-section">
+                        <div class="qr-code" id="qrCode">
+                            <i class="fas fa-qrcode"></i>
+                            <p>Mã QR chuyển khoản</p>
+                        </div>
+                        <div class="bank-info">
+                            <h4>Thông tin chuyển khoản</h4>
+                            <div class="info-item">
+                                <span>Ngân hàng:</span>
+                                <strong>Vietcombank</strong>
+                            </div>
+                            <div class="info-item">
+                                <span>Số tài khoản:</span>
+                                <strong>0123456789</strong>
+                                <button class="btn-copy" onclick="copyToClipboard('0123456789')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="info-item">
+                                <span>Chủ tài khoản:</span>
+                                <strong>NHATAILAM</strong>
+                            </div>
+                            <div class="info-item">
+                                <span>Số tiền:</span>
+                                <strong id="transferAmount">0đ</strong>
+                                <button class="btn-copy" onclick="copyAmount()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="info-item">
+                                <span>Nội dung:</span>
+                                <strong id="transferContent">-</strong>
+                                <button class="btn-copy" onclick="copyContent()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="transferConfirm">
+                            Đã nhận được tiền chuyển khoản
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Crypto Payment -->
+                <div class="payment-form" id="cryptoForm">
+                    <div class="crypto-selector">
+                        <label>Chọn loại tiền điện tử</label>
+                        <select id="cryptoType" onchange="updateCryptoInfo()">
+                            <option value="btc">Bitcoin (BTC)</option>
+                            <option value="eth">Ethereum (ETH)</option>
+                            <option value="usdt">Tether (USDT)</option>
+                        </select>
+                    </div>
+                    <div class="qr-section">
+                        <div class="qr-code" id="cryptoQR">
+                            <i class="fab fa-bitcoin"></i>
+                            <p>Mã QR ví điện tử</p>
+                        </div>
+                        <div class="crypto-info">
+                            <div class="info-item">
+                                <span>Địa chỉ ví:</span>
+                                <div class="wallet-address" id="walletAddress">
+                                    bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+                                </div>
+                                <button class="btn-copy" onclick="copyWallet()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="info-item">
+                                <span>Số tiền:</span>
+                                <strong id="cryptoAmount">0.00 BTC</strong>
+                            </div>
+                            <div class="crypto-rate">
+                                <small>Tỷ giá: 1 BTC = 1,200,000,000đ</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="cryptoConfirm">
+                            Đã xác nhận giao dịch crypto
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Note -->
+                <div class="form-group">
+                    <label>Ghi chú (không bắt buộc)</label>
+                    <textarea id="paymentNote" placeholder="Nhập ghi chú..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closePaymentModal()">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+                <button class="btn-primary" onclick="processPayment()">
+                    <i class="fas fa-check"></i> Xác Nhận Thanh Toán
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content success-modal">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Thanh Toán Thành Công!</h2>
+            <p id="successMessage">Đơn hàng đã được thanh toán</p>
+            <div class="success-actions">
+                <button class="btn-primary" onclick="printReceipt()">
+                    <i class="fas fa-print"></i> In Hóa Đơn
+                </button>
+                <button class="btn-secondary" onclick="closeSuccessModal()">
+                    <i class="fas fa-times"></i> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+   <!-- SOCKET -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<!-- JS -->
+<script src="{{ url_for('static', filename='js/thungan.js') }}"></script>
+</body>
+</html>
