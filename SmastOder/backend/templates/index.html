@@ -1,195 +1,156 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mì Cay One – QR Order</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mì Cay One – Đặt món qua QR</title>
 
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-<!-- Custom CSS -->
-<link rel="stylesheet" href="static/css/index.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
-
 <body>
-
 <!-- ================= HEADER ================= -->
-<header class="site-header">
-  <div class="header-container">
-    <div class="brand">
-      <img src="static/image/logo.jpg" class="logo" alt="Logo">
-      <div class="brand-info">
-        <h1>🌶️ Mì Cay One</h1>
-        <p>Nâng tầm hương vị Việt</p>
-      </div>
-    </div>
-    <!-- ================= ADDRESS BAR ================= -->
-<div class="address-bar">
-  <p>88 Hoàng Hoa Thám, Xuân Hòa, Phúc Yên, Vĩnh Phúc</p>
+<header class="site-header py-3 shadow-sm">
+  <div class="container header-container d-flex flex-column flex-md-row align-items-center justify-content-between text-center text-md-start">
+<div class="brand d-flex align-items-center mb-3 mb-md-0">
+  <img src="/static/image/logo.jpg" alt="Logo" class="logo me-3">
+  <div class="brand-info">
+    <h1 class="mb-0">🌶️ Mì Cay One</h1>
+    <p class="mb-0 text-muted">Nâng tầm hương vị Việt</p>
+  </div>
 </div>
 
+<div class="address-bar mb-3 mb-md-0">
+  <p class="mb-0">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phúc Yên, Vĩnh Phúc</p>
+</div>
 
-    <div class="header-info">
-      <div class="info-item">
-        <span>⏰</span>
-        <span><strong>9:00</strong> - <strong>22:00</strong></span>
-      </div>
-      <div class="info-item">
-        <span>📞</span>
-        <span><strong>0123 456 789</strong></span>
-      </div>
-      <div class="table-box">
-        <label>Bàn:</label>
-        <input id="table-input" readonly>
-      </div>
-    </div>
+<div class="header-info d-flex flex-column flex-sm-row align-items-center gap-3">
+  <div class="info-item">⏰ 9:00 - 22:00</div>
+  <div class="info-item">📞 0123 456 789</div>
+  <div class="table-box">
+    <strong>Bàn: </strong><span id="table-name" class="fw-bold">Đang tải...</span>
   </div>
+</div>
+</div>
 </header>
-
 <!-- ================= MAIN ================= -->
-<main class="layout">
-
-<!-- ===== MENU SECTION ===== -->
-<section class="menu">
-  <h2 class="text-center menu-title">Thực đơn</h2>
-
-  <!-- Search Box -->
-  <input
-    id="search"
-    class="form-control search-input"
-    placeholder="🔍 Tìm món yêu thích..."
-  >
-
-  <!-- Category Bar (Dynamic) -->
-  <div id="category-bar" class="category-bar">
-    <div class="loading-state">⏳ Đang tải danh mục...</div>
+<main class="layout container my-4">
+  <div class="row g-4">
+    <!-- ===== MENU SECTION ===== -->
+    <section class="menu col-lg-8">
+      <h2 class="menu-title text-center mb-4">🍜 Thực đơn</h2>
+      <!-- Tìm kiếm món -->
+  <div class="mb-4">
+    <input 
+      id="search" 
+      type="text" 
+      class="form-control search-input" 
+      placeholder="🔍 Tìm món ăn (ví dụ: mì cay, trà sữa...)">
   </div>
 
-  <!-- Menu Grid (Dynamic) -->
-  <div id="menu-container" class="menu-grid">
-    <div class="loading-state">⏳ Đang tải menu...</div>
-  </div>
+  <!-- Thanh danh mục -->
+  <div class="category-bar d-flex overflow-auto pb-2 mb-4 gap-2"></div>
+
+  <!-- Grid món ăn -->
+  <div id="menu-container" class="menu-grid row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3"></div>
 </section>
 
-<!-- ===== CART SECTION ===== -->
-<aside class="cart">
-  <h3 class="cart-title">🛒 Giỏ hàng</h3>
+<!-- ===== CART ASIDE ===== -->
+<aside class="cart col-lg-4">
+  <div class="card shadow-sm sticky-top" style="top: 20px;">
+    <div class="card-body">
+      <h3 class="cart-title mb-4">🛒 Giỏ hàng</h3>
 
-  <div id="cart-list">
-    <div class="empty">Giỏ hàng đang trống<br>Hãy chọn món yêu thích! 😊</div>
-  </div>
+      <div id="cart-list" class="mb-4" style="min-height: 150px;">
+        <div class="empty text-muted text-center py-5">Giỏ hàng trống</div>
+      </div>
 
-  <div class="cart-summary">
-    <p class="summary-row">
-      <span>Tạm tính:</span>
-      <strong id="cart-subtotal">0 ₫</strong>
-    </p>
+      <div class="cart-summary">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <span class="fw-bold">Tạm tính:</span>
+          <strong id="cart-subtotal" class="fs-5 text-danger">0 ₫</strong>
+        </div>
 
-    <button
-      id="btn-order"
-      class="btn btn-primary btn-order w-100"
-      disabled
-    >
-      🍜 Gửi đơn hàng
-    </button>
+        <button id="btn-order" class="btn btn-success btn-lg w-100 mb-2" disabled>
+          🍜 Gửi đơn hàng
+        </button>
 
-    <button
-      id="btn-call-staff"
-      class="btn btn-warning btn-call-staff w-100"
-    >
-      📢 Gọi nhân viên
-    </button>
+        <button id="btn-call-staff" class="btn btn-warning btn-lg w-100">
+          📢 Gọi nhân viên hỗ trợ
+        </button>
+      </div>
+    </div>
   </div>
 </aside>
-
+</div>
 </main>
-
-<!-- ================= MODAL CHỌN MÓN ================= -->
+<!-- ================= MODAL CHỌN TÙY CHỌN MÓN ================= -->
 <div id="option-modal" class="modal hidden">
-  <div class="modal-content">
-
-    <!-- 🌶️ CHỈ MÓN MÌ MỚI HIỆN -->
-    <div id="spicy-block">
-      <label class="modal-label">Cấp độ cay</label>
-      <select id="level-select" class="modal-select">
-        <option value="1">Cấp 1 - Nhẹ nhàng</option>
-        <option value="2">Cấp 2 - Vừa phải</option>
-        <option value="3"> Cấp 3 - Cay vừa</option>
-        <option value="4">Cấp 4 - Cay khá</option>
-        <option value="5">Cấp 5 - Cay nhiều</option>
-        <option value="6"> Cấp 6 - Cay đặc biệt</option>
-        <option value="7">Cấp 7 - Siêu cay</option>
-      </select>
-    </div>
-
-    <!-- 📝 LUÔN HIỆN -->
-    <label class="modal-label">Ghi chú đặc biệt</label>
-    <textarea
-      id="note-input"
-      rows="3"
-      class="modal-textarea"
-      placeholder="Ví dụ: Không hành, thêm rau..."
-    ></textarea>
-
-    <div class="modal-actions">
-      <button id="confirm-modal" class="btn btn-primary">
-        Thêm vào giỏ
-      </button>
-      <button id="cancel-modal" class="btn btn-secondary">
-        Hủy
-      </button>
-    </div>
-
-  </div>
+  <div class="modal-backdrop"></div>
+  <div class="modal-content p-4 rounded shadow">
+    <h4 class="mb-4 text-center">Tùy chọn món</h4>
+<div id="spicy-block" class="mb-3">
+  <label class="form-label fw-bold">🌶️ Cấp độ cay</label>
+  <select id="level-select" class="form-select">
+    <option value="1">Cấp 1 - Nhẹ nhàng</option>
+    <option value="2">Cấp 2 - Vừa phải</option>
+    <option value="3" selected>Cấp 3 - Cay vừa</option>
+    <option value="4">Cấp 4 - Cay khá</option>
+    <option value="5">Cấp 5 - Cay mạnh</option>
+    <option value="6">Cấp 6 - Siêu cay</option>
+    <option value="7">Cấp 7 - Thách thức</option>
+  </select>
 </div>
 
+<div class="mb-4">
+  <label class="form-label fw-bold">📝 Ghi chú thêm (tùy chọn)</label>
+  <textarea id="note-input" class="form-control" rows="3" placeholder="Ví dụ: ít đá, không hành, thêm ớt..."></textarea>
+</div>
 
+<div class="modal-actions d-flex gap-2">
+  <button id="confirm-modal" class="btn btn-primary flex-fill">✅ Thêm vào giỏ</button>
+  <button id="cancel-modal" class="btn btn-secondary flex-fill">❌ Hủy</button>
+</div>
+</div>
+</div>
 <!-- ================= MODAL GỌI NHÂN VIÊN ================= -->
 <div id="staff-modal" class="modal hidden">
-  <div class="modal-content">
-    <h4 class="modal-title">📢 Gọi nhân viên</h4>
+  <div class="modal-backdrop"></div>
+  <div class="modal-content p-4 rounded shadow">
+    <h4 class="mb-4 text-center">📢 Gọi nhân viên hỗ trợ</h4>
 
-    <textarea
-      id="staff-message"
-      rows="4"
-      class="modal-textarea"
-      placeholder="Nhập nội dung cần hỗ trợ...&#10;Ví dụ: Cần thêm nước, muốn thanh toán, v.v."
-    ></textarea>
-
-    <div class="modal-actions">
-      <button id="send-staff" class="btn btn-primary">Gửi yêu cầu</button>
-      <button id="close-staff-modal" class="btn btn-secondary">Hủy</button>
-    </div>
-  </div>
-</div>
-<!-- ===== BONG BÓNG LỊCH SỬ ===== -->
-<div id="history-bubble" class="history-bubble">
-  📜
-  <span class="history-dot"></span>
+<div class="mb-4">
+  <textarea 
+    id="staff-message" 
+    class="form-control" 
+    rows="4" 
+    placeholder="Mô tả vấn đề bạn cần hỗ trợ (ví dụ: cần thêm nước, hóa đơn, dọn bàn...)"></textarea>
 </div>
 
-<!-- ===== MODAL LỊCH SỬ ===== -->
+<div class="modal-actions d-flex gap-2">
+  <button id="send-staff" class="btn btn-success flex-fill">📤 Gửi yêu cầu</button>
+  <button id="close-staff-modal" class="btn btn-secondary flex-fill">❌ Hủy</button>
+</div>
+</div>
+</div>
+<!-- ================= LỊCH SỬ ĐẶT MÓN (BUBBLE + MODAL) ================= -->
+<div id="history-bubble" class="history-bubble" title="Xem lịch sử đặt món">📜</div>
 <div id="history-modal" class="modal hidden">
-  <div class="history-panel">
-    <div class="history-header">
-      <span>📜 Lịch sử đặt món</span>
-      <button id="close-history">✕</button>
+  <div class="modal-backdrop"></div>
+  <div class="history-panel shadow rounded">
+    <div class="history-header d-flex justify-content-between align-items-center p-3 border-bottom">
+      <h5 class="mb-0">📜 Lịch sử đặt món của bàn</h5>
+      <button id="close-history" class="btn-close btn-close-white"></button>
     </div>
-
-    <div id="history-list" class="history-list">
-      <div class="loading-state">Đang tải...</div>
+    <div id="history-list" class="p-3" style="max-height: 70vh; overflow-y: auto;">
+      <p class="text-muted text-center py-5">Chưa có đơn hàng nào</p>
     </div>
   </div>
 </div>
-
-
 <!-- ================= SCRIPTS ================= -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script src="{{ url_for('static', filename='js/client.js') }}"></script>
-
+<script src="/static/js/client.js"></script>
 </body>
 </html>

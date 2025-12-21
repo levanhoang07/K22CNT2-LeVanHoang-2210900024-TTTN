@@ -1,0 +1,62 @@
+2025-12-21 14:07:10,781 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2025-12-21 14:08:26,079 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2025-12-21 14:08:26,174 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.8:5000
+2025-12-21 14:08:26,174 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-12-21 14:08:26,174 - werkzeug - INFO -  * Restarting with stat
+2025-12-21 14:08:27,330 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2025-12-21 14:08:27,370 - werkzeug - WARNING -  * Debugger is active!
+2025-12-21 14:08:27,374 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2025-12-21 14:08:43,963 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:08:43] "[33mGET / HTTP/1.1[0m" 404 -
+2025-12-21 14:08:44,141 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:08:44] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-12-21 14:08:51,486 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:08:51] "GET /api/menu HTTP/1.1" 200 -
+2025-12-21 14:08:58,395 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:08:58] "[33mGET /thungan HTTP/1.1[0m" 404 -
+2025-12-21 14:09:23,826 - werkzeug - INFO -  * Detected change in 'C:\\ThucTapTotNghiep\\K22CNT3K22-LeVanHoang-2210900024-TTTN\\SmastOder\\backend\\app.py', reloading
+2025-12-21 14:09:23,967 - werkzeug - INFO -  * Restarting with stat
+2025-12-21 14:09:25,189 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2025-12-21 14:09:25,242 - werkzeug - WARNING -  * Debugger is active!
+2025-12-21 14:09:25,252 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2025-12-21 14:10:34,773 - werkzeug - INFO -  * Detected change in 'C:\\ThucTapTotNghiep\\K22CNT3K22-LeVanHoang-2210900024-TTTN\\SmastOder\\backend\\app.py', reloading
+2025-12-21 14:10:34,878 - werkzeug - INFO -  * Restarting with stat
+2025-12-21 14:10:36,127 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2025-12-21 14:10:36,161 - werkzeug - WARNING -  * Debugger is active!
+2025-12-21 14:10:36,173 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2025-12-21 14:10:42,896 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:42] "GET /?ban=1 HTTP/1.1" 200 -
+2025-12-21 14:10:43,246 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:43] "GET /static/css/index.css HTTP/1.1" 200 -
+2025-12-21 14:10:43,251 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:43] "GET /static/image/logo.jpg HTTP/1.1" 200 -
+2025-12-21 14:10:43,255 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:43] "GET /static/js/client.js HTTP/1.1" 200 -
+2025-12-21 14:10:43,404 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:43] "GET /socket.io/?EIO=4&transport=polling&t=Pi_lmh8 HTTP/1.1" 200 -
+2025-12-21 14:10:43,464 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:43] "POST /socket.io/?EIO=4&transport=polling&t=Pi_lmi2&sid=a3oL93cOKQ7KcvMlAAAA HTTP/1.1" 200 -
+2025-12-21 14:10:43,502 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:43] "GET /socket.io/?EIO=4&transport=polling&t=Pi_lmi5&sid=a3oL93cOKQ7KcvMlAAAA HTTP/1.1" 200 -
+2025-12-21 14:10:43,550 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:43] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2025-12-21 14:10:44,504 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:44] "GET /api/ban/1 HTTP/1.1" 200 -
+2025-12-21 14:10:44,616 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:44] "GET /api/menu HTTP/1.1" 200 -
+2025-12-21 14:10:46,820 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:10:46] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2025-12-21 14:11:10,799 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:10] "GET /thungan HTTP/1.1" 200 -
+2025-12-21 14:11:10,836 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:10] "GET /static/css/thungan.css HTTP/1.1" 200 -
+2025-12-21 14:11:10,840 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:10] "GET /static/js/thungan.js HTTP/1.1" 200 -
+2025-12-21 14:11:10,934 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:10] "GET /socket.io/?EIO=4&transport=websocket&sid=a3oL93cOKQ7KcvMlAAAA HTTP/1.1" 200 -
+2025-12-21 14:11:11,363 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:11] "GET /socket.io/?EIO=4&transport=polling&t=Pi_ltVq HTTP/1.1" 200 -
+2025-12-21 14:11:11,375 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:11] "POST /socket.io/?EIO=4&transport=polling&t=Pi_ltW8&sid=aFW6up2QWvQqNbF2AAAC HTTP/1.1" 200 -
+2025-12-21 14:11:11,381 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:11] "GET /socket.io/?EIO=4&transport=polling&t=Pi_ltWA&sid=aFW6up2QWvQqNbF2AAAC HTTP/1.1" 200 -
+2025-12-21 14:11:11,417 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:11] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2025-12-21 14:11:11,427 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:11] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2025-12-21 14:11:15,007 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:15] "GET /admin HTTP/1.1" 200 -
+2025-12-21 14:11:15,040 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:15] "GET /static/css/admin.css HTTP/1.1" 200 -
+2025-12-21 14:11:15,040 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:15] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2025-12-21 14:11:15,054 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:15] "[33mGET /static/admin.js HTTP/1.1[0m" 404 -
+2025-12-21 14:11:15,149 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:15] "GET /socket.io/?EIO=4&transport=websocket&sid=aFW6up2QWvQqNbF2AAAC HTTP/1.1" 200 -
+2025-12-21 14:11:18,507 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:11:18] "[33mGET /bep HTTP/1.1[0m" 404 -
+2025-12-21 14:14:27,867 - werkzeug - INFO -  * Detected change in 'C:\\ThucTapTotNghiep\\K22CNT3K22-LeVanHoang-2210900024-TTTN\\SmastOder\\backend\\app.py', reloading
+2025-12-21 14:14:28,012 - werkzeug - INFO -  * Restarting with stat
+2025-12-21 14:14:29,437 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2025-12-21 14:14:29,473 - werkzeug - WARNING -  * Debugger is active!
+2025-12-21 14:14:29,473 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2025-12-21 14:14:30,363 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:14:30] "GET /bep HTTP/1.1" 200 -
+2025-12-21 14:14:30,384 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:14:30] "[33mGET /css/bep.css HTTP/1.1[0m" 404 -
+2025-12-21 14:14:30,387 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:14:30] "[33mGET /image/logo.jpg HTTP/1.1[0m" 404 -
+2025-12-21 14:14:30,394 - werkzeug - INFO - 192.168.1.8 - - [21/Dec/2025 14:14:30] "[33mGET /js/bep.js HTTP/1.1[0m" 404 -
+2025-12-21 18:21:54,646 - werkzeug - INFO -  * Detected change in 'C:\\ThucTapTotNghiep\\K22CNT3K22-LeVanHoang-2210900024-TTTN\\SmastOder\\backend\\app.py', reloading
+2025-12-21 18:21:54,912 - werkzeug - INFO -  * Restarting with stat
