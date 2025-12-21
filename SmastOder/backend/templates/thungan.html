@@ -5,217 +5,223 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Thu Ngân - Mì Cay One</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/thungan.css">
-  <link rel="icon" href="/static/images/logo.jpg" type="image/jpg">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/thungan.css') }}">
 </head>
 
 <body>
 
-<!-- ================= HEADER ================= -->
-<header class="cashier-header">
+<!-- ═══════ HEADER ═══════ -->
+<div class="top-bar">
   <div class="container-fluid">
     <div class="row align-items-center py-3">
       <div class="col-md-4">
-        <div class="brand d-flex align-items-center">
-          <img src="/static/images/logo.jpg" alt="Logo" class="logo me-3">
-          <div>
-            <h1 class="mb-0">💰 Thu Ngân</h1>
-            <p class="mb-0 text-muted">Mì Cay One</p>
+        <div class="logo-section">
+          <img src="/static/image/logo.jpg" alt="Logo" class="logo-img">
+          <div class="logo-text">
+            <h1>💰 THU NGÂN</h1>
+            <p>Mì Cay One</p>
           </div>
         </div>
       </div>
       
       <div class="col-md-4 text-center">
-        <div class="current-time" id="current-time"></div>
+        <div class="clock-display" id="clock">
+          <i class="far fa-clock"></i>
+          <span id="time-display">--:--:--</span>
+        </div>
       </div>
       
-      <div class="col-md-4 text-end">
-        <div class="user-info d-inline-flex align-items-center gap-3">
-          <span class="badge bg-success" id="user-name">Thu ngân 01</span>
-          <button class="btn btn-outline-danger btn-sm" id="btn-logout">
-            🚪 Đăng xuất
+      <div class="col-md-4">
+        <div class="user-section justify-content-end">
+          <div class="user-badge">
+            <i class="fas fa-user-circle"></i>
+            <span id="user-name">Thu Ngân 01</span>
+          </div>
+          <button class="btn btn-outline-danger" id="btn-logout">
+            <i class="fas fa-sign-out-alt"></i>
           </button>
         </div>
       </div>
     </div>
   </div>
-</header>
+</div>
 
-<!-- ================= MAIN CONTENT ================= -->
-<main class="main-content">
-  <div class="container-fluid">
-    <div class="row g-4">
+<!-- ═══════ STATS BAR ═══════ -->
+<div class="container-fluid">
+  <div class="stats-bar">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <div class="stat-card pending">
+          <div class="stat-number" id="stat-pending">0</div>
+          <div class="stat-label">⏳ Chờ xử lý</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card confirmed">
+          <div class="stat-number" id="stat-confirmed">0</div>
+          <div class="stat-label">✅ Đã xác nhận</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card completed">
+          <div class="stat-number" id="stat-completed">0</div>
+          <div class="stat-label">🎉 Hoàn thành</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card revenue">
+          <div class="stat-number" id="stat-revenue">0đ</div>
+          <div class="stat-label">💰 Doanh thu</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MAIN CONTENT ═══════ -->
+<div class="container-fluid main-wrapper">
+  <div class="row g-4">
+    
+    <!-- ORDER LIST -->
+    <div class="col-lg-7">
+      <div class="content-card">
+        <div class="card-header-custom">
+          <span><i class="fas fa-receipt"></i> Danh sách đơn hàng</span>
+          <button class="refresh-btn" id="btn-refresh">
+            <i class="fas fa-sync-alt"></i> Làm mới
+          </button>
+        </div>
+        
+        <div class="order-scroll" id="order-list">
+          <div class="detail-empty">
+            <i class="fas fa-inbox"></i>
+            <p>Không có đơn hàng nào</p>
+          </div>
+        </div>
+      </div>
       
-      <!-- ===== CỘT TRÁI: DANH SÁCH ĐẶT MÓN ===== -->
-      <div class="col-lg-7">
-        <div class="card shadow-sm">
-          <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">📋 Danh sách đặt món chờ xử lý</h5>
-            <button class="btn btn-light btn-sm" id="btn-refresh-orders">
-              🔄 Làm mới
-            </button>
-          </div>
-          
-          <div class="card-body p-0">
-            <!-- Tabs -->
-            <ul class="nav nav-tabs px-3 pt-3" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-orders" type="button">
-                  ⏳ Chờ xác nhận <span class="badge bg-danger ms-2" id="pending-count">0</span>
-                </button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="confirmed-tab" data-bs-toggle="tab" data-bs-target="#confirmed-orders" type="button">
-                  ✅ Đã xác nhận <span class="badge bg-success ms-2" id="confirmed-count">0</span>
-                </button>
-              </li>
-            </ul>
-
-            <!-- Tab Content -->
-            <div class="tab-content">
-              <div class="tab-pane fade show active" id="pending-orders" role="tabpanel">
-                <div class="order-list" id="pending-order-list">
-                  <div class="empty-state">
-                    <p class="text-muted text-center py-5">Không có đơn hàng nào</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="tab-pane fade" id="confirmed-orders" role="tabpanel">
-                <div class="order-list" id="confirmed-order-list">
-                  <div class="empty-state">
-                    <p class="text-muted text-center py-5">Không có đơn hàng nào</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- NOTIFICATIONS -->
+      <div class="notification-panel">
+        <div class="notification-header">
+          <span><i class="fas fa-bell"></i> Thông báo từ khách hàng</span>
+          <span class="badge bg-danger" id="notif-count">0</span>
         </div>
-
-        <!-- Thông báo gọi nhân viên -->
-        <div class="card shadow-sm mt-4">
-          <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0">📢 Thông báo từ khách hàng</h5>
-          </div>
-          <div class="card-body p-0">
-            <div id="notification-list" class="notification-list">
-              <div class="empty-state">
-                <p class="text-muted text-center py-3">Không có thông báo</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== CỘT PHẢI: CHI TIẾT ĐƠN & THANH TOÁN ===== -->
-      <div class="col-lg-5">
-        <div class="card shadow-sm sticky-top" style="top: 20px;">
-          <div class="card-header bg-success text-white">
-            <h5 class="mb-0">🧾 Chi tiết đơn hàng</h5>
-          </div>
-          
-          <div class="card-body" id="order-detail-section">
-            <div class="empty-state text-center py-5">
-              <p class="text-muted">Chọn đơn hàng để xem chi tiết</p>
-            </div>
-          </div>
+        <div id="notification-list">
+          <p class="text-muted text-center">Không có thông báo</p>
         </div>
       </div>
     </div>
-  </div>
-</main>
-
-<!-- ================= MODAL THANH TOÁN ================= -->
-<div id="payment-modal" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content payment-modal-content p-4 rounded shadow">
-    <h4 class="text-center mb-4">💳 Thanh toán đơn hàng</h4>
-
-    <!-- Thông tin đơn hàng -->
-    <div class="payment-summary mb-4 p-3 bg-light rounded">
-      <div class="d-flex justify-content-between mb-2">
-        <span>Bàn:</span>
-        <strong id="payment-table">-</strong>
+    
+    <!-- DETAIL PANEL -->
+    <div class="col-lg-5">
+      <div class="content-card detail-panel">
+        <div class="card-header-custom">
+          <span><i class="fas fa-file-invoice"></i> Chi tiết đơn hàng</span>
+        </div>
+        
+        <div id="detail-section">
+          <div class="detail-empty">
+            <i class="fas fa-hand-pointer"></i>
+            <p>Chọn đơn hàng để xem chi tiết</p>
+          </div>
+        </div>
       </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span>Tổng tiền:</span>
-        <strong class="text-danger" id="payment-total">0 ₫</strong>
-      </div>
-      <div class="d-flex justify-content-between">
-        <span>Giảm giá:</span>
-        <strong class="text-success" id="payment-discount">0 ₫</strong>
-      </div>
-      <hr>
-      <div class="d-flex justify-content-between fs-5">
-        <span class="fw-bold">Thanh toán:</span>
-        <strong class="text-primary" id="payment-final">0 ₫</strong>
-      </div>
-    </div>
-
-    <!-- Phương thức thanh toán -->
-    <div class="mb-3">
-      <label class="form-label fw-bold">💳 Phương thức thanh toán</label>
-      <select id="payment-method" class="form-select">
-        <option value="1">💵 Tiền mặt</option>
-        <option value="2">🏦 Chuyển khoản</option>
-        <option value="3">💎 Crypto</option>
-      </select>
-    </div>
-
-    <!-- Tiền nhận (chỉ hiện với tiền mặt) -->
-    <div class="mb-3" id="cash-received-group">
-      <label class="form-label fw-bold">💰 Tiền nhận</label>
-      <input type="number" id="cash-received" class="form-control" placeholder="Nhập số tiền khách đưa">
-      <div class="text-end mt-2">
-        <span class="text-muted">Tiền thừa: </span>
-        <strong class="text-success" id="change-amount">0 ₫</strong>
-      </div>
-    </div>
-
-    <!-- Khuyến mãi -->
-    <div class="mb-3">
-      <label class="form-label fw-bold">🎁 Khuyến mãi (tùy chọn)</label>
-      <select id="promotion-select" class="form-select">
-        <option value="">Không áp dụng</option>
-      </select>
-    </div>
-
-    <!-- Số điện thoại tích điểm -->
-    <div class="mb-4">
-      <label class="form-label fw-bold">📱 Số điện thoại (tích điểm)</label>
-      <input type="tel" id="customer-phone" class="form-control" placeholder="Nhập số điện thoại khách hàng">
-      <small class="text-muted">Để trống nếu khách không muốn tích điểm</small>
-    </div>
-
-    <!-- Buttons -->
-    <div class="d-flex gap-2">
-      <button id="confirm-payment" class="btn btn-success btn-lg flex-fill">
-        ✅ Xác nhận thanh toán
-      </button>
-      <button id="cancel-payment" class="btn btn-secondary flex-fill">
-        ❌ Hủy
-      </button>
     </div>
   </div>
 </div>
 
-<!-- ================= MODAL XÁC NHẬN ================= -->
-<div id="confirm-modal" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content p-4 rounded shadow" style="max-width: 400px;">
-    <h5 class="text-center mb-4">❓ Xác nhận</h5>
-    <p class="text-center" id="confirm-message"></p>
-    <div class="d-flex gap-2 mt-4">
-      <button id="confirm-yes" class="btn btn-primary flex-fill">Có</button>
-      <button id="confirm-no" class="btn btn-secondary flex-fill">Không</button>
+<!-- ═══════ MODAL THANH TOÁN ═══════ -->
+<div class="modal" id="payment-modal">
+  <div class="modal-dialog-custom">
+    <div class="modal-header-custom">
+      <h3><i class="fas fa-credit-card"></i> Thanh toán đơn hàng</h3>
+    </div>
+    
+    <div class="modal-body-custom">
+      <!-- Summary -->
+      <div class="payment-summary-box">
+        <div class="payment-row">
+          <span>Bàn:</span>
+          <strong id="pay-table">-</strong>
+        </div>
+        <div class="payment-row">
+          <span>Tổng tiền:</span>
+          <strong style="color: #e74c3c;" id="pay-total">0đ</strong>
+        </div>
+        <div class="payment-row">
+          <span>Giảm giá:</span>
+          <strong style="color: #00b894;" id="pay-discount">0đ</strong>
+        </div>
+        <div class="payment-row final">
+          <span>Thanh toán:</span>
+          <strong id="pay-final">0đ</strong>
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div class="form-group-custom">
+        <label class="form-label-custom">
+          <i class="fas fa-wallet"></i> Phương thức thanh toán
+        </label>
+        <select class="form-control-custom" id="payment-method">
+          <option value="1">💵 Tiền mặt</option>
+          <option value="2">🏦 Chuyển khoản</option>
+          <option value="3">💎 Crypto</option>
+        </select>
+      </div>
+
+      <!-- Cash Received -->
+      <div class="form-group-custom" id="cash-group">
+        <label class="form-label-custom">
+          <i class="fas fa-money-bill-wave"></i> Tiền khách đưa
+        </label>
+        <input type="number" class="form-control-custom" id="cash-received" placeholder="Nhập số tiền">
+        <div class="mt-2 text-end">
+          <span>Tiền thừa: </span>
+          <strong style="color: #00b894; font-size: 1.3rem;" id="change">0đ</strong>
+        </div>
+      </div>
+
+      <!-- Promotion -->
+      <div class="form-group-custom">
+        <label class="form-label-custom">
+          <i class="fas fa-gift"></i> Khuyến mãi
+        </label>
+        <select class="form-control-custom" id="promotion">
+          <option value="">Không áp dụng</option>
+        </select>
+      </div>
+
+      <!-- Customer Phone -->
+      <div class="form-group-custom">
+        <label class="form-label-custom">
+          <i class="fas fa-phone"></i> Số điện thoại khách hàng (tích điểm)
+        </label>
+        <input type="tel" class="form-control-custom" id="customer-phone" placeholder="Nhập số điện thoại">
+        <small class="text-muted">Để trống nếu không muốn tích điểm</small>
+      </div>
+
+      <!-- Buttons -->
+      <div class="d-flex gap-3 mt-4">
+        <button class="btn btn-success btn-lg flex-fill" id="btn-confirm-payment">
+          <i class="fas fa-check-circle"></i> Xác nhận thanh toán
+        </button>
+        <button class="btn btn-secondary btn-lg" id="btn-cancel-payment">
+          <i class="fas fa-times"></i> Hủy
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ================= SCRIPTS ================= -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="/static/js/thungan.js"></script>
 

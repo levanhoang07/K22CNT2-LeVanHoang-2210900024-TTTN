@@ -370,6 +370,7 @@ function renderCart() {
         state.cart.splice(index, 1);
       }
         renderCart();
+
     });
   });
 }
