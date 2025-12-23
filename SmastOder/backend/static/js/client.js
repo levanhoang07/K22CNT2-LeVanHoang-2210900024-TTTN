@@ -192,33 +192,108 @@ async function callStaff(message) {
     return false;
   }
 }
-
 async function submitReview(data) {
   try {
+    if (!data.noiDung || !data.noiDung.trim()) {
+      showNotification('Vui lòng nhập nội dung đánh giá!', 'warning');
+      return false;
+    }
+    
+/// đámh giá
     const response = await fetch(`${API_BASE}/danhgia`, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         id_ban: state.idBan,
         noi_dung: data.noiDung,
-        ten_khach: data.tenKhach
+        ten_khach: data.tenKhach || null
       })
     });
-    
+
     const result = await response.json();
-    
-    if (result.success) {
+
+    if (response.ok && result.status === 'ok') {
       showNotification('✅ Cảm ơn bạn đã đánh giá!', 'success');
       return true;
     } else {
-      throw new Error(result.message);
+      throw new Error(result.message || 'Gửi đánh giá thất bại');
     }
+
   } catch (error) {
     console.error('❌ Submit review error:', error);
-    showNotification('Lỗi khi gửi đánh giá!', 'error');
+    showNotification('❌ Lỗi khi gửi đánh giá!', 'error');
     return false;
   }
 }
+document.addEventListener("DOMContentLoaded", () => {
+
+  const btnReview = document.getElementById("btn-review");
+  const reviewModal = document.getElementById("review-modal");
+  const closeReviewModal = document.getElementById("close-review-modal");
+  const sendReview = document.getElementById("send-review");
+
+  if (!btnReview || !reviewModal || !sendReview) {
+    console.error("❌ Thiếu nút hoặc modal đánh giá");
+    return;
+  }
+
+  // ===== MỞ MODAL =====
+  btnReview.addEventListener("click", () => {
+    reviewModal.classList.remove("hidden");
+  });
+
+  // ===== ĐÓNG MODAL =====
+  closeReviewModal.addEventListener("click", () => {
+    reviewModal.classList.add("hidden");
+  });
+
+  // ===== GỬI ĐÁNH GIÁ =====
+  sendReview.addEventListener("click", async () => {
+    const noiDung = document.getElementById("review-content").value.trim();
+    const tenKhach = document.getElementById("review-name").value.trim();
+
+    if (!noiDung) {
+      showNotification("Vui lòng nhập nội dung đánh giá!", "warning");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/danhgia`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id_ban: state.idBan,
+          noi_dung: noiDung,
+          ten_khach: tenKhach || null
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success === true) {
+        showNotification("✅ Cảm ơn bạn đã đánh giá!", "success");
+
+        // Reset form + đóng modal
+        document.getElementById("review-content").value = "";
+        document.getElementById("review-name").value = "";
+        reviewModal.classList.add("hidden");
+
+      } else {
+        showNotification(result.message || "Gửi đánh giá thất bại", "error");
+      }
+
+    } catch (error) {
+      console.error("❌ Submit review error:", error);
+      showNotification("❌ Lỗi khi gửi đánh giá!", "error");
+    }
+  });
+
+});
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RENDER FUNCTIONS
@@ -322,7 +397,7 @@ function renderCart() {
       <div class="d-flex justify-content-between align-items-start mb-2">
         <div class="flex-grow-1">
           <h6 class="mb-1">${item.tenMon}</h6>
-          <small class="text-muted">🌶️ ${item.capDoCay}</small>
+          
           ${item.ghiChu ? `<br><small class="text-muted">📝 ${item.ghiChu}</small>` : ''}
         </div>
         <button class="btn btn-sm btn-danger remove-item" data-index="${index}">

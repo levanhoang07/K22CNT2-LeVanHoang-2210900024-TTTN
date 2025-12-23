@@ -11,6 +11,7 @@
 
 const API_BASE = 'http://localhost:5000/api';
 const socket = io('http://localhost:5000');
+
 const state = {
   orders: [],
   selectedOrder: null,
@@ -37,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSocketListeners();
   startClock();
   
-  // Auto refresh every 30 seconds
   setInterval(() => {
     loadOrders();
     loadNotifications();
@@ -49,14 +49,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function initialize() {
   try {
     showLoading(true);
-    
     await Promise.all([
       loadOrders(),
       loadNotifications(),
       loadPromotions(),
       loadTodayStats()
     ]);
-    
     showToast('✅ Hệ thống sẵn sàng!', 'success');
   } catch (error) {
     console.error('❌ Initialization error:', error);
@@ -74,7 +72,6 @@ async function loadOrders() {
   try {
     const response = await fetch(`${API_BASE}/thungan/donhang`);
     const result = await response.json();
-    
     if (result.success) {
       state.orders = result.data.don_hang || [];
       renderOrders();
@@ -91,7 +88,6 @@ async function loadOrderDetail(orderId) {
   try {
     const response = await fetch(`${API_BASE}/ban/donhang/${orderId}`);
     const result = await response.json();
-    
     if (result.success) {
       return result.data;
     }
@@ -107,19 +103,14 @@ async function confirmOrder(orderId) {
     const response = await fetch(`${API_BASE}/thungan/donhang/${orderId}/xacnhan`, {
       method: 'PUT'
     });
-    
     const result = await response.json();
-    
     if (result.success) {
       showToast('✅ Đã xác nhận và gửi đơn cho bếp!', 'success');
       playSound('success');
       await loadOrders();
-      
-      // Nếu đang xem đơn này, load lại detail
       if (state.selectedOrder?.IDDonHang === orderId) {
         await selectOrder(orderId);
       }
-      
       return true;
     } else {
       throw new Error(result.message);
@@ -143,28 +134,21 @@ async function processPayment(paymentData) {
         id_khuyen_mai: paymentData.khuyenMai
       })
     });
-
     const result = await response.json();
-    if (!result.success) throw new Error(result.message);
-
-    const points = result.data.diem_tich_luy || 0;
-    const change = result.data.tien_thua || 0;
-
-    showToast(
-      `✅ Thanh toán thành công!\n💎 Tích lũy: ${points} điểm\n💵 Tiền thừa: ${formatPrice(change)}`,
-      'success'
-    );
-
-    // 🧾 IN HÓA ĐƠN (KHÔNG ÂM THANH)
-    if (confirm('📄 In hóa đơn cho khách hàng?')) {
-      printInvoice(result.data, paymentData);
+    if (result.success) {
+      const points = result.data.diem_tich_luy || 0;
+      const change = result.data.tien_thua || 0;
+      showToast(`✅ Thanh toán thành công!\n💎 Tích lũy: ${points} điểm\n💵 Tiền thừa: ${formatPrice(change)}`, 'success');
+      playSound('payment');
+      if (confirm('📄 In hóa đơn cho khách hàng?')) {
+        printInvoice(result.data, paymentData);
+      }
+      await loadOrders();
+      await loadTodayStats();
+      return result.data;
+    } else {
+      throw new Error(result.message);
     }
-
-    await loadOrders();
-    await loadTodayStats();
-
-    return result.data;
-
   } catch (error) {
     console.error('❌ Payment error:', error);
     showToast('Lỗi khi thanh toán: ' + error.message, 'error');
@@ -172,16 +156,10 @@ async function processPayment(paymentData) {
   }
 }
 
-
-// ═══════════════════════════════════════════════════════════════════════════
-// API CALLS - NOTIFICATIONS
-// ═══════════════════════════════════════════════════════════════════════════
-
 async function loadNotifications() {
   try {
     const response = await fetch(`${API_BASE}/thongbao`);
     const result = await response.json();
-    
     if (result.success) {
       state.notifications = result.data.thong_bao || [];
       renderNotifications();
@@ -197,9 +175,7 @@ async function markNotificationRead(notifId) {
     const response = await fetch(`${API_BASE}/thongbao/${notifId}/xuly`, {
       method: 'PUT'
     });
-    
     const result = await response.json();
-    
     if (result.success) {
       showToast('✅ Đã xử lý thông báo', 'success');
       await loadNotifications();
@@ -209,15 +185,10 @@ async function markNotificationRead(notifId) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// API CALLS - PROMOTIONS & STATS
-// ═══════════════════════════════════════════════════════════════════════════
-
 async function loadPromotions() {
   try {
     const response = await fetch(`${API_BASE}/admin/khuyenmai`);
     const result = await response.json();
-    
     if (result.success) {
       state.promotions = (result.data.khuyen_mai || []).filter(km => km.TrangThai === 1);
       console.log('✅ Promotions loaded:', state.promotions.length);
@@ -231,15 +202,13 @@ async function loadTodayStats() {
   try {
     const response = await fetch(`${API_BASE}/admin/dashboard`);
     const result = await response.json();
-    
     if (result.success) {
       state.stats = {
         pending: result.data.don_cho_xu_ly || 0,
-        confirmed: 0, // Tính từ orders
+        confirmed: 0,
         completed: result.data.so_don_hang_hom_nay || 0,
         revenue: result.data.doanh_thu_hom_nay || 0
       };
-      
       renderStats();
     }
   } catch (error) {
@@ -253,7 +222,6 @@ async function loadTodayStats() {
 
 function renderOrders() {
   const container = document.getElementById('order-list');
-  
   if (state.orders.length === 0) {
     container.innerHTML = `
       <div class="detail-empty">
@@ -263,15 +231,12 @@ function renderOrders() {
     `;
     return;
   }
-  
   container.innerHTML = state.orders.map(order => {
     const isUrgent = isOrderUrgent(order.NgayTao);
     const isSelected = state.selectedOrder?.IDDonHang === order.IDDonHang;
-    
     return `
       <div class="order-card ${isSelected ? 'selected' : ''} ${isUrgent ? 'urgent' : ''}" 
            data-order-id="${order.IDDonHang}">
-        
         <div class="order-header">
           <span class="table-badge">
             <i class="fas fa-utensils"></i> ${order.TenBan}
@@ -280,20 +245,17 @@ function renderOrders() {
             <i class="far fa-clock"></i> ${getTimeAgo(order.NgayTao)}
           </span>
         </div>
-
         <div class="order-body">
           <div class="order-info mb-2">
             <span style="font-weight: 600; color: #2d3436;">
               <i class="fas fa-shopping-bag"></i> ${order.SoMon} món
             </span>
           </div>
-
           <div class="order-total-section">
             <span class="total-label">Tổng cộng:</span>
             <span class="total-amount">${formatPrice(order.TongTien)}</span>
           </div>
         </div>
-
         <div class="order-actions">
           <button class="btn-action btn-view" onclick="selectOrder(${order.IDDonHang})">
             <i class="fas fa-eye"></i> Xem
@@ -313,16 +275,12 @@ function renderOrders() {
 async function selectOrder(orderId) {
   try {
     showLoading(true);
-    
     const orderDetail = await loadOrderDetail(orderId);
     if (!orderDetail) {
       showToast('Không thể tải chi tiết đơn hàng', 'error');
       return;
     }
-    
     state.selectedOrder = orderDetail;
-    
-    // Highlight selected order
     document.querySelectorAll('.order-card').forEach(card => {
       card.classList.remove('selected');
       if (parseInt(card.dataset.orderId) === orderId) {
@@ -330,7 +288,6 @@ async function selectOrder(orderId) {
         card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     });
-    
     renderOrderDetail();
   } catch (error) {
     console.error('❌ Select order error:', error);
@@ -342,7 +299,6 @@ async function selectOrder(orderId) {
 
 function renderOrderDetail() {
   const section = document.getElementById('detail-section');
-  
   if (!state.selectedOrder) {
     section.innerHTML = `
       <div class="detail-empty">
@@ -352,10 +308,8 @@ function renderOrderDetail() {
     `;
     return;
   }
-  
   const order = state.selectedOrder;
   const isPaid = order.TrangThaiThanhToan === 1;
-  
   section.innerHTML = `
     <div class="detail-content">
       <div class="detail-header-box">
@@ -366,7 +320,6 @@ function renderOrderDetail() {
           Đơn hàng #${order.IDDonHang} • ${formatDateTime(order.NgayTao)}
         </div>
       </div>
-
       <div class="detail-items-list">
         <h6 class="mb-3" style="font-weight: 700;">
           <i class="fas fa-list"></i> Chi tiết món (${order.chi_tiet.length})
@@ -390,14 +343,12 @@ function renderOrderDetail() {
           </div>
         `).join('')}
       </div>
-
       ${order.GhiChu ? `
         <div class="alert alert-info mb-3">
           <strong><i class="fas fa-info-circle"></i> Ghi chú:</strong><br>
           ${order.GhiChu}
         </div>
       ` : ''}
-
       <div class="detail-summary">
         <div class="summary-row">
           <span>Tổng cộng:</span>
@@ -408,7 +359,6 @@ function renderOrderDetail() {
           <strong>${formatPrice(order.TongTien)}</strong>
         </div>
       </div>
-
       ${!isPaid ? `
         <div class="d-grid gap-2">
           <button class="btn-action btn-send-kitchen btn-lg" onclick="handleSendToKitchen(${order.IDDonHang})">
@@ -428,21 +378,14 @@ function renderOrderDetail() {
   `;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// RENDER - NOTIFICATIONS
-// ═══════════════════════════════════════════════════════════════════════════
-
 function renderNotifications() {
   const container = document.getElementById('notification-list');
   const countBadge = document.getElementById('notif-count');
-  
   countBadge.textContent = state.notifications.length;
-  
   if (state.notifications.length === 0) {
     container.innerHTML = '<p class="text-muted text-center">Không có thông báo</p>';
     return;
   }
-  
   container.innerHTML = state.notifications.map(notif => `
     <div class="notif-item">
       <div class="notif-header">
@@ -465,10 +408,6 @@ function renderNotifications() {
   `).join('');
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// RENDER - STATS
-// ═══════════════════════════════════════════════════════════════════════════
-
 function renderStats() {
   document.getElementById('stat-pending').textContent = state.stats.pending;
   document.getElementById('stat-confirmed').textContent = state.stats.confirmed;
@@ -480,7 +419,6 @@ function updateStats() {
   state.stats.pending = state.orders.length;
   renderStats();
 }
-
 // ═══════════════════════════════════════════════════════════════════════════
 // PAYMENT MODAL
 // ═══════════════════════════════════════════════════════════════════════════
@@ -488,35 +426,27 @@ function updateStats() {
 async function handlePayment(orderId) {
   const order = await loadOrderDetail(orderId);
   if (!order) return;
-  
   state.currentPayment = {
     order: order,
     total: order.TongTien,
     discount: 0,
     final: order.TongTien
   };
-  
   openPaymentModal();
 }
 
 function openPaymentModal() {
   const modal = document.getElementById('payment-modal');
   const order = state.currentPayment.order;
-  
-  // Fill data
   document.getElementById('pay-table').textContent = order.TenBan;
   document.getElementById('pay-total').textContent = formatPrice(order.TongTien);
   document.getElementById('pay-discount').textContent = '0đ';
   document.getElementById('pay-final').textContent = formatPrice(order.TongTien);
-  
-  // Reset form
   document.getElementById('payment-method').value = '1';
   document.getElementById('cash-received').value = '';
   document.getElementById('customer-phone').value = '';
   document.getElementById('change').textContent = '0đ';
   document.getElementById('promotion').value = '';
-  
-  // Load promotions
   const promoSelect = document.getElementById('promotion');
   promoSelect.innerHTML = '<option value="">Không áp dụng</option>' +
     state.promotions.map(promo => {
@@ -525,10 +455,7 @@ function openPaymentModal() {
         : `${promo.TenKhuyenMai} (-${formatPrice(promo.GiaTri)})`;
       return `<option value="${promo.IDKhuyenMai}">${display}</option>`;
     }).join('');
-  
-  // Show cash group
   document.getElementById('cash-group').style.display = 'block';
-  
   modal.classList.add('show');
 }
 
@@ -539,10 +466,8 @@ function closePaymentModal() {
 
 function calculatePayment() {
   if (!state.currentPayment) return;
-  
   const promoId = document.getElementById('promotion').value;
   let discount = 0;
-  
   if (promoId) {
     const promo = state.promotions.find(p => p.IDKhuyenMai == promoId);
     if (promo) {
@@ -553,14 +478,10 @@ function calculatePayment() {
       }
     }
   }
-  
   state.currentPayment.discount = discount;
   state.currentPayment.final = state.currentPayment.total - discount;
-  
   document.getElementById('pay-discount').textContent = formatPrice(discount);
   document.getElementById('pay-final').textContent = formatPrice(state.currentPayment.final);
-  
-  // Calculate change
   const method = document.getElementById('payment-method').value;
   if (method === '1') {
     const cashReceived = parseFloat(document.getElementById('cash-received').value) || 0;
@@ -571,28 +492,21 @@ function calculatePayment() {
 
 async function confirmPayment() {
   if (!state.currentPayment) return;
-  
   const method = parseInt(document.getElementById('payment-method').value);
   const cashReceived = parseFloat(document.getElementById('cash-received').value) || 0;
   const phone = document.getElementById('customer-phone').value.trim();
   const promoId = document.getElementById('promotion').value;
-  
-  // Validate
   if (method === 1 && cashReceived < state.currentPayment.final) {
     showToast('⚠️ Tiền khách đưa không đủ!', 'warning');
     document.getElementById('cash-received').focus();
     return;
   }
-  
-  // Confirm
   if (!confirm(`Xác nhận thanh toán ${formatPrice(state.currentPayment.final)}?`)) {
     return;
   }
-  
   const btn = document.getElementById('btn-confirm-payment');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
-  
   try {
     const paymentData = {
       idDonHang: state.currentPayment.order.IDDonHang,
@@ -601,9 +515,7 @@ async function confirmPayment() {
       soDienThoai: phone || null,
       khuyenMai: promoId || null
     };
-    
     const result = await processPayment(paymentData);
-    
     if (result) {
       closePaymentModal();
       state.selectedOrder = null;
@@ -621,38 +533,28 @@ async function confirmPayment() {
 
 async function handleSendToKitchen(orderId) {
   if (!confirm('🔥 Xác nhận gửi đơn hàng cho bếp?')) return;
-  
   await confirmOrder(orderId);
 }
 
 function setupEventListeners() {
-  // Refresh button
   document.getElementById('btn-refresh').addEventListener('click', async () => {
     await loadOrders();
     await loadNotifications();
     showToast('🔄 Đã làm mới!', 'info');
   });
-  
-  // Logout
   document.getElementById('btn-logout').addEventListener('click', () => {
     if (confirm('🚪 Đăng xuất khỏi hệ thống?')) {
       window.location.href = '/login';
     }
   });
-  
-  // Payment modal
   document.getElementById('payment-method').addEventListener('change', (e) => {
     const cashGroup = document.getElementById('cash-group');
     cashGroup.style.display = e.target.value === '1' ? 'block' : 'none';
   });
-  
   document.getElementById('cash-received').addEventListener('input', calculatePayment);
   document.getElementById('promotion').addEventListener('change', calculatePayment);
-  
   document.getElementById('btn-confirm-payment').addEventListener('click', confirmPayment);
   document.getElementById('btn-cancel-payment').addEventListener('click', closePaymentModal);
-  
-  // Click outside modal to close
   document.getElementById('payment-modal').addEventListener('click', (e) => {
     if (e.target.id === 'payment-modal') {
       closePaymentModal();
@@ -668,30 +570,25 @@ function setupSocketListeners() {
   socket.on('connect', () => {
     console.log('✅ Socket connected');
   });
-  
   socket.on('disconnect', () => {
     console.log('❌ Socket disconnected');
   });
-  
   socket.on('new_order', async (data) => {
     console.log('📦 New order:', data);
     showToast(`📦 Đơn hàng mới từ ${data.ten_ban || 'Bàn ' + data.id_ban}!`, 'info');
     playSound('notification');
     await loadOrders();
   });
-  
   socket.on('call_staff', async (data) => {
     console.log('📢 Call staff:', data);
     showToast(`📢 ${data.ten_ban} cần hỗ trợ!`, 'warning');
     playSound('notification');
     await loadNotifications();
   });
-  
   socket.on('order_status_update', async (data) => {
     console.log('🔄 Order status update:', data);
     await loadOrders();
   });
-  
   socket.on('order_paid', async (data) => {
     console.log('💰 Order paid:', data);
     await loadOrders();
@@ -726,13 +623,10 @@ function getTimeAgo(dateString) {
   const past = new Date(dateString);
   const diffMs = now - past;
   const diffMins = Math.floor(diffMs / 60000);
-  
   if (diffMins < 1) return 'Vừa xong';
   if (diffMins < 60) return `${diffMins} phút trước`;
-  
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) return `${diffHours} giờ trước`;
-  
   return formatDateTime(dateString);
 }
 
@@ -740,7 +634,7 @@ function isOrderUrgent(dateString) {
   const now = new Date();
   const orderTime = new Date(dateString);
   const diffMins = (now - orderTime) / 60000;
-  return diffMins > 15; // Urgent if more than 15 minutes
+  return diffMins > 15;
 }
 
 function startClock() {
@@ -757,18 +651,15 @@ function startClock() {
       month: '2-digit',
       year: 'numeric'
     });
-    
     document.getElementById('time-display').textContent = timeStr;
     document.getElementById('clock').title = dateStr;
   }
-  
   update();
   setInterval(update, 1000);
 }
 
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
-  
   const toast = document.createElement('div');
   toast.className = `toast-custom ${type}`;
   toast.innerHTML = `
@@ -780,9 +671,7 @@ function showToast(message, type = 'info') {
       </div>
     </div>
   `;
-  
   container.appendChild(toast);
-  
   setTimeout(() => {
     toast.style.animation = 'slideInRight 0.3s ease-out reverse';
     setTimeout(() => toast.remove(), 300);
@@ -805,111 +694,131 @@ function getToastTitle(type) {
     error: 'Lỗi',
     warning: 'Cảnh báo',
     info: 'Thông báo'
-  };return titles[type] || 'Thông báo';
+  };
+  return titles[type] || 'Thông báo';
 }
 
-function showLoading(show) { // Triển khai chỉ báo tải nếu cần console.log(show ? 'Đang tải...' : 'Đã tải'); }
+function playSound(type) {
+  const sounds = {
+    notification: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
+    success: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
+    payment: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA=='
+  };
+  try {
+    const audio = new Audio(sounds[type] || sounds.notification);
+    audio.volume = 0.4;
+    audio.play().catch(e => console.log('Cannot play sound:', e));
+  } catch (e) {
+    console.log('Sound error:', e);
+  }
+}
 
-  function printInvoice(paymentResult, paymentData) {
-  const order = state.currentPayment?.order;
-  if (!order) return;
+function showLoading(show) {
+  console.log(show ? 'Loading...' : 'Loaded');
+}
 
+function printInvoice(paymentResult, paymentData) {
+  const order = state.currentPayment.order;
   const win = window.open('', '', 'width=300,height=600');
-
   win.document.write(`
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="utf-8">
-<title>Hóa đơn - ${order.TenBan}</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: "Courier New", monospace; padding: 16px; font-size: 12px; color: #000; }
-h2 { text-align: center; margin-bottom: 6px; }
-.center { text-align: center; }
-.line { border-bottom: 1px dashed #000; margin: 10px 0; }
-.row { display: flex; justify-content: space-between; margin: 4px 0; }
-.row.total { font-size: 14px; font-weight: bold; border-top: 2px solid #000; padding-top: 6px; margin-top: 6px; }
-.small { font-size: 11px; }
-</style>
-</head>
-<body>
-  <h2>🌶️ MÌ CAY ONE</h2>
-  <p class="center small">88 Hoàng Hoa Thám, Phúc Yên</p>
-  <p class="center small">ĐT: 0123 456 789</p>
-
-  <div class="line"></div>
-
-  <p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
-  <p><strong>Bàn:</strong> ${order.TenBan}</p>
-  <p><strong>Thời gian:</strong> ${formatDateTime(new Date())}</p>
-
-  <div class="line"></div>
-
-  <p><strong>Chi tiết:</strong></p>
-  ${order.chi_tiet.map(item => `
-    <div class="row">
-      <span>${item.TenMon} x${item.SoLuong}</span>
-      <span>${formatPrice(item.ThanhTien)}</span>
-    </div>
-  `).join('')}
-
-  <div class="line"></div>
-
-  <div class="row">
-    <span>Tổng cộng:</span>
-    <span>${formatPrice(paymentResult.tong_tien)}</span>
-  </div>
-
-  ${paymentResult.so_tien_giam > 0 ? `
-    <div class="row">
-      <span>Giảm giá:</span>
-      <span>- ${formatPrice(paymentResult.so_tien_giam)}</span>
-    </div>
-  ` : ''}
-
-  <div class="row total">
-    <span>THANH TOÁN:</span>
-    <span>${formatPrice(paymentResult.so_tien_thanh_toan)}</span>
-  </div>
-
-  ${paymentData.phuongThuc === 1 && paymentResult.tien_thua > 0 ? `
-    <div class="row">
-      <span>Tiền nhận:</span>
-      <span>${formatPrice(paymentData.tienNhan)}</span>
-    </div>
-    <div class="row">
-      <span>Tiền thừa:</span>
-      <span>${formatPrice(paymentResult.tien_thua)}</span>
-    </div>
-  ` : ''}
-
-  ${paymentResult.diem_tich_luy > 0 ? `
-    <div class="line"></div>
-    <p class="center"><strong>+${paymentResult.diem_tich_luy} điểm tích lũy</strong></p>
-  ` : ''}
-
-  <div class="line"></div>
-  <p class="center"><strong>Cảm ơn quý khách!</strong></p>
-  <p class="center small">Hẹn gặp lại ❤️</p>
-
-  <script>
-    window.onload = function () {
-      window.print();
-      setTimeout(() => window.close(), 800);
-    };
-  </script>
-</body>
-</html>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Hóa đơn - ${order.TenBan}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Courier New', monospace;
+          padding: 20px;
+          font-size: 12px;
+        }
+        h2 { text-align: center; margin-bottom: 10px; }
+        .center { text-align: center; }
+        .line { border-bottom: 1px dashed #000; margin: 10px 0; }
+        .row {
+          display: flex;
+          justify-content: space-between;
+          margin: 5px 0;
+        }
+        .total {
+          font-size: 16px;
+          font-weight: bold;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 2px solid #000;
+        }
+      </style>
+    </head>
+    <body>
+      <h2>🌶️ MÌ CAY ONE</h2>
+      <p class="center">88 Hoàng Hoa Thám, Phúc Yên</p>
+      <p class="center">ĐT: 0123 456 789</p>
+      <div class="line"></div>
+      <p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
+      <p><strong>Bàn:</strong> ${order.TenBan}</p>
+      <p><strong>Thời gian:</strong> ${formatDateTime(new Date())}</p>
+      <div class="line"></div>
+      <p><strong>Chi tiết:</strong></p>
+      ${order.chi_tiet.map(item => `
+        <div class="row">
+          <span>${item.TenMon} (x${item.SoLuong})</span>
+          <span>${formatPrice(item.ThanhTien)}</span>
+        </div>
+      `).join('')}
+      <div class="line"></div>
+      <div class="row">
+        <span>Tổng cộng:</span>
+        <span>${formatPrice(paymentResult.tong_tien)}</span>
+      </div>
+      ${paymentResult.so_tien_giam > 0 ? `
+        <div class="row">
+          <span>Giảm giá:</span>
+          <span>-${formatPrice(paymentResult.so_tien_giam)}</span>
+        </div>
+      ` : ''}
+      <div class="row total">
+        <span>THANH TOÁN:</span>
+        <span>${formatPrice(paymentResult.so_tien_thanh_toan)}</span>
+      </div>
+      ${paymentData.phuongThuc === 1 && paymentResult.tien_thua > 0 ? `
+        <div class="row">
+          <span>Tiền nhận:</span>
+          <span>${formatPrice(paymentData.tienNhan)}</span>
+        </div>
+        <div class="row">
+          <span>Tiền thừa:</span>
+          <span>${formatPrice(paymentResult.tien_thua)}</span>
+        </div>
+      ` : ''}
+      ${paymentResult.diem_tich_luy > 0 ? `
+        <div class="line"></div>
+        <p class="center">
+          <strong>Tích lũy: +${paymentResult.diem_tich_luy} điểm</strong>
+        </p>
+      ` : ''}
+      <div class="line"></div>
+      <p class="center"><strong>Cảm ơn quý khách!</strong></p>
+      <p class="center">Hẹn gặp lại!</p>
+      <script>
+        window.onload = function() {
+          window.print();
+          setTimeout(() => window.close(), 1000);
+        };
+      </script>
+    </body>
+    </html>
   `);
-
   win.document.close();
 }
 
-// ✅ DÒNG QUAN TRỌNG – HẾT WARNING
-window.printInvoice = printInvoice;
+// ═══════════════════════════════════════════════════════════════════════════
+// GLOBAL FUNCTIONS (Called from HTML onclick)
+// ═══════════════════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════ ═════════════════════════════════════════ // CÁC HÀM TOÀN CẦU (Được gọi từ HTML) (khi nhấp chuột) // ═════════════════════════════════════════════════════════════════════════════════
-window.selectOrder = selectOrder; window.handleSendToKitchen = handleSendToKitchen; window.handlePayment = handlePayment; window.markNotificationRead = markNotificationRead;
-console.log('💰 Hệ thống Thu Ngân đã tải thành công!');
-  }
+window.selectOrder = selectOrder;
+window.handleSendToKitchen = handleSendToKitchen;
+window.handlePayment = handlePayment;
+window.markNotificationRead = markNotificationRead;
+
+console.log('💰 Thu Ngân System Loaded Successfully!');

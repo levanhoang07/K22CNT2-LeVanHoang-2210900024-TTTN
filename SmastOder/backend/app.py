@@ -374,46 +374,80 @@ def goi_nhan_vien(id_ban):
             conn.rollback()
             conn.close()
         return handle_exception(e, "Lỗi gọi nhân viên")
-
 @app.route('/api/danhgia', methods=['POST'])
 def gui_danh_gia():
+    conn = None
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
+
         id_ban = data.get('id_ban')
         noi_dung = data.get('noi_dung')
         ten_khach = data.get('ten_khach')
-        if not noi_dung:
-            return jsonify_response(False, "Nội dung đánh giá không được để trống", None, 400)
-        
+
+        if not noi_dung or not noi_dung.strip():
+            return jsonify_response(
+                False,
+                "Nội dung đánh giá không được để trống",
+                None,
+                400
+            )
+
         cursor, conn = get_cursor()
         cursor.execute("""
             INSERT INTO DanhGia (IDBan, TenKhachHang, NoiDung, TrangThai)
-            OUTPUT INSERTED.IDDanhGia VALUES (?, ?, ?, 1)
+            OUTPUT INSERTED.IDDanhGia
+            VALUES (?, ?, ?, 1)
         """, (id_ban, ten_khach, noi_dung))
+
         id_danh_gia = cursor.fetchone()[0]
         conn.commit()
-        conn.close()
-        return jsonify_response(True, "Cảm ơn bạn đã đánh giá!", {'id_danh_gia': id_danh_gia})
+
+        return jsonify_response(
+            True,
+            "Cảm ơn bạn đã đánh giá!",
+            {"id_danh_gia": id_danh_gia}
+        )
+
     except Exception as e:
-        if 'conn' in locals():
+        if conn:
             conn.rollback()
-            conn.close()
         return handle_exception(e, "Lỗi gửi đánh giá")
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/danhgia', methods=['GET'])
 def lay_danh_gia():
+    conn = None
     try:
         cursor, conn = get_cursor()
         cursor.execute("""
-            SELECT dg.IDDanhGia, dg.TenKhachHang, dg.NoiDung, dg.NgayDanhGia, dg.TrangThai, b.TenBan
-            FROM DanhGia dg LEFT JOIN Ban b ON dg.IDBan = b.IDBan
-            WHERE dg.TrangThai = 1 ORDER BY dg.NgayDanhGia DESC
+            SELECT 
+                dg.IDDanhGia,
+                dg.TenKhachHang,
+                dg.NoiDung,
+                dg.NgayDanhGia,
+                b.TenBan
+            FROM DanhGia dg
+            LEFT JOIN Ban b ON dg.IDBan = b.IDBan
+            WHERE dg.TrangThai = 1
+            ORDER BY dg.NgayDanhGia DESC
         """)
+
         danh_gia_list = rows_to_dict_list(cursor, cursor.fetchall())
-        conn.close()
-        return jsonify_response(True, "Lấy danh sách đánh giá thành công", {'danh_gia': danh_gia_list})
+
+        return jsonify_response(
+            True,
+            "Lấy danh sách đánh giá thành công",
+            {"danh_gia": danh_gia_list}
+        )
+
     except Exception as e:
         return handle_exception(e, "Lỗi lấy danh sách đánh giá")
+    finally:
+        if conn:
+            conn.close()
+
     
 # ═══════════════════════════════════════════════════════════════════════════════
 # 💼 API THU NGÂN
