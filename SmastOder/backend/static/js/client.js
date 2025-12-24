@@ -355,7 +355,7 @@ function renderMenu(categoryFilter = null) {
           <img src="/static/images/${item.HinhAnh}" 
                class="card-img-top dish-image" 
                alt="${item.TenMon}"
-               onerror="this.src='/static/images/placeholder.jpg'">
+               onerror="this.src='/static/images/no-image.jpg'">
         </div>
         <div class="card-body d-flex flex-column">
           <h6 class="card-title fw-bold">${item.TenMon}</h6>

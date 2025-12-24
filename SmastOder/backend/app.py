@@ -186,7 +186,11 @@ def thungan_page():
 @app.route("/bep")
 def bep_page():
     return render_template("bep.html")
-# ══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/login")
+def login_page():
+    return render_template("login.html")
+# ════════════════════════════════════════════════════════════════════════════
 # 👤 API KHÁCH HÀNG (QR)
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -374,6 +378,8 @@ def goi_nhan_vien(id_ban):
             conn.rollback()
             conn.close()
         return handle_exception(e, "Lỗi gọi nhân viên")
+    
+# đánh giá
 @app.route('/api/danhgia', methods=['POST'])
 def gui_danh_gia():
     conn = None
@@ -1452,6 +1458,7 @@ def lay_lich_su_don_hang(id_don_hang):
         return jsonify_response(True, "Lấy lịch sử đơn hàng thành công", {'lich_su': lich_su})
     except Exception as e:
         return handle_exception(e, "Lỗi lấy lịch sử đơn hàng")
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🚀 MAIN - KHỞI ĐỘNG SERVER

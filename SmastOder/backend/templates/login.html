@@ -4,25 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đăng nhập - Mỳ Cay One</title>
-<link rel="stylesheet" href="css/login.css">
+
+<link rel="stylesheet" href="static/css/login.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
 <div class="container">
 
-    <!-- LEFT CONTENT -->
+    <!-- LEFT -->
     <div class="left-box">
         <div class="brand">
             <i class="fa-solid fa-bowl-food"></i>
             <h1>Mỳ Cay One</h1>
         </div>
-
         <h2>Xin chào!</h2>
         <p class="slogan">Hệ thống Order chuyên nghiệp – nhanh chóng – chính xác</p>
     </div>
 
-    <!-- RIGHT LOGIN FORM -->
+    <!-- RIGHT -->
     <div class="login-box">
         <h2>Đăng nhập</h2>
 
@@ -30,21 +30,19 @@
 
             <div class="input-field">
                 <i class="fa-solid fa-user"></i>
-                <input id="username" type="text" placeholder="Tài khoản" required>
+                <input id="username" type="text" placeholder="Tài khoản">
             </div>
 
             <div class="input-field">
                 <i class="fa-solid fa-lock"></i>
-                <input id="password" type="password" placeholder="Mật khẩu" required>
+                <input id="password" type="password" placeholder="Mật khẩu">
             </div>
 
+            <!-- CHỈ ĐỂ UI – KHÔNG DÙNG XÁC THỰC -->
             <div class="input-field">
                 <i class="fa-solid fa-users"></i>
-                <select id="role" required>
-                    <option value="" disabled selected>Chọn vai trò</option>
-                    <option value="Admin">Quản trị</option>
-                    <option value="Bep">Bếp</option>
-                    <option value="ThuNgan">Thu ngân</option>
+                <select id="role">
+                    <option value="">Vaiai trò (tự động)</option>
                 </select>
             </div>
 
@@ -55,78 +53,87 @@
 
             <button class="btn" type="submit">Đăng nhập</button>
 
-            <span id="login-error" class="error-msg"></span>
+            <div id="login-error" class="error-msg"></div>
         </form>
     </div>
 </div>
 
-<!-- POPUP QUÊN MẬT KHẨU -->
+<!-- POPUP -->
 <div class="forgot-popup" style="display:none;">
     <div class="popup-box">
         <h3>Quên mật khẩu</h3>
-        <p>Vui lòng liên hệ quản trị để cấp lại mật khẩu:</p>
+        <p>Liên hệ quản trị:</p>
         <p class="admin-info">
-            <i class="fa-solid fa-phone"></i> 0909 999 999<br>
-            <i class="fa-solid fa-envelope"></i> admin@mycayone.com
+            📞 0909 999 999<br>
+            ✉️ admin@mycayone.com
         </p>
         <button class="close-popup">Đóng</button>
     </div>
 </div>
 
 <script>
-/* ✅ Xử lý popup */
+/* ===== POPUP ===== */
 const popup = document.querySelector('.forgot-popup');
 document.querySelector('.forgot-btn').onclick = () => popup.style.display = 'flex';
 document.querySelector('.close-popup').onclick = () => popup.style.display = 'none';
 
-/* ✅ Xử lý đăng nhập */
+/* ===== LOGIN ===== */
 document.getElementById("login-form").addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const role     = document.getElementById("role").value;
-
+    const ten_dang_nhap = document.getElementById("username").value.trim();
+    const mat_khau = document.getElementById("password").value.trim();
     const errorBox = document.getElementById("login-error");
+
     errorBox.textContent = "";
 
-    if (!username || !password || !role) {
-        errorBox.textContent = "Vui lòng nhập đầy đủ thông tin!";
+    if (!ten_dang_nhap || !mat_khau) {
+        errorBox.textContent = "⚠️ Vui lòng nhập tài khoản và mật khẩu!";
         return;
     }
 
     try {
-        const res = await fetch("http://127.0.0.1:5000/login", {
+        const res = await fetch("http://127.0.0.1:5000/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password, role })
+            body: JSON.stringify({
+                ten_dang_nhap,
+                mat_khau
+            })
         });
 
-        const data = await res.json();
+        const result = await res.json();
 
-        if (data.status !== "ok") {
-            errorBox.textContent = data.message || "Sai thông tin đăng nhập!";
-            errorBox.style.color = "red";       // Chữ màu đỏ
-            errorBox.style.fontSize = "18px";   // Chữ to hơn (bạn có thể điều chỉnh px)
-            errorBox.style.fontWeight = "bold"; // Làm chữ đậm, dễ thấy hơn
-        return;
-}
+        if (!result.success) {
+            errorBox.textContent = result.message || "Sai tài khoản hoặc mật khẩu!";
+            return;
+        }
 
+        // ✅ LẤY ROLE TỪ BACKEND
+        const role = result.data.user.vai_tro;
+        const token = result.data.token;
 
-        // ✅ Chuyển trang theo vai trò
-        if (data.role === "Admin") {
-            window.location.href = "admin.html";
-        } else if (data.role === "Bep") {
-            window.location.href = "bep.html";
-        } else if (data.role === "Thungan") {
-            window.location.href = "thungan.html";
-        } else {
-            errorBox.textContent = "Vai trò không hợp lệ!";
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", role);
+
+        // ✅ CHUYỂN TRANG
+        switch (role) {
+            case "Admin":
+                window.location.href = "/admin";
+                break;
+            case "Bep":
+                window.location.href = "/bep";
+                break;
+            case "ThuNgan":
+                window.location.href = "/thungan";
+                break;
+            default:
+                errorBox.textContent = "Vai trò không hợp lệ!";
         }
 
     } catch (err) {
         console.error(err);
-        errorBox.textContent = "Không thể kết nối server!";
+        errorBox.textContent = "❌ Không thể kết nối server!";
     }
 });
 </script>

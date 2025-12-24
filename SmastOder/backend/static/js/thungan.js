@@ -420,101 +420,169 @@ function updateStats() {
   renderStats();
 }
 // ═══════════════════════════════════════════════════════════════════════════
-// PAYMENT MODAL
+// STATE
 // ═══════════════════════════════════════════════════════════════════════════
+state.promotions = [];
+state.currentPayment = null;
 
+// ═══════════════════════════════════════════════════════════════════════════
+// LOAD KHUYẾN MÃI (BẮT BUỘC)
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadPromotions() {
+  try {
+    const res = await fetch('/api/admin/khuyenmai');
+    const json = await res.json();
+
+    if (!json.success) {
+      state.promotions = [];
+      console.error('❌ Không load được khuyến mãi');
+      return;
+    }
+
+    state.promotions = json.data.khuyen_mai || [];
+    console.log('✅ Promotions loaded:', state.promotions.length);
+  } catch (err) {
+    console.error('❌ Load promotions error:', err);
+    state.promotions = [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MỞ THANH TOÁN
+// ═══════════════════════════════════════════════════════════════════════════
 async function handlePayment(orderId) {
+  await loadPromotions(); // ❗ BẮT BUỘC PHẢI CÓ
+
   const order = await loadOrderDetail(orderId);
   if (!order) return;
+
   state.currentPayment = {
     order: order,
-    total: order.TongTien,
+    total: Number(order.TongTien),
     discount: 0,
-    final: order.TongTien
+    final: Number(order.TongTien),
+    promoId: null
   };
+
   openPaymentModal();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// OPEN PAYMENT MODAL
+// ═══════════════════════════════════════════════════════════════════════════
 function openPaymentModal() {
   const modal = document.getElementById('payment-modal');
   const order = state.currentPayment.order;
+
   document.getElementById('pay-table').textContent = order.TenBan;
-  document.getElementById('pay-total').textContent = formatPrice(order.TongTien);
+  document.getElementById('pay-total').textContent = formatPrice(state.currentPayment.total);
   document.getElementById('pay-discount').textContent = '0đ';
-  document.getElementById('pay-final').textContent = formatPrice(order.TongTien);
+  document.getElementById('pay-final').textContent = formatPrice(state.currentPayment.final);
+
   document.getElementById('payment-method').value = '1';
   document.getElementById('cash-received').value = '';
   document.getElementById('customer-phone').value = '';
   document.getElementById('change').textContent = '0đ';
-  document.getElementById('promotion').value = '';
+
+  // ===== LOAD DROPDOWN KHUYẾN MÃI =====
   const promoSelect = document.getElementById('promotion');
-  promoSelect.innerHTML = '<option value="">Không áp dụng</option>' +
-    state.promotions.map(promo => {
-      const display = promo.LoaiGiamGia === 'PhanTram' 
+  promoSelect.innerHTML = `
+    <option value="">Không áp dụng</option>
+    ${state.promotions.map(promo => {
+      const text = promo.LoaiGiamGia === 'PhanTram'
         ? `${promo.TenKhuyenMai} (-${promo.GiaTri}%)`
         : `${promo.TenKhuyenMai} (-${formatPrice(promo.GiaTri)})`;
-      return `<option value="${promo.IDKhuyenMai}">${display}</option>`;
-    }).join('');
+      return `<option value="${promo.IDKhuyenMai}">${text}</option>`;
+    }).join('')}
+  `;
+  promoSelect.value = '';
+  promoSelect.onchange = calculatePayment;
+
   document.getElementById('cash-group').style.display = 'block';
   modal.classList.add('show');
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// CLOSE PAYMENT MODAL
+// ═══════════════════════════════════════════════════════════════════════════
 function closePaymentModal() {
   document.getElementById('payment-modal').classList.remove('show');
   state.currentPayment = null;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// TÍNH TOÁN TIỀN + KHUYẾN MÃI
+// ═══════════════════════════════════════════════════════════════════════════
 function calculatePayment() {
   if (!state.currentPayment) return;
+
   const promoId = document.getElementById('promotion').value;
   let discount = 0;
+
   if (promoId) {
     const promo = state.promotions.find(p => p.IDKhuyenMai == promoId);
     if (promo) {
       if (promo.LoaiGiamGia === 'PhanTram') {
-        discount = state.currentPayment.total * (promo.GiaTri / 100);
+        discount = Math.round(state.currentPayment.total * promo.GiaTri / 100);
       } else {
-        discount = promo.GiaTri;
+        discount = Number(promo.GiaTri);
       }
     }
   }
+
+  // ❗ Không cho giảm quá tổng tiền
+  discount = Math.min(discount, state.currentPayment.total);
+
+  const finalTotal = state.currentPayment.total - discount;
+
   state.currentPayment.discount = discount;
-  state.currentPayment.final = state.currentPayment.total - discount;
+  state.currentPayment.final = finalTotal;
+  state.currentPayment.promoId = promoId || null;
+
   document.getElementById('pay-discount').textContent = formatPrice(discount);
-  document.getElementById('pay-final').textContent = formatPrice(state.currentPayment.final);
+  document.getElementById('pay-final').textContent = formatPrice(finalTotal);
+
+  // ===== TÍNH TIỀN THỪA =====
   const method = document.getElementById('payment-method').value;
   if (method === '1') {
-    const cashReceived = parseFloat(document.getElementById('cash-received').value) || 0;
-    const change = Math.max(0, cashReceived - state.currentPayment.final);
+    const cash = Number(document.getElementById('cash-received').value || 0);
+    const change = Math.max(0, cash - finalTotal);
     document.getElementById('change').textContent = formatPrice(change);
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// XÁC NHẬN THANH TOÁN
+// ═══════════════════════════════════════════════════════════════════════════
 async function confirmPayment() {
   if (!state.currentPayment) return;
-  const method = parseInt(document.getElementById('payment-method').value);
-  const cashReceived = parseFloat(document.getElementById('cash-received').value) || 0;
+
+  const method = Number(document.getElementById('payment-method').value);
+  const cashReceived = Number(document.getElementById('cash-received').value || 0);
   const phone = document.getElementById('customer-phone').value.trim();
-  const promoId = document.getElementById('promotion').value;
-  if (method === 1 && cashReceived < state.currentPayment.final) {
+  const finalTotal = state.currentPayment.final;
+
+  if (method === 1 && cashReceived < finalTotal) {
     showToast('⚠️ Tiền khách đưa không đủ!', 'warning');
     document.getElementById('cash-received').focus();
     return;
   }
-  if (!confirm(`Xác nhận thanh toán ${formatPrice(state.currentPayment.final)}?`)) {
-    return;
-  }
+
+  if (!confirm(`Xác nhận thanh toán ${formatPrice(finalTotal)}?`)) return;
+
   const btn = document.getElementById('btn-confirm-payment');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+
   try {
     const paymentData = {
       idDonHang: state.currentPayment.order.IDDonHang,
       phuongThuc: method,
       tienNhan: cashReceived,
       soDienThoai: phone || null,
-      khuyenMai: promoId || null
+      khuyenMai: state.currentPayment.promoId
     };
+
     const result = await processPayment(paymentData);
     if (result) {
       closePaymentModal();
@@ -804,7 +872,7 @@ function printInvoice(paymentResult, paymentData) {
         window.onload = function() {
           window.print();
           setTimeout(() => window.close(), 1000);
-        };
+        };F
       </script>
     </body>
     </html>
