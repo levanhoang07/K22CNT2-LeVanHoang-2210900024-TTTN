@@ -798,7 +798,6 @@ async function loadTables() {
     showLoading(false);
   }
 }
-
 function renderTables() {
   const container = document.getElementById('tables-content');
   
@@ -810,19 +809,48 @@ function renderTables() {
   container.innerHTML = `
     <div class="row g-3">
       ${state.tables.map(table => `
-        <div class="col-md-3">
+        <div class="col-md-4 col-lg-3">
           <div class="content-card" style="padding: 20px; text-align: center;">
+            <!-- Tên bàn -->
             <div style="width: 80px; height: 80px; margin: 0 auto 15px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 800;">
               ${table.TenBan}
             </div>
+            
+            <!-- Trạng thái -->
             <div class="mb-3">
               <span class="badge-custom ${table.TrangThai === 'Trống' ? 'badge-active' : 'badge-inactive'}">
                 ${table.TrangThai}
               </span>
             </div>
-            <div style="font-size: 0.85rem; color: #636e72; margin-bottom: 15px;">
-              Mã QR: ${table.MaQR}
+            
+            <!-- QR Code -->
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+              <div style="font-size: 0.85rem; color: #636e72; margin-bottom: 10px; font-weight: 600;">
+                <i class="fas fa-qrcode"></i> Mã QR
+              </div>
+              <div id="qrcode-${table.IDBan}" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
+              <div style="font-size: 0.8rem; color: #636e72; word-break: break-all;">
+                ${table.MaQR}
+              </div>
+              <button class="btn-primary-custom btn-sm mt-2" onclick="downloadQRCode(${table.IDBan}, '${table.TenBan}', '${table.MaQR}')">
+                <i class="fas fa-download"></i> Tải QR
+              </button>
             </div>
+            
+            <!-- Link truy cập -->
+            <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+              <div style="font-size: 0.75rem; color: #2e7d32; font-weight: 600; margin-bottom: 5px;">
+                🔗 Link đặt món
+              </div>
+              <input type="text" 
+                     value="http://localhost:5000/?ban=${table.IDBan}" 
+                     readonly 
+                     class="form-control-custom" 
+                     style="font-size: 0.75rem; padding: 5px; text-align: center;"
+                     onclick="this.select()">
+            </div>
+            
+            <!-- Buttons -->
             <div class="d-flex gap-2 justify-content-center">
               <button class="btn-warning-custom btn-sm" onclick="editTable(${table.IDBan})">
                 <i class="fas fa-edit"></i>
@@ -836,6 +864,11 @@ function renderTables() {
       `).join('')}
     </div>
   `;
+  
+  // Generate QR codes after rendering
+  state.tables.forEach(table => {
+    generateQRCode(table.IDBan, table.MaQR);
+  });
 }
 
 async function openTableModal(id = null) {

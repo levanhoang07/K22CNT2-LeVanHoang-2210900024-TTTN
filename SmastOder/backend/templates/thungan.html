@@ -17,31 +17,31 @@
 <div class="top-bar">
   <div class="container-fluid">
     <div class="row align-items-center py-3">
-      <div class="col-md-4">
-        <div class="logo-section">
+      <div class="col-lg-4 col-md-5">
+        <div class="logo-section d-flex align-items-center">
           <img src="/static/image/logo.jpg" alt="Logo" class="logo-img">
-          <div class="logo-text">
-            <h1>💰 THU NGÂN</h1>
-            <p>Mì Cay One</p>
+          <div class="logo-text ms-3">
+            <h1 class="mb-0">💰 THU NGÂN</h1>
+            <p class="mb-0">Mì Cay One</p>
           </div>
         </div>
       </div>
       
-      <div class="col-md-4 text-center">
+      <div class="col-lg-4 col-md-2 text-center">
         <div class="clock-display" id="clock">
-          <i class="far fa-clock"></i>
+          <i class="far fa-clock me-2"></i>
           <span id="time-display">--:--:--</span>
         </div>
       </div>
       
-      <div class="col-md-4">
-        <div class="user-section justify-content-end">
-          <div class="user-badge">
+      <div class="col-lg-4 col-md-5">
+        <div class="user-section d-flex justify-content-end align-items-center gap-3">
+          <div class="user-badge d-flex align-items-center gap-2">
             <i class="fas fa-user-circle"></i>
             <span id="user-name"></span>
           </div>
           <button class="btn btn-outline-danger" id="btn-logout">
-            <i class="fas fa-sign-out-alt"></i>
+            <i class="fas fa-sign-out-alt"></i> Đăng xuất
           </button>
         </div>
       </div>
@@ -49,53 +49,57 @@
   </div>
 </div>
 
-<!-- ═══════ STATS BAR ═══════ -->
-<div class="container-fluid">
-  <div class="stats-bar">
-    <div class="row g-3">
-      <div class="col-md-3">
-        <div class="stat-card pending">
-          <div class="stat-number" id="stat-pending">0</div>
-          <div class="stat-label">⏳ Chờ xử lý</div>
-        </div>
+<!-- ═══════ STATS BAR NHỎ GỌN ═══════ -->
+<div class="container-fluid px-4 mb-4">
+  <div class="stats-bar-compact">
+    <div class="stat-item pending">
+      <span class="stat-icon">⏳</span>
+      <div class="stat-info">
+        <div class="stat-number" id="stat-pending">0</div>
+        <div class="stat-label">Chờ xử lý</div>
       </div>
-      <div class="col-md-3">
-        <div class="stat-card confirmed">
-          <div class="stat-number" id="stat-confirmed">0</div>
-          <div class="stat-label">✅ Đã xác nhận</div>
-        </div>
+    </div>
+    <div class="stat-item confirmed">
+      <span class="stat-icon">✅</span>
+      <div class="stat-info">
+        <div class="stat-number" id="stat-confirmed">0</div>
+        <div class="stat-label">Đã xác nhận</div>
       </div>
-      <div class="col-md-3">
-        <div class="stat-card completed">
-          <div class="stat-number" id="stat-completed">0</div>
-          <div class="stat-label">🎉 Hoàn thành</div>
-        </div>
+    </div>
+    <div class="stat-item completed">
+      <span class="stat-icon">🎉</span>
+      <div class="stat-info">
+        <div class="stat-number" id="stat-completed">0</div>
+        <div class="stat-label">Hoàn thành</div>
       </div>
-      <div class="col-md-3">
-        <div class="stat-card revenue">
-          <div class="stat-number" id="stat-revenue">0đ</div>
-          <div class="stat-label">💰 Doanh thu</div>
-        </div>
+    </div>
+    <div class="stat-item revenue">
+      <span class="stat-icon">💰</span>
+      <div class="stat-info">
+        <div class="stat-number" id="stat-revenue">0đ</div>
+        <div class="stat-label">Doanh thu hôm nay</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════ MAIN CONTENT ═══════ -->
-<div class="container-fluid main-wrapper">
-  <div class="row g-4">
+<!-- ═══════ MAIN CONTENT - LAYOUT CÂN ĐỐI ═══════ -->
+<div class="container-fluid main-wrapper px-4">
+  <div class="row g-4" style="height: calc(100vh - 220px);">
     
-    <!-- ORDER LIST -->
-    <div class="col-lg-7">
-      <div class="content-card">
+    <!-- CỘT TRÁI: DANH SÁCH ĐƠN + THÔNG BÁO (65%) -->
+    <div class="col-lg-8 d-flex flex-column">
+      
+      <!-- Danh sách đơn hàng -->
+      <div class="content-card flex-grow-1 d-flex flex-column" style="min-height: 0;">
         <div class="card-header-custom">
-          <span><i class="fas fa-receipt"></i> Danh sách đơn hàng</span>
+          <span><i class="fas fa-receipt me-2"></i>Danh sách đơn hàng</span>
           <button class="refresh-btn" id="btn-refresh">
-            <i class="fas fa-sync-alt"></i> Làm mới
+            <i class="fas fa-sync-alt me-2"></i>Làm mới
           </button>
         </div>
         
-        <div class="order-scroll" id="order-list">
+        <div class="order-scroll flex-grow-1" id="order-list">
           <div class="detail-empty">
             <i class="fas fa-inbox"></i>
             <p>Không có đơn hàng nào</p>
@@ -103,26 +107,26 @@
         </div>
       </div>
       
-      <!-- NOTIFICATIONS -->
-      <div class="notification-panel">
+      <!-- Thông báo từ khách hàng -->
+      <div class="notification-panel mt-4">
         <div class="notification-header">
-          <span><i class="fas fa-bell"></i> Thông báo từ khách hàng</span>
-          <span class="badge bg-danger" id="notif-count">0</span>
+          <span><i class="fas fa-bell me-2"></i>Thông báo từ khách hàng</span>
+          <span class="badge bg-danger rounded-pill" id="notif-count">0</span>
         </div>
-        <div id="notification-list">
-          <p class="text-muted text-center">Không có thông báo</p>
+        <div id="notification-list" class="p-3">
+          <p class="text-muted text-center mb-0">Không có thông báo</p>
         </div>
       </div>
     </div>
     
-    <!-- DETAIL PANEL -->
-    <div class="col-lg-5">
-      <div class="content-card detail-panel">
+    <!-- CỘT PHẢI: CHI TIẾT ĐƠN HÀNG (35%) -->
+    <div class="col-lg-4">
+      <div class="content-card detail-panel h-100 d-flex flex-column">
         <div class="card-header-custom">
-          <span><i class="fas fa-file-invoice"></i> Chi tiết đơn hàng</span>
+          <span><i class="fas fa-file-invoice me-2"></i>Chi tiết đơn hàng</span>
         </div>
         
-        <div id="detail-section">
+        <div id="detail-section" class="flex-grow-1 overflow-auto p-4">
           <div class="detail-empty">
             <i class="fas fa-hand-pointer"></i>
             <p>Chọn đơn hàng để xem chi tiết</p>
@@ -130,6 +134,7 @@
         </div>
       </div>
     </div>
+    
   </div>
 </div>
 
@@ -137,7 +142,7 @@
 <div class="modal" id="payment-modal">
   <div class="modal-dialog-custom">
     <div class="modal-header-custom">
-      <h3><i class="fas fa-credit-card"></i> Thanh toán đơn hàng</h3>
+      <h3><i class="fas fa-credit-card me-3"></i>Thanh toán đơn hàng</h3>
     </div>
     
     <div class="modal-body-custom">
@@ -164,31 +169,31 @@
       <!-- Payment Method -->
       <div class="form-group-custom">
         <label class="form-label-custom">
-          <i class="fas fa-wallet"></i> Phương thức thanh toán
+          <i class="fas fa-wallet me-2"></i>Phương thức thanh toán
         </label>
         <select class="form-control-custom" id="payment-method">
           <option value="1">💵 Tiền mặt</option>
           <option value="2">🏦 Chuyển khoản</option>
-          <option value="3">💎 Crypto</option>
+          <option value="3">💳 Thẻ / Ví điện tử</option>
         </select>
       </div>
 
       <!-- Cash Received -->
       <div class="form-group-custom" id="cash-group">
         <label class="form-label-custom">
-          <i class="fas fa-money-bill-wave"></i> Tiền khách đưa
+          <i class="fas fa-money-bill-wave me-2"></i>Tiền khách đưa
         </label>
-        <input type="number" class="form-control-custom" id="cash-received" placeholder="Nhập số tiền">
-        <div class="mt-2 text-end">
-          <span>Tiền thừa: </span>
-          <strong style="color: #00b894; font-size: 1.3rem;" id="change">0đ</strong>
+        <input type="number" class="form-control-custom" id="cash-received" placeholder="Nhập số tiền khách đưa">
+        <div class="mt-3 text-end">
+          <span class="me-2">Tiền thừa:</span>
+          <strong style="color: #00b894; font-size: 1.5rem;" id="change">0đ</strong>
         </div>
       </div>
 
       <!-- Promotion -->
       <div class="form-group-custom">
         <label class="form-label-custom">
-          <i class="fas fa-gift"></i> Khuyến mãi
+          <i class="fas fa-gift me-2"></i>Khuyến mãi
         </label>
         <select class="form-control-custom" id="promotion">
           <option value="">Không áp dụng</option>
@@ -198,19 +203,19 @@
       <!-- Customer Phone -->
       <div class="form-group-custom">
         <label class="form-label-custom">
-          <i class="fas fa-phone"></i> Số điện thoại khách hàng (tích điểm)
+          <i class="fas fa-phone me-2"></i>Số điện thoại khách (tích điểm)
         </label>
-        <input type="tel" class="form-control-custom" id="customer-phone" placeholder="Nhập số điện thoại">
-        <small class="text-muted">Để trống nếu không muốn tích điểm</small>
+        <input type="tel" class="form-control-custom" id="customer-phone" placeholder="Ví dụ: 0901234567">
+        <small class="text-muted d-block mt-2">Để trống nếu không tích điểm</small>
       </div>
 
       <!-- Buttons -->
-      <div class="d-flex gap-3 mt-4">
-        <button class="btn btn-success btn-lg flex-fill" id="btn-confirm-payment">
-          <i class="fas fa-check-circle"></i> Xác nhận thanh toán
+      <div class="d-flex gap-3 mt-5">
+        <button class="btn btn-success btn-lg flex-fill py-3" id="btn-confirm-payment">
+          <i class="fas fa-check-circle me-2"></i>Xác nhận thanh toán
         </button>
-        <button class="btn btn-secondary btn-lg" id="btn-cancel-payment">
-          <i class="fas fa-times"></i> Hủy
+        <button class="btn btn-secondary btn-lg flex-fill py-3" id="btn-cancel-payment">
+          <i class="fas fa-times me-2"></i>Hủy bỏ
         </button>
       </div>
     </div>
