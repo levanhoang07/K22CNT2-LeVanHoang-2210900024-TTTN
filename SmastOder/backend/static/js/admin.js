@@ -387,6 +387,96 @@ async function viewOrderDetail(orderId) {
   }
 }
 
+async function loadCompletedOrders() {
+  try {
+    showLoading(true);
+
+    const response = await fetch(`${API_BASE}/admin/donhang/hoanthanh`);
+    const result = await response.json();
+
+    const container = document.getElementById('orders-hoanthanh-content');
+
+    if (!result.success || result.data.don_hang.length === 0) {
+      container.innerHTML = '<p class="text-center py-5">Chưa có đơn hoàn thành</p>';
+      return;
+    }
+
+    const orders = result.data.don_hang;
+
+    container.innerHTML = `
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Mã đơn</th>
+              <th>Bàn</th>
+              <th>Số món</th>
+              <th>Tổng tiền</th>
+              <th>Thời gian</th>
+              <th>Trạng thái</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orders.map(o => `
+              <tr>
+                <td><strong>#${o.IDDonHang}</strong></td>
+                <td>${o.TenBan}</td>
+                <td>${o.SoMon} món</td>
+                <td><strong>${formatPrice(o.TongTien)}</strong></td>
+                <td>${formatDateTime(o.NgayTao)}</td>
+                <td>
+                  <span class="badge-custom badge-completed">
+                    Đã thanh toán
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-primary-custom btn-sm"
+                          onclick="viewOrderDetail(${o.IDDonHang})">
+                    <i class="fas fa-eye"></i> Xem
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (err) {
+    console.error(err);
+    showToast('Lỗi tải đơn hoàn thành', 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+document.querySelectorAll('.menu-link').forEach(link => {
+  link.addEventListener('click', () => {
+    const section = link.dataset.section;
+
+    // active menu
+    document.querySelectorAll('.menu-link')
+      .forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+
+    // load đúng section
+    switch (section) {
+      case 'dashboard':
+        loadDashboard();
+        break;
+
+      case 'orders':
+        loadRecentOrders(); // dashboard orders (giữ nguyên)
+        break;
+
+      case 'orders-hoanthanh':
+        loadCompletedOrders(); // ✅ đơn đã thanh toán
+        break;
+    }
+  });
+});
+
+
+
 // ═══════════════════════════════════════════════════════════════════════════
 // MENU MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════
@@ -619,6 +709,7 @@ async function deleteMenu(id) {
 function editMenu(id) {
   openMenuModal(id);
 }
+
 // ═══════════════════════════════════════════════════════════════════════════
 // CATEGORIES MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════
@@ -830,11 +921,9 @@ function renderTables() {
               </div>
               <div id="qrcode-${table.IDBan}" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
               <div style="font-size: 0.8rem; color: #636e72; word-break: break-all;">
-                ${table.MaQR}
+              
               </div>
-              <button class="btn-primary-custom btn-sm mt-2" onclick="downloadQRCode(${table.IDBan}, '${table.TenBan}', '${table.MaQR}')">
-                <i class="fas fa-download"></i> Tải QR
-              </button>
+              
             </div>
             
             <!-- Link truy cập -->
@@ -867,7 +956,7 @@ function renderTables() {
   
   // Generate QR codes after rendering
   state.tables.forEach(table => {
-    generateQRCode(table.IDBan, table.MaQR);
+    generateQRCode(table.IDBan);
   });
 }
 
@@ -995,6 +1084,26 @@ async function deleteTable(id) {
 function editTable(id) {
   openTableModal(id);
 }
+function generateQRCode(idBan) {
+  const el = document.getElementById(`qrcode-${idBan}`);
+  if (!el) return;
+
+  // ❗ Clear QR cũ (tránh bị chồng khi reload)
+  el.innerHTML = '';
+
+  // ✅ LINK ORDER CHUẨN
+  const orderUrl = `http://localhost:5000/?ban=${idBan}`;
+
+  new QRCode(el, {
+    text: orderUrl,
+    width: 140,
+    height: 140,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PROMOTIONS MANAGEMENT

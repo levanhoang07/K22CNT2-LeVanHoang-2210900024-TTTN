@@ -1,12 +1,7 @@
-/**
- * ════════════════════════════════════════════════════════════════════════════
- *  MyCay_Oder - Bếp System (Full Version)
- *  Tính năng: Nhận đơn, cập nhật trạng thái nấu, hoàn thành
- * ════════════════════════════════════════════════════════════════════════════
- */
-
 // ═══════════════════════════════════════════════════════════════════════════
-// CONFIGURATION & STATE
+// KITCHEN MANAGEMENT SYSTEM - FRONTEND V2.0
+// Filename: bep.js
+// Version: 2.0 - Có lịch sử đơn hoàn thành đầy đủ
 // ═══════════════════════════════════════════════════════════════════════════
 
 const API_BASE = 'http://localhost:5000/api';
@@ -14,6 +9,7 @@ const socket = io('http://localhost:5000');
 
 const state = {
   orders: [],
+  completedHistory: [], // Lịch sử đơn hoàn thành
   currentTab: 'waiting',
   stats: {
     waiting: 0,
@@ -21,7 +17,7 @@ const state = {
     completed: 0,
     today: 0
   },
-  orderStatuses: {} // Lưu trạng thái của từng đơn {idDonHang: 'WAITING'|'COOKING'|'COMPLETED'}
+  loadingHistory: false
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -29,7 +25,7 @@ const state = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🔥 Kitchen System Started');
+  console.log('🔥 Kitchen System Started v2.0');
   
   await initialize();
   setupEventListeners();
@@ -52,7 +48,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function initialize() {
   try {
     showLoading(true);
-    await loadOrders();
+    await Promise.all([
+      loadOrders(),
+      loadCompletedHistory()
+    ]);
     showToast('✅ Hệ thống bếp sẵn sàng!', 'success');
   } catch (error) {
     console.error('❌ Initialization error:', error);
@@ -66,6 +65,9 @@ async function initialize() {
 // API CALLS
 // ═══════════════════════════════════════════════════════════════════════════
 
+/**
+ * Load active orders (chưa thanh toán + hoàn thành gần đây)
+ */
 async function loadOrders() {
   try {
     const response = await fetch(`${API_BASE}/bep/donhang`);
@@ -73,9 +75,19 @@ async function loadOrders() {
     
     if (result.success) {
       state.orders = result.data.don_hang || [];
-      processOrders();
-      renderOrders();
+      
+      // Map backend status
+      state.orders.forEach(order => {
+        order.statusMapped = mapBackendStatus(order.TrangThaiBep);
+      });
+      
       updateStats();
+      
+      // Chỉ render lại nếu không đang ở tab completed
+      if (state.currentTab !== 'completed') {
+        renderOrders();
+      }
+      
       console.log('✅ Orders loaded:', state.orders.length);
     }
   } catch (error) {
@@ -84,6 +96,42 @@ async function loadOrders() {
   }
 }
 
+/**
+ * Load completed history (lịch sử đơn hoàn thành)
+ */
+async function loadCompletedHistory(limit = 100) {
+  try {
+    if (state.loadingHistory) return;
+    state.loadingHistory = true;
+    
+    const response = await fetch(`${API_BASE}/bep/donhang/lichsu?limit=${limit}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      state.completedHistory = result.data.don_hang || [];
+      
+      // Map status
+      state.completedHistory.forEach(order => {
+        order.statusMapped = 'HOAN_THANH';
+      });
+      
+      // Render nếu đang ở tab completed
+      if (state.currentTab === 'completed') {
+        renderOrders();
+      }
+      
+      console.log('✅ Completed history loaded:', state.completedHistory.length);
+    }
+  } catch (error) {
+    console.error('❌ Load history error:', error);
+  } finally {
+    state.loadingHistory = false;
+  }
+}
+
+/**
+ * Update order status
+ */
 async function updateOrderStatus(orderId, status) {
   try {
     const response = await fetch(`${API_BASE}/bep/donhang/${orderId}/trangthai`, {
@@ -95,13 +143,18 @@ async function updateOrderStatus(orderId, status) {
     const result = await response.json();
     
     if (result.success) {
-      state.orderStatuses[orderId] = status;
-      
       const statusText = status === 'DANG_NAU' ? 'Đang nấu' : 'Hoàn thành';
       showToast(`✅ Đã cập nhật: ${statusText}`, 'success');
       playSound('success');
       
+      // Reload orders
       await loadOrders();
+      
+      // Nếu hoàn thành, reload lịch sử
+      if (status === 'HOAN_THANH') {
+        await loadCompletedHistory();
+      }
+      
       return true;
     } else {
       throw new Error(result.message);
@@ -117,31 +170,33 @@ async function updateOrderStatus(orderId, status) {
 // DATA PROCESSING
 // ═══════════════════════════════════════════════════════════════════════════
 
-function processOrders() {
-  // Phân loại đơn hàng theo trạng thái
-  state.orders.forEach(order => {
-    if (!state.orderStatuses[order.IDDonHang]) {
-      state.orderStatuses[order.IDDonHang] = 'WAITING';
-    }
-  });
-  
-  // Lọc bỏ các đơn đã thanh toán khỏi orderStatuses
-  const currentOrderIds = state.orders.map(o => o.IDDonHang);
-  Object.keys(state.orderStatuses).forEach(id => {
-    if (!currentOrderIds.includes(parseInt(id))) {
-      delete state.orderStatuses[id];
-    }
-  });
+function mapBackendStatus(backendStatus) {
+  const statusMap = {
+    'CHỜ': 'WAITING',
+    'Đang nấu': 'DANG_NAU',
+    'Hoàn thành': 'HOAN_THANH'
+  };
+  return statusMap[backendStatus] || 'WAITING';
 }
 
 function getOrdersByStatus(status) {
-  return state.orders.filter(order => state.orderStatuses[order.IDDonHang] === status);
+  if (status === 'HOAN_THANH') {
+    // Trả về lịch sử hoàn thành
+    return state.completedHistory;
+  }
+  
+  // Trả về từ orders hiện tại
+  return state.orders.filter(order => order.statusMapped === status);
 }
 
 function updateStats() {
-  state.stats.waiting = getOrdersByStatus('WAITING').length;
-  state.stats.cooking = getOrdersByStatus('DANG_NAU').length;
-  state.stats.completed = getOrdersByStatus('HOAN_THANH').length;
+  state.stats.waiting = state.orders.filter(o => o.statusMapped === 'WAITING').length;
+  state.stats.cooking = state.orders.filter(o => o.statusMapped === 'DANG_NAU').length;
+  
+  // Completed count = đơn hoàn thành trong orders + lịch sử
+  const completedInOrders = state.orders.filter(o => o.statusMapped === 'HOAN_THANH').length;
+  state.stats.completed = completedInOrders + state.completedHistory.length;
+  
   state.stats.today = state.stats.waiting + state.stats.cooking + state.stats.completed;
   
   renderStats();
@@ -168,68 +223,98 @@ function renderOrders() {
       <div class="empty-state">
         <i class="fas fa-utensils"></i>
         <h3>Không có đơn hàng nào</h3>
-        <p class="text-muted">Đơn hàng sẽ xuất hiện ở đây khi có</p>
+        <p class="text-muted">${state.currentTab === 'completed' ? 'Chưa có đơn hoàn thành' : 'Đơn hàng sẽ xuất hiện ở đây khi có'}</p>
       </div>
     `;
     return;
   }
   
-  // Sắp xếp theo thời gian (cũ nhất trước)
-  ordersToShow.sort((a, b) => new Date(a.NgayTao) - new Date(b.NgayTao));
+  // Sort logic
+  if (state.currentTab === 'completed') {
+    // Completed: Mới nhất trước
+    ordersToShow.sort((a, b) => {
+      const timeA = a.ThoiGianHoanThanh || a.ThoiGianCapNhat || a.NgayTao;
+      const timeB = b.ThoiGianHoanThanh || b.ThoiGianCapNhat || b.NgayTao;
+      return new Date(timeB) - new Date(timeA);
+    });
+  } else {
+    // Waiting/Cooking: Cũ nhất trước
+    ordersToShow.sort((a, b) => new Date(a.NgayTao) - new Date(b.NgayTao));
+  }
   
-  container.innerHTML = ordersToShow.map(order => {
-    const isUrgent = isOrderUrgent(order.NgayTao);
-    const status = state.orderStatuses[order.IDDonHang];
-    
-    return `
-      <div class="order-card ${isUrgent ? 'urgent' : ''}" data-order-id="${order.IDDonHang}">
-        ${status !== 'WAITING' ? `
-          <div class="status-badge status-${status === 'DANG_NAU' ? 'cooking' : 'completed'}">
-            ${status === 'DANG_NAU' ? '🔥 Đang nấu' : '✅ Hoàn thành'}
-          </div>
-        ` : ''}
-        
-        <div class="order-header">
-          <div class="table-name">
-            <i class="fas fa-utensils"></i>
-            ${order.TenBan}
-          </div>
-          <div class="order-time-info">
-            <div class="order-time">
-              <i class="fas fa-clock"></i>
-              <span>${formatTime(order.NgayTao)}</span>
-            </div>
-            <div class="time-elapsed" data-time="${order.NgayTao}">
-              ${getElapsedTime(order.NgayTao)}
-            </div>
-            <div class="order-id">Đơn #${order.IDDonHang}</div>
-          </div>
-        </div>
-
-        <div class="items-list">
-          ${order.chi_tiet.map(item => `
-            <div class="item-row">
-              <div class="item-info">
-                <div class="item-name">${item.TenMon}</div>
-                <div class="item-meta">
-                  ${item.CapDoCay ? `<span class="meta-badge badge-spicy">🌶️ ${item.CapDoCay}</span>` : ''}
-                  ${item.GhiChu ? `<span class="meta-badge badge-note">📝 ${item.GhiChu}</span>` : ''}
-                </div>
-              </div>
-              <div class="item-qty">x${item.SoLuong}</div>
-            </div>
-          `).join('')}
-        </div>
-
-        <div class="order-actions">
-          ${renderActionButtons(order.IDDonHang, status)}
-        </div>
-      </div>
-    `;
-  }).join('');
+  container.innerHTML = ordersToShow.map(order => renderOrderCard(order)).join('');
 }
 
-function renderActionButtons(orderId, status) {
+function renderOrderCard(order) {
+  const isUrgent = isOrderUrgent(order.NgayTao);
+  const status = order.statusMapped;
+  const isPaid = order.TrangThaiThanhToan === 1;
+  
+  return `
+    <div class="order-card ${isUrgent && status !== 'HOAN_THANH' ? 'urgent' : ''} ${isPaid ? 'paid' : ''}" 
+         data-order-id="${order.IDDonHang}">
+      
+      ${status !== 'WAITING' ? `
+        <div class="status-badge status-${status === 'DANG_NAU' ? 'cooking' : 'completed'}">
+          ${status === 'DANG_NAU' ? '🔥 Đang nấu' : '✅ Hoàn thành'}
+        </div>
+      ` : ''}
+      
+      ${isPaid ? `
+        <div class="paid-badge">
+          <i class="fas fa-check-circle"></i> Đã thanh toán
+        </div>
+      ` : ''}
+      
+      <div class="order-header">
+        <div class="table-name">
+          <i class="fas fa-utensils"></i>
+          ${order.TenBan}
+        </div>
+        <div class="order-time-info">
+          <div class="order-time">
+            <i class="fas fa-clock"></i>
+            <span>${formatTime(order.NgayTao)}</span>
+          </div>
+          <div class="time-elapsed ${isUrgent && status !== 'HOAN_THANH' ? 'text-danger fw-bold' : ''}" 
+               data-time="${order.NgayTao}">
+            ${getElapsedTime(order.NgayTao)}
+          </div>
+          <div class="order-id">Đơn #${order.IDDonHang}</div>
+        </div>
+      </div>
+
+      <div class="items-list">
+        ${order.chi_tiet.map(item => `
+          <div class="item-row">
+            <div class="item-info">
+              <div class="item-name">${item.TenMon}</div>
+              <div class="item-meta">
+                ${item.CapDoCay ? `<span class="meta-badge badge-spicy">🌶️ ${item.CapDoCay}</span>` : ''}
+                ${item.GhiChu ? `<span class="meta-badge badge-note">📝 ${item.GhiChu}</span>` : ''}
+              </div>
+            </div>
+            <div class="item-qty">x${item.SoLuong}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="order-actions">
+        ${renderActionButtons(order.IDDonHang, status, isPaid)}
+      </div>
+    </div>
+  `;
+}
+
+function renderActionButtons(orderId, status, isPaid) {
+  if (isPaid && status === 'HOAN_THANH') {
+    return `
+      <div class="alert alert-success mb-0 text-center">
+        <i class="fas fa-check-double"></i> Hoàn tất & Đã thanh toán
+      </div>
+    `;
+  }
+  
   if (status === 'WAITING') {
     return `
       <button class="btn-action btn-start" onclick="startCooking(${orderId})">
@@ -252,14 +337,23 @@ function renderActionButtons(orderId, status) {
 }
 
 function renderStats() {
-  document.getElementById('stat-waiting').textContent = state.stats.waiting;
-  document.getElementById('stat-cooking').textContent = state.stats.cooking;
-  document.getElementById('stat-completed').textContent = state.stats.completed;
-  document.getElementById('stat-today').textContent = state.stats.today;
+  const els = {
+    waiting: document.getElementById('stat-waiting'),
+    cooking: document.getElementById('stat-cooking'),
+    completed: document.getElementById('stat-completed'),
+    today: document.getElementById('stat-today'),
+    badgeWaiting: document.getElementById('badge-waiting'),
+    badgeCooking: document.getElementById('badge-cooking'),
+    badgeCompleted: document.getElementById('badge-completed')
+  };
   
-  document.getElementById('badge-waiting').textContent = state.stats.waiting;
-  document.getElementById('badge-cooking').textContent = state.stats.cooking;
-  document.getElementById('badge-completed').textContent = state.stats.completed;
+  if (els.waiting) els.waiting.textContent = state.stats.waiting;
+  if (els.cooking) els.cooking.textContent = state.stats.cooking;
+  if (els.completed) els.completed.textContent = state.stats.completed;
+  if (els.today) els.today.textContent = state.stats.today;
+  if (els.badgeWaiting) els.badgeWaiting.textContent = state.stats.waiting;
+  if (els.badgeCooking) els.badgeCooking.textContent = state.stats.cooking;
+  if (els.badgeCompleted) els.badgeCompleted.textContent = state.stats.completed;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -282,7 +376,7 @@ async function completeOrder(orderId) {
   if (success) {
     playSound('complete');
     
-    // Tự động chuyển sang tab completed sau 2 giây
+    // Auto switch to completed tab after 2 seconds
     setTimeout(() => {
       switchTab('completed');
     }, 2000);
@@ -303,7 +397,7 @@ function setupEventListeners() {
   });
   
   // Logout
-  document.getElementById('btn-logout').addEventListener('click', () => {
+  document.getElementById('btn-logout')?.addEventListener('click', () => {
     if (confirm('🚪 Đăng xuất khỏi hệ thống?')) {
       window.location.href = '/login';
     }
@@ -314,7 +408,12 @@ function setupEventListeners() {
     if (e.key === '1') switchTab('waiting');
     if (e.key === '2') switchTab('cooking');
     if (e.key === '3') switchTab('completed');
-    if (e.key === 'r' || e.key === 'R') loadOrders();
+    if (e.key === 'r' || e.key === 'R') {
+      loadOrders();
+      if (state.currentTab === 'completed') {
+        loadCompletedHistory();
+      }
+    }
   });
 }
 
@@ -329,7 +428,12 @@ function switchTab(tab) {
     }
   });
   
-  renderOrders();
+  // Load history when switch to completed tab
+  if (tab === 'completed' && state.completedHistory.length === 0) {
+    loadCompletedHistory();
+  } else {
+    renderOrders();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -351,15 +455,25 @@ function setupSocketListeners() {
     playSound('notification');
     await loadOrders();
     
-    // Tự động chuyển sang tab waiting nếu đang ở tab khác
     if (state.currentTab !== 'waiting') {
       switchTab('waiting');
     }
   });
   
+  socket.on('order_status_update', async (data) => {
+    console.log('📋 Order status updated:', data);
+    await loadOrders();
+    
+    if (data.trang_thai === 'HOAN_THANH') {
+      await loadCompletedHistory();
+    }
+  });
+  
   socket.on('order_paid', async (data) => {
     console.log('💰 Order paid:', data);
+    showToast(`💰 Đơn #${data.id_don_hang} đã thanh toán`, 'success');
     await loadOrders();
+    await loadCompletedHistory();
   });
 }
 
@@ -400,7 +514,7 @@ function isOrderUrgent(dateString) {
   const now = new Date();
   const orderTime = new Date(dateString);
   const diffMins = (now - orderTime) / 60000;
-  return diffMins > 20; // Urgent if more than 20 minutes
+  return diffMins > 20;
 }
 
 function startClock() {
@@ -420,8 +534,11 @@ function startClock() {
       year: 'numeric'
     });
     
-    document.getElementById('clock-time').textContent = timeStr;
-    document.getElementById('clock-date').textContent = dateStr;
+    const clockTime = document.getElementById('clock-time');
+    const clockDate = document.getElementById('clock-date');
+    
+    if (clockTime) clockTime.textContent = timeStr;
+    if (clockDate) clockDate.textContent = dateStr;
   }
   
   update();
@@ -430,15 +547,14 @@ function startClock() {
 
 function showLoading(show) {
   const overlay = document.getElementById('loading');
-  if (show) {
-    overlay.classList.add('show');
-  } else {
-    overlay.classList.remove('show');
+  if (overlay) {
+    overlay.classList.toggle('show', show);
   }
 }
 
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
+  if (!container) return;
   
   const toast = document.createElement('div');
   toast.className = `toast-custom ${type}`;
@@ -479,6 +595,7 @@ function getToastTitle(type) {
   };
   return titles[type] || 'Thông báo';
 }
+
 function playSound(type) {
   const sounds = {
     notification: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
@@ -497,26 +614,14 @@ function playSound(type) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ADVANCED FEATURES
+// PRINT KITCHEN TICKET
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Auto notification for urgent orders
-setInterval(() => {
-  const urgentOrders = state.orders.filter(order => {
-    const status = state.orderStatuses[order.IDDonHang];
-    return status === 'WAITING' && isOrderUrgent(order.NgayTao);
-  });
+function printKitchenTicket(orderId) {
+  const order = state.orders.find(o => o.IDDonHang === orderId) ||
+                state.completedHistory.find(o => o.IDDonHang === orderId);
+  if (!order) return;
   
-  if (urgentOrders.length > 0 && state.currentTab === 'waiting') {
-    urgentOrders.forEach(order => {
-      const elapsed = getElapsedTime(order.NgayTao);
-      console.log(`⚠️ Urgent order: ${order.TenBan} - ${elapsed}`);
-    });
-  }
-}, 60000); // Check every minute
-
-// Print kitchen ticket function
-function printKitchenTicket(order) {
   const win = window.open('', '', 'width=300,height=500');
   win.document.write(`
     <!DOCTYPE html>
@@ -526,66 +631,15 @@ function printKitchenTicket(order) {
       <title>Phiếu Bếp - ${order.TenBan}</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: 'Courier New', monospace;
-          padding: 15px;
-          font-size: 14px;
-        }
-        h2 { 
-          text-align: center; 
-          margin-bottom: 10px;
-          font-size: 20px;
-        }
-        .header {
-          text-align: center;
-          border-bottom: 2px dashed #000;
-          padding-bottom: 10px;
-          margin-bottom: 15px;
-        }
-        .table-name {
-          font-size: 24px;
-          font-weight: bold;
-          margin: 10px 0;
-        }
-        .order-info {
-          margin-bottom: 15px;
-          border-bottom: 1px dashed #000;
-          padding-bottom: 10px;
-        }
-        .item {
-          margin: 10px 0;
-          padding: 10px;
-          border: 1px solid #000;
-        }
-        .item-name {
-          font-size: 18px;
-          font-weight: bold;
-          margin-bottom: 5px;
-        }
-        .item-qty {
-          font-size: 22px;
-          font-weight: bold;
-          text-align: right;
-        }
-        .item-meta {
-          margin-top: 5px;
-          font-style: italic;
-        }
-        .spicy {
-          color: red;
-          font-weight: bold;
-        }
-        .note {
-          background: #ffeb3b;
-          padding: 5px;
-          margin-top: 5px;
-        }
-        .footer {
-          text-align: center;
-          margin-top: 15px;
-          border-top: 2px dashed #000;
-          padding-top: 10px;
-        }
+        body { font-family: 'Courier New', monospace; padding: 15px; font-size: 14px; }
+        h2 { text-align: center; margin-bottom: 10px; font-size: 20px; }
+        .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 15px; }
+        .table-name { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .order-info { margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+        .item { margin: 10px 0; padding: 10px; border: 1px solid #000; }
+        .item-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .item-qty { font-size: 22px; font-weight: bold; text-align: right; }
+        .footer { text-align: center; margin-top: 15px; border-top: 2px dashed #000; padding-top: 10px; }
       </style>
     </head>
     <body>
@@ -593,38 +647,28 @@ function printKitchenTicket(order) {
         <h2>🔥 BẾP - MÌ CAY ONE</h2>
         <div class="table-name">${order.TenBan}</div>
       </div>
-      
       <div class="order-info">
         <p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
         <p><strong>Thời gian:</strong> ${formatTime(order.NgayTao)}</p>
-        <p><strong>Số món:</strong> ${order.chi_tiet.length}</p>
       </div>
-
       ${order.chi_tiet.map(item => `
         <div class="item">
-          <div style="display: flex; justify-content: space-between; align-items: start;">
+          <div style="display: flex; justify-content: space-between;">
             <div style="flex: 1;">
               <div class="item-name">${item.TenMon}</div>
-              <div class="item-meta">
-                ${item.CapDoCay ? `<div class="spicy">🌶️ ${item.CapDoCay}</div>` : ''}
-                ${item.GhiChu ? `<div class="note">📝 ${item.GhiChu}</div>` : ''}
-              </div>
+              ${item.CapDoCay ? `<div>🌶️ ${item.CapDoCay}</div>` : ''}
+              ${item.GhiChu ? `<div>📝 ${item.GhiChu}</div>` : ''}
             </div>
             <div class="item-qty">x${item.SoLuong}</div>
           </div>
         </div>
       `).join('')}
-
       <div class="footer">
         <p><strong>Làm nhanh - Đảm bảo chất lượng!</strong></p>
         <p>${new Date().toLocaleString('vi-VN')}</p>
       </div>
-
       <script>
-        window.onload = function() {
-          window.print();
-          setTimeout(() => window.close(), 500);
-        };
+        window.onload = () => { window.print(); setTimeout(() => window.close(), 500); };
       </script>
     </body>
     </html>
@@ -632,161 +676,28 @@ function printKitchenTicket(order) {
   win.document.close();
 }
 
-// Add print button to order cards (optional)
-function addPrintButton(orderId) {
-  const order = state.orders.find(o => o.IDDonHang === orderId);
-  if (order) {
-    printKitchenTicket(order);
-  }
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
-// STATISTICS & ANALYTICS
-// ═══════════════════════════════════════════════════════════════════════════
-
-function getAverageCookingTime() {
-  // Tính thời gian nấu trung bình (có thể lưu vào localStorage)
-  const completedOrders = getOrdersByStatus('HOAN_THANH');
-  if (completedOrders.length === 0) return 0;
-  
-  const totalTime = completedOrders.reduce((sum, order) => {
-    const elapsed = (new Date() - new Date(order.NgayTao)) / 60000;
-    return sum + elapsed;
-  }, 0);
-  
-  return Math.round(totalTime / completedOrders.length);
-}
-
-function getOrderPriority(order) {
-  // Tính độ ưu tiên dựa trên thời gian chờ và số món
-  const elapsed = (new Date() - new Date(order.NgayTao)) / 60000;
-  const itemCount = order.chi_tiet.reduce((sum, item) => sum + item.SoLuong, 0);
-  
-  let priority = elapsed * 2; // Thời gian chờ quan trọng gấp đôi
-  
-  if (itemCount > 5) priority += 10; // Đơn nhiều món
-  if (order.chi_tiet.some(item => item.CapDoCay)) priority += 5; // Có món cay
-  
-  return priority;
-}
-
-// Sort orders by priority (optional feature)
-function sortOrdersByPriority() {
-  state.orders.sort((a, b) => {
-    return getOrderPriority(b) - getOrderPriority(a);
-  });
-  renderOrders();
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PERFORMANCE METRICS
-// ═══════════════════════════════════════════════════════════════════════════
-
-const metrics = {
-  ordersCompleted: 0,
-  totalCookingTime: 0,
-  averageTime: 0,
-  
-  recordCompletion(cookingTimeMinutes) {
-    this.ordersCompleted++;
-    this.totalCookingTime += cookingTimeMinutes;
-    this.averageTime = Math.round(this.totalCookingTime / this.ordersCompleted);
-    
-    console.log(`📊 Metrics: ${this.ordersCompleted} orders, avg ${this.averageTime}min`);
-  },
-  
-  reset() {
-    this.ordersCompleted = 0;
-    this.totalCookingTime = 0;
-    this.averageTime = 0;
-  }
-};
-
-// Reset metrics at midnight
-function scheduleMetricsReset() {
-  const now = new Date();
-  const midnight = new Date();
-  midnight.setHours(24, 0, 0, 0);
-  
-  const msUntilMidnight = midnight - now;
-  
-  setTimeout(() => {
-    metrics.reset();
-    console.log('📊 Metrics reset at midnight');
-    scheduleMetricsReset(); // Schedule next reset
-  }, msUntilMidnight);
-}
-
-scheduleMetricsReset();
-
-// ═══════════════════════════════════════════════════════════════════════════
-// QUALITY CHECKS
-// ═══════════════════════════════════════════════════════════════════════════
-
-function performQualityCheck(orderId) {
-  const order = state.orders.find(o => o.IDDonHang === orderId);
-  if (!order) return;
-  
-  const checks = {
-    passed: true,
-    issues: []
-  };
-  
-  // Check 1: Thời gian quá lâu
-  const elapsed = (new Date() - new Date(order.NgayTao)) / 60000;
-  if (elapsed > 30) {
-    checks.passed = false;
-    checks.issues.push('⚠️ Đơn hàng đã chờ quá 30 phút');
-  }
-  
-  // Check 2: Món cay đặc biệt
-  const spicyItems = order.chi_tiet.filter(item => 
-    item.CapDoCay && (item.CapDoCay.includes('6') || item.CapDoCay.includes('7'))
-  );
-  if (spicyItems.length > 0) {
-    checks.issues.push('🌶️ Lưu ý: Có món cay đặc biệt');
-  }
-  
-  // Check 3: Ghi chú quan trọng
-  const hasImportantNotes = order.chi_tiet.some(item => 
-    item.GhiChu && (item.GhiChu.includes('gấp') || item.GhiChu.includes('nhanh'))
-  );
-  if (hasImportantNotes) {
-    checks.issues.push('⚡ Khách yêu cầu làm gấp');
-  }
-  
-  if (checks.issues.length > 0) {
-    console.log(`Quality check for order #${orderId}:`, checks.issues);
-  }
-  
-  return checks;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// GLOBAL FUNCTIONS (Called from HTML)
-// ═══════════════════════════════════════════════════════════════════════════
-
+// GLOBAL FUNCTIONS
+// ═══════════════════════════
 window.startCooking = startCooking;
 window.completeOrder = completeOrder;
-window.printKitchenTicket = addPrintButton;
+window.printKitchenTicket = printKitchenTicket;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DEBUG & HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Console helpers for debugging
 window.kitchenDebug = {
   state: () => console.table(state.stats),
   orders: () => console.table(state.orders),
-  statuses: () => console.log(state.orderStatuses),
-  metrics: () => console.log(metrics),
+  reload: () => loadOrders(),
   urgent: () => {
     const urgent = state.orders.filter(o => isOrderUrgent(o.NgayTao));
     console.log('Urgent orders:', urgent);
   }
 };
 
-// Show helpful shortcuts on first load
+// Show keyboard shortcuts on first load
 if (!localStorage.getItem('kitchen_shortcuts_shown')) {
   setTimeout(() => {
     showToast(
@@ -798,5 +709,6 @@ if (!localStorage.getItem('kitchen_shortcuts_shown')) {
 }
 
 console.log('🔥 Kitchen System Loaded Successfully!');
+console.log('📌 Backend API: ' + API_BASE);
 console.log('📌 Keyboard shortcuts: 1 (Waiting), 2 (Cooking), 3 (Completed), R (Refresh)');
 console.log('🐛 Debug: Use kitchenDebug.state(), kitchenDebug.orders(), etc.');
