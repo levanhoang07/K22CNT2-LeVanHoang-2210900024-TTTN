@@ -72,55 +72,59 @@ async function loadOrders() {
   try {
     const response = await fetch(`${API_BASE}/bep/donhang`);
     const result = await response.json();
-    
-    if (result.success) {
-      state.orders = result.data.don_hang || [];
-      
-      // Map backend status
-      state.orders.forEach(order => {
-        order.statusMapped = mapBackendStatus(order.TrangThaiBep);
-      });
-      
-      updateStats();
-      
-      // Chỉ render lại nếu không đang ở tab completed
-      if (state.currentTab !== 'completed') {
-        renderOrders();
-      }
-      
-      console.log('✅ Orders loaded:', state.orders.length);
+    if (!result.success) return;
+
+    // ✅ RESET THEO BACKEND
+    state.orders = (result.data.don_hang || []).map(order => ({
+      ...order,
+      statusMapped: mapBackendStatus(order.TrangThaiBep)
+    }));
+
+    updateStats();
+
+    if (state.currentTab !== 'completed') {
+      renderOrders();
     }
+
+    console.log('✅ Orders synced:', state.orders.length);
+
   } catch (error) {
     console.error('❌ Load orders error:', error);
-    showToast('Lỗi khi tải danh sách đơn hàng', 'error');
   }
 }
+
 
 /**
  * Load completed history (lịch sử đơn hoàn thành)
  */
-async function loadCompletedHistory(limit = 100) {
+async function loadCompletedHistory(limit = 100, type = 'day') {
   try {
     if (state.loadingHistory) return;
     state.loadingHistory = true;
-    
-    const response = await fetch(`${API_BASE}/bep/donhang/lichsu?limit=${limit}`);
+
+    console.log('📅 Load history:', type);
+
+    const response = await fetch(
+      `${API_BASE}/bep/donhang/lichsu?limit=${limit}&type=${type}`
+    );
+
     const result = await response.json();
-    
+
     if (result.success) {
       state.completedHistory = result.data.don_hang || [];
-      
-      // Map status
+
       state.completedHistory.forEach(order => {
         order.statusMapped = 'HOAN_THANH';
       });
-      
-      // Render nếu đang ở tab completed
+
       if (state.currentTab === 'completed') {
         renderOrders();
       }
-      
-      console.log('✅ Completed history loaded:', state.completedHistory.length);
+
+      console.log(
+        `✅ Completed history loaded (${type}):`,
+        state.completedHistory.length
+      );
     }
   } catch (error) {
     console.error('❌ Load history error:', error);
@@ -128,6 +132,7 @@ async function loadCompletedHistory(limit = 100) {
     state.loadingHistory = false;
   }
 }
+
 
 /**
  * Update order status
@@ -180,14 +185,30 @@ function mapBackendStatus(backendStatus) {
 }
 
 function getOrdersByStatus(status) {
+
+  // ✅ TAB HOÀN THÀNH
   if (status === 'HOAN_THANH') {
-    // Trả về lịch sử hoàn thành
     return state.completedHistory;
   }
-  
-  // Trả về từ orders hiện tại
-  return state.orders.filter(order => order.statusMapped === status);
+
+  // ✅ TAB CHỜ LÀM
+  if (status === 'WAITING') {
+    // TẤT CẢ đơn chưa hoàn thành
+    return state.orders.filter(order =>
+      order.statusMapped !== 'HOAN_THANH'
+    );
+  }
+
+  // ✅ TAB ĐANG NẤU
+  if (status === 'DANG_NAU') {
+    return state.orders.filter(order =>
+      order.statusMapped === 'DANG_NAU'
+    );
+  }
+
+  return [];
 }
+
 
 function updateStats() {
   state.stats.waiting = state.orders.filter(o => o.statusMapped === 'WAITING').length;
@@ -208,103 +229,119 @@ function updateStats() {
 
 function renderOrders() {
   const container = document.getElementById('orders-grid');
-  
+
   let ordersToShow = [];
+
   if (state.currentTab === 'waiting') {
-    ordersToShow = getOrdersByStatus('WAITING');
-  } else if (state.currentTab === 'cooking') {
-    ordersToShow = getOrdersByStatus('DANG_NAU');
-  } else if (state.currentTab === 'completed') {
-    ordersToShow = getOrdersByStatus('HOAN_THANH');
+    // ✅ TẤT CẢ ĐƠN CHƯA HOÀN THÀNH
+    ordersToShow = state.orders.filter(
+      o => o.statusMapped !== 'HOAN_THANH'
+    );
+  } 
+  else if (state.currentTab === 'cooking') {
+    ordersToShow = state.orders.filter(
+      o => o.statusMapped === 'DANG_NAU'
+    );
+  } 
+  else if (state.currentTab === 'completed') {
+    ordersToShow = state.completedHistory;
   }
-  
+
   if (ordersToShow.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
         <i class="fas fa-utensils"></i>
         <h3>Không có đơn hàng nào</h3>
-        <p class="text-muted">${state.currentTab === 'completed' ? 'Chưa có đơn hoàn thành' : 'Đơn hàng sẽ xuất hiện ở đây khi có'}</p>
+        <p class="text-muted">
+          ${state.currentTab === 'completed'
+            ? 'Chưa có đơn hoàn thành'
+            : 'Đơn hàng sẽ xuất hiện ở đây khi có'}
+        </p>
       </div>
     `;
     return;
   }
-  
-  // Sort logic
+
+  // Sort
   if (state.currentTab === 'completed') {
-    // Completed: Mới nhất trước
-    ordersToShow.sort((a, b) => {
-      const timeA = a.ThoiGianHoanThanh || a.ThoiGianCapNhat || a.NgayTao;
-      const timeB = b.ThoiGianHoanThanh || b.ThoiGianCapNhat || b.NgayTao;
-      return new Date(timeB) - new Date(timeA);
-    });
+    ordersToShow.sort((a, b) =>
+      new Date(b.ThoiGianHoanThanh || b.NgayTao) -
+      new Date(a.ThoiGianHoanThanh || a.NgayTao)
+    );
   } else {
-    // Waiting/Cooking: Cũ nhất trước
-    ordersToShow.sort((a, b) => new Date(a.NgayTao) - new Date(b.NgayTao));
+    ordersToShow.sort((a, b) =>
+      new Date(a.NgayTao) - new Date(b.NgayTao)
+    );
   }
-  
-  container.innerHTML = ordersToShow.map(order => renderOrderCard(order)).join('');
+
+  container.innerHTML = ordersToShow
+    .map(order => renderOrderCard(order))
+    .join('');
 }
 
 function renderOrderCard(order) {
-  const isUrgent = isOrderUrgent(order.NgayTao);
   const status = order.statusMapped;
   const isPaid = order.TrangThaiThanhToan === 1;
-  
+  const detailId = `detail-${order.IDDonHang}`;
+
   return `
-    <div class="order-card ${isUrgent && status !== 'HOAN_THANH' ? 'urgent' : ''} ${isPaid ? 'paid' : ''}" 
-         data-order-id="${order.IDDonHang}">
+    <div class="order-card" data-order-id="${order.IDDonHang}">
       
-      ${status !== 'WAITING' ? `
-        <div class="status-badge status-${status === 'DANG_NAU' ? 'cooking' : 'completed'}">
-          ${status === 'DANG_NAU' ? '🔥 Đang nấu' : '✅ Hoàn thành'}
-        </div>
-      ` : ''}
-      
-      ${isPaid ? `
-        <div class="paid-badge">
-          <i class="fas fa-check-circle"></i> Đã thanh toán
-        </div>
-      ` : ''}
-      
+      <!-- HEADER -->
       <div class="order-header">
-        <div class="table-name">
-          <i class="fas fa-utensils"></i>
-          ${order.TenBan}
-        </div>
-        <div class="order-time-info">
-          <div class="order-time">
-            <i class="fas fa-clock"></i>
-            <span>${formatTime(order.NgayTao)}</span>
-          </div>
-          <div class="time-elapsed ${isUrgent && status !== 'HOAN_THANH' ? 'text-danger fw-bold' : ''}" 
-               data-time="${order.NgayTao}">
-            ${getElapsedTime(order.NgayTao)}
-          </div>
-          <div class="order-id">Đơn #${order.IDDonHang}</div>
-        </div>
+        <div class="table-name">🍽️ ${order.TenBan}</div>
+        <div class="order-id">#${order.IDDonHang}</div>
       </div>
 
-      <div class="items-list">
-        ${order.chi_tiet.map(item => `
-          <div class="item-row">
-            <div class="item-info">
-              <div class="item-name">${item.TenMon}</div>
-              <div class="item-meta">
-                ${item.CapDoCay ? `<span class="meta-badge badge-spicy">🌶️ ${item.CapDoCay}</span>` : ''}
-                ${item.GhiChu ? `<span class="meta-badge badge-note">📝 ${item.GhiChu}</span>` : ''}
-              </div>
-            </div>
-            <div class="item-qty">x${item.SoLuong}</div>
-          </div>
-        `).join('')}
+      <!-- STATUS -->
+      <div class="order-status status-${status}">
+        ${status === 'WAITING' ? '⏳ Chờ làm' :
+          status === 'DANG_NAU' ? '🔥 Đang nấu' :
+          '✅ Hoàn thành'}
+        ${isPaid ? ' | 💰 Đã thanh toán' : ''}
       </div>
 
+      <!-- ACTION -->
       <div class="order-actions">
+        <button class="btn-detail" onclick="toggleDetail('${detailId}')">
+          👁️ Chi tiết món
+        </button>
         ${renderActionButtons(order.IDDonHang, status, isPaid)}
       </div>
+
+      <!-- DETAIL TABLE -->
+      <div class="order-detail hidden" id="${detailId}">
+        <table class="detail-table">
+          <thead>
+            <tr>
+              <th>Món</th>
+              <th>SL</th>
+              <th>Cay</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${order.chi_tiet.map(item => `
+              <tr>
+                <td class="col-name">${item.TenMon}</td>
+                <td class="col-qty">x${item.SoLuong}</td>
+                <td class="col-spicy">${item.CapDoCay || '-'}</td>
+                <td class="col-note">${item.GhiChu || ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
     </div>
   `;
 }
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('hidden');
+}
+
 
 function renderActionButtons(orderId, status, isPaid) {
   if (isPaid && status === 'HOAN_THANH') {
@@ -411,12 +448,11 @@ function setupEventListeners() {
     if (e.key === 'r' || e.key === 'R') {
       loadOrders();
       if (state.currentTab === 'completed') {
-        loadCompletedHistory();
+  loadCompletedHistory(100, currentHistoryType);
       }
     }
   });
 }
-
 function switchTab(tab) {
   state.currentTab = tab;
   
@@ -427,10 +463,16 @@ function switchTab(tab) {
       btn.classList.add('active');
     }
   });
-  
-  // Load history when switch to completed tab
-  if (tab === 'completed' && state.completedHistory.length === 0) {
-    loadCompletedHistory();
+
+  // 🔥 HIỆN / ẨN FILTER NGÀY - TUẦN - THÁNG
+  const historyFilter = document.getElementById('history-filter');
+  if (historyFilter) {
+    historyFilter.style.display = tab === 'completed' ? 'block' : 'none';
+  }
+
+  // Load data theo tab
+  if (tab === 'completed') {
+    loadCompletedHistory();   // luôn load khi vào Hoàn thành
   } else {
     renderOrders();
   }
@@ -612,6 +654,26 @@ function playSound(type) {
     console.log('Sound error:', e);
   }
 }
+// ═══════════════════════════════════════════════════════════════════
+// HISTORY FILTER (DAY / WEEK / MONTH)
+// ═══════════════════════════════════════════════════════════════════
+
+let currentHistoryType = 'day';
+
+window.switchHistoryType = function (type) {
+  console.log('🔁 Switch history type:', type);
+  currentHistoryType = type;
+
+  // Active button UI
+  document.querySelectorAll('.history-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.type === type) {
+      btn.classList.add('active');
+    }
+  });
+
+  loadCompletedHistory(100, type);
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PRINT KITCHEN TICKET

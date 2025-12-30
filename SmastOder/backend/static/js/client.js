@@ -115,30 +115,20 @@ async function loadCurrentOrder() {
   try {
     const response = await fetch(`${API_BASE}/ban/${state.idBan}/donhang`);
     const result = await response.json();
-    
+
     if (result.success && result.data) {
       state.currentOrderId = result.data.IDDonHang;
-      
-      // Convert chi tiết đơn hàng thành cart format
-      state.cart = result.data.chi_tiet.map(item => ({
-        idMon: item.IDMon,
-        tenMon: item.TenMon,
-        hinhAnh: item.HinhAnh,
-        donGia: item.DonGia,
-        soLuong: item.SoLuong,
-        capDoCay: item.CapDoCay || 'Không cay',
-        ghiChu: item.GhiChu || ''
-      }));
-      
-      renderCart();
+
+      // ✅ LƯU RIÊNG
+      state.currentOrder = result.data.chi_tiet;
+
       console.log('✅ Current order loaded:', state.currentOrderId);
-    } else {
-      console.log('ℹ️ No current order');
     }
   } catch (error) {
     console.error('❌ Load current order error:', error);
   }
 }
+
 
 async function addToOrder(item) {
   try {
@@ -641,7 +631,7 @@ async function submitOrder() {
     }
     
     // Clear cart sau khi gửi thành công
-    state.cart = [];
+    state.cart.length = 0; 
     renderCart();
     
     showNotification('🎉 Đơn hàng đã được gửi! Vui lòng chờ xác nhận.', 'success');

@@ -497,3 +497,96 @@
         font-size: 1.5rem;
       }
     }
+    /* ===== ORDER DETAIL TABLE ===== */
+.order-detail {
+  margin-top: 12px;
+  background: #121212;              /* nền đen dịu */
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid #1f1f1f;
+}
+
+.order-detail.hidden {
+  display: none;
+}
+
+/* ===== TABLE ===== */
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+/* HEADER */
+.detail-table thead {
+  background: #1e293b;              /* xanh đậm dễ nhìn */
+}
+
+.detail-table th {
+  padding: 12px 10px;
+  text-align: left;
+  color: #e5e7eb;                   /* trắng xám */
+  font-weight: 600;
+  border-bottom: 2px solid #334155;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+/* BODY */
+.detail-table td {
+  padding: 10px;
+  border-bottom: 1px solid #1f2937;
+  color: #e5e7eb;
+}
+
+.detail-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ROW HOVER */
+.detail-table tbody tr:hover {
+  background: #1f2937;
+}
+
+/* ===== COLUMN STYLE ===== */
+.col-name {
+  font-weight: 600;
+  color: #f9fafb;
+}
+
+.col-qty {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #facc15;                   /* vàng nổi – nhìn SL rất rõ */
+}
+
+.col-spicy {
+  text-align: center;
+  color: #fb7185;                   /* đỏ hồng dịu */
+  font-weight: 600;
+}
+
+.col-note {
+  font-size: 0.9rem;
+  color: #cbd5f5;                   /* xanh xám */
+  font-style: italic;
+}
+
+/* ===== BUTTON ===== */
+.btn-detail {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+  padding: 7px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-detail:hover {
+  background: #334155;
+  border-color: #475569;
+  transform: translateY(-1px);
+}

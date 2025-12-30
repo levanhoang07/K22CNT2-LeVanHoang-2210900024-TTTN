@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bếp - Mì Cay One</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,21 +27,21 @@
           </div>
         </div>
       </div>
-      
+
       <div class="col-md-4 text-center">
         <div class="clock-section">
           <div class="clock-time" id="clock-time">00:00:00</div>
           <div class="clock-date" id="clock-date">Đang tải...</div>
         </div>
       </div>
-      
+
       <div class="col-md-4">
-        <div class="user-section">
-          <div class="chef-badge">
+        <div class="user-section text-end">
+          <div class="chef-badge mb-2">
             <i class="fas fa-user-chef"></i>
-            <span id="chef-name"></span>
+            <span id="chef-name">Nhân viên bếp</span>
           </div>
-          <button class="btn btn-outline-light mt-2" id="btn-logout">
+          <button class="btn btn-outline-light btn-sm" id="btn-logout">
             <i class="fas fa-sign-out-alt"></i> Đăng xuất
           </button>
         </div>
@@ -48,30 +49,8 @@
     </div>
   </div>
 </header>
-
-<!-- ═══════ STATS ═══════ -->
-<div class="stats-container">
-  <div class="stats-grid">
-    <div class="stat-box waiting">
-      <div class="stat-number" id="stat-waiting">0</div>
-      <div class="stat-label">⏳ Chờ làm</div>
-    </div>
-    <div class="stat-box cooking">
-      <div class="stat-number" id="stat-cooking">0</div>
-      <div class="stat-label">🔥 Đang nấu</div>
-    </div>
-    <div class="stat-box completed">
-      <div class="stat-number" id="stat-completed">0</div>
-      <div class="stat-label">✅ Hoàn thành</div>
-    </div>
-    <div class="stat-box today">
-      <div class="stat-number" id="stat-today">0</div>
-      <div class="stat-label">📊 Hôm nay</div>
-    </div>
-  </div>
-
   <!-- Tabs -->
-  <div class="text-center mb-4">
+  <div class="text-center mb-3">
     <div class="tabs-container">
       <button class="tab-btn active" data-tab="waiting">
         <i class="fas fa-clock"></i>
@@ -90,6 +69,29 @@
       </button>
     </div>
   </div>
+
+  <!-- 🔥 FILTER LỊCH SỬ (CHỈ DÙNG CHO TAB HOÀN THÀNH) -->
+<div class="text-center mb-4" id="history-filter" style="display:none">
+  <div class="btn-group">
+    <button class="btn btn-outline-primary btn-sm history-btn active"
+            data-type="day"
+            onclick="switchHistoryType('day')">
+      📅 Hôm nay
+    </button>
+    <button class="btn btn-outline-primary btn-sm history-btn"
+            data-type="week"
+            onclick="switchHistoryType('week')">
+      📆 Tuần này
+    </button>
+    <button class="btn btn-outline-primary btn-sm history-btn"
+            data-type="month"
+            onclick="switchHistoryType('month')">
+      🗓️ Tháng này
+    </button>
+  </div>
+</div>
+
+
 </div>
 
 <!-- ═══════ ORDERS GRID ═══════ -->

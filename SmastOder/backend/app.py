@@ -76,6 +76,40 @@ def _find_driver():
 
 SELECTED_DRIVER = _find_driver()
 DRV_STR = f"{{{SELECTED_DRIVER}}}" if SELECTED_DRIVER else ""
+# ═══════════════════════════════════════════════════════════════════════════════  
+# HELPERS
+# ═══════════════════════════════════════════════════════════════════════════════
+def build_time_filter(type_):
+    """
+    Trả về (where_sql, params)
+    """
+    if type_ == 'week':
+        return (
+            """
+            AND ls.ThoiGian >= DATEADD(
+                DAY,
+                1 - DATEPART(WEEKDAY, GETDATE()),
+                CAST(GETDATE() AS DATE)
+            )
+            """,
+            []
+        )
+
+    if type_ == 'month':
+        return (
+            """
+            AND MONTH(ls.ThoiGian) = MONTH(GETDATE())
+            AND YEAR(ls.ThoiGian) = YEAR(GETDATE())
+            """,
+            []
+        )
+
+    # Mặc định: day (hôm nay)
+    return (
+        "AND CAST(ls.ThoiGian AS DATE) = CAST(GETDATE() AS DATE)",
+        []
+    )
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # DATABASE HELPER FUNCTIONS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -571,10 +605,8 @@ def thanh_toan_don_hang(id_don_hang):
         """, (id_don_hang, id_phuong_thuc, so_tien_thanh_toan))
         cursor.execute("UPDATE DonHang SET TrangThaiThanhToan = 1 WHERE IDDonHang = ?", (id_don_hang,))
         cursor.execute("UPDATE Ban SET TrangThai = N'Trống' WHERE IDBan = ?", (id_ban,))
-        cursor.execute("""
-            INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai)
-            VALUES (?, N'Đã thanh toán')
-        """, (id_don_hang,))
+        cursor.execute("UPDATE DonHang SET TrangThaiThanhToan = 1 WHERE IDDonHang = ?", (id_don_hang,))
+
         
         # Tích điểm
         id_khach_hang = None
@@ -619,56 +651,50 @@ def thanh_toan_don_hang(id_don_hang):
             conn.rollback()
             conn.close()
         return handle_exception(e, "Lỗi thanh toán")
+    
+    
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🔥 API BẾP - VERSION 2.0 (Có lịch sử hoàn thành)
 # ═══════════════════════════════════════════════════════════════════════════════
-
 @app.route('/api/bep/donhang', methods=['GET'])
 def bep_lay_don_hang():
-    """
-    Lấy danh sách đơn hàng cho bếp
-    - Đơn chưa thanh toán: hiển thị tất cả trạng thái
-    - Đơn đã thanh toán: chỉ lấy những đơn đã hoàn thành (để hiển thị lịch sử)
-    """
     try:
         cursor, conn = get_cursor()
-        
-        # Lấy tất cả đơn hàng (cả đã thanh toán và chưa thanh toán)
+
         cursor.execute("""
-            SELECT 
-                d.IDDonHang,
-                d.IDBan,
-                d.TongTien,
-                d.NgayTao,
-                d.TrangThaiThanhToan,
-                b.TenBan,
-                ISNULL(ls.TrangThai, N'CHỜ') AS TrangThaiBep,
-                ls.ThoiGian AS ThoiGianCapNhat
-            FROM DonHang d
-            JOIN Ban b ON d.IDBan = b.IDBan
-            OUTER APPLY (
-                SELECT TOP 1 TrangThai, ThoiGian
-                FROM LichSuTrangThaiDonHang
-                WHERE IDDonHang = d.IDDonHang
-                ORDER BY ThoiGian DESC
-            ) ls
-            WHERE 
-                -- Đơn chưa thanh toán: lấy tất cả
-                d.TrangThaiThanhToan = 0
-                OR
-                -- Đơn đã thanh toán: chỉ lấy đơn đã hoàn thành (để hiển thị lịch sử)
-                (d.TrangThaiThanhToan = 1 AND ls.TrangThai = N'Hoàn thành')
-            ORDER BY 
-                d.TrangThaiThanhToan ASC,  -- Chưa thanh toán lên trước
-                d.NgayTao DESC             -- Mới nhất lên trước
-        """)
-        
+    SELECT 
+        d.IDDonHang,
+        d.IDBan,
+        d.TongTien,
+        d.NgayTao,
+        d.TrangThaiThanhToan,
+        b.TenBan,
+        ISNULL(ls.TrangThai, N'Chờ') AS TrangThaiBep,
+        ISNULL(ls.ThoiGian, d.NgayTao) AS ThoiGianCapNhat
+    FROM DonHang d
+    JOIN Ban b ON d.IDBan = b.IDBan
+    OUTER APPLY (
+        SELECT TOP 1 TrangThai, ThoiGian
+        FROM LichSuTrangThaiDonHang
+        WHERE IDDonHang = d.IDDonHang
+        ORDER BY ThoiGian DESC
+    ) ls
+    WHERE 1 = 1 
+    ORDER BY 
+        CASE WHEN ls.TrangThai = N'Hoàn thành' THEN 1 ELSE 0 END,
+        d.NgayTao DESC
+""")
+
+
+        rows = cursor.fetchall()
         don_hang_list = []
 
-        for row in cursor.fetchall():
-            don = row_to_dict(cursor, row)
+        for row in rows:
+            try:
+                don = row_to_dict(cursor, row)
+            except Exception:
+                continue   # 🚨 bỏ qua record lỗi, KHÔNG crash API
 
-            # Lấy chi tiết món ăn
             cursor.execute("""
                 SELECT 
                     ct.IDChiTiet,
@@ -679,75 +705,74 @@ def bep_lay_don_hang():
                 FROM ChiTietDonHang ct
                 JOIN Menu m ON ct.IDMon = m.IDMon
                 WHERE ct.IDDonHang = ?
-            """, (don['IDDonHang'],))
+            """, (don["IDDonHang"],))
 
-            don['chi_tiet'] = rows_to_dict_list(cursor, cursor.fetchall())
+            don["chi_tiet"] = rows_to_dict_list(cursor, cursor.fetchall())
             don_hang_list.append(don)
 
         conn.close()
         return jsonify_response(True, "Danh sách đơn bếp", {
             "don_hang": don_hang_list
         })
-    except Exception as e:
-        return handle_exception(e, "Lỗi lấy đơn hàng bếp")
 
+    except Exception as e:
+        logger.exception("❌ Lỗi lấy đơn hàng bếp")
+        return jsonify_response(False, "Lỗi lấy đơn hàng bếp", None, 500)
 
 @app.route('/api/bep/donhang/lichsu', methods=['GET'])
 def bep_lay_lich_su_hoan_thanh():
-    """
-    API riêng để lấy lịch sử đơn hoàn thành
-    Query params:
-    - limit: số lượng đơn (mặc định 50)
-    - ngay: lọc theo ngày cụ thể (YYYY-MM-DD)
-    """
     try:
         limit = request.args.get('limit', 50, type=int)
-        ngay = request.args.get('ngay', None)
-        
+        type_ = request.args.get('type', 'day')
+
         cursor, conn = get_cursor()
-        
-        where_clause = "WHERE ls.TrangThai = N'Hoàn thành'"
-        params = []
-        
-        # Lọc theo ngày nếu có
-        if ngay:
-            where_clause += " AND CAST(d.NgayTao AS DATE) = ?"
-            params.append(ngay)
-        
+        time_where, params = build_time_filter(type_)
+
         query = f"""
             SELECT 
-                d.IDDonHang,
-                d.IDBan,
-                d.TongTien,
-                d.NgayTao,
-                d.TrangThaiThanhToan,
-                b.TenBan,
-                ls.TrangThai AS TrangThaiBep,
-                ls.ThoiGian AS ThoiGianHoanThanh
+                d.IDDonHang,          -- 0
+                d.IDBan,              -- 1
+                d.TongTien,           -- 2
+                d.NgayTao,            -- 3
+                d.TrangThaiThanhToan, -- 4
+                b.TenBan,             -- 5
+                ls.TrangThai,         -- 6
+                ls.ThoiGian            -- 7
             FROM DonHang d
             JOIN Ban b ON d.IDBan = b.IDBan
-            OUTER APPLY (
-                SELECT TOP 1 TrangThai, ThoiGian
-                FROM LichSuTrangThaiDonHang
-                WHERE IDDonHang = d.IDDonHang
-                ORDER BY ThoiGian DESC
-            ) ls
-            {where_clause}
+            LEFT JOIN (
+                SELECT IDDonHang, TrangThai, ThoiGian
+                FROM (
+                    SELECT *,
+                        ROW_NUMBER() OVER (PARTITION BY IDDonHang ORDER BY ThoiGian DESC) rn
+                    FROM LichSuTrangThaiDonHang
+                ) x WHERE rn = 1
+            ) ls ON ls.IDDonHang = d.IDDonHang
+            WHERE ls.TrangThai = N'Hoàn thành'
+            {time_where}
             ORDER BY ls.ThoiGian DESC
             OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY
         """
-        
+
         params.append(limit)
         cursor.execute(query, tuple(params))
-        
+
         don_hang_list = []
+
         for row in cursor.fetchall():
-            don = row_to_dict(cursor, row)
-            
-            # Lấy chi tiết món
+            don = {
+                "IDDonHang": row[0],
+                "IDBan": row[1],
+                "TongTien": row[2],
+                "NgayTao": row[3],
+                "TrangThaiThanhToan": row[4],
+                "TenBan": row[5],
+                "TrangThaiBep": row[6] or "Hoàn thành",
+                "ThoiGianHoanThanh": row[7] or row[3],
+            }
+
             cursor.execute("""
                 SELECT 
-                    ct.IDChiTiet,
                     m.TenMon,
                     ct.SoLuong,
                     ct.CapDoCay,
@@ -755,19 +780,22 @@ def bep_lay_lich_su_hoan_thanh():
                 FROM ChiTietDonHang ct
                 JOIN Menu m ON ct.IDMon = m.IDMon
                 WHERE ct.IDDonHang = ?
-            """, (don['IDDonHang'],))
-            
-            don['chi_tiet'] = rows_to_dict_list(cursor, cursor.fetchall())
+            """, (don["IDDonHang"],))
+
+            don["chi_tiet"] = rows_to_dict_list(cursor, cursor.fetchall())
             don_hang_list.append(don)
-        
+
         conn.close()
-        return jsonify_response(True, f"Lấy {len(don_hang_list)} đơn hoàn thành", {
+
+        return jsonify_response(True, "Lịch sử đơn hoàn thành", {
             "don_hang": don_hang_list,
-            "total": len(don_hang_list)
+            "total": len(don_hang_list),
+            "type": type_
         })
-        
+
     except Exception as e:
-        return handle_exception(e, "Lỗi lấy lịch sử hoàn thành")
+        logger.exception("❌ Lỗi lấy lịch sử bếp")
+        return jsonify_response(False, "Lỗi lấy lịch sử bếp", None, 500)
 
 
 @app.route('/api/bep/donhang/<int:id_don_hang>/trangthai', methods=['PUT'])
@@ -838,51 +866,34 @@ def cap_nhat_trang_thai_nau(id_don_hang):
             conn.close()
         return handle_exception(e, "Lỗi cập nhật trạng thái bếp")
 
-
 @app.route('/api/bep/thongke', methods=['GET'])
 def bep_thong_ke():
-    """
-    Thống kê cho bếp theo ngày
-    Query params:
-    - ngay: ngày cần thống kê (YYYY-MM-DD), mặc định hôm nay
-    """
     try:
-        ngay = request.args.get('ngay', None)
-        
+        type_ = request.args.get('type', 'day')
+
         cursor, conn = get_cursor()
-        
-        where_clause = ""
-        params = []
-        
-        if ngay:
-            where_clause = "AND CAST(d.NgayTao AS DATE) = ?"
-            params.append(ngay)
-        else:
-            where_clause = "AND CAST(d.NgayTao AS DATE) = CAST(GETDATE() AS DATE)"
-        
-        # Đếm số đơn theo trạng thái
+
+        time_where, params = build_time_filter(type_)
+
+        # 1. Thống kê số đơn theo trạng thái
         cursor.execute(f"""
             SELECT 
                 ISNULL(ls.TrangThai, N'CHỜ') AS TrangThai,
                 COUNT(*) AS SoLuong
             FROM DonHang d
             OUTER APPLY (
-                SELECT TOP 1 TrangThai
+                SELECT TOP 1 TrangThai, ThoiGian
                 FROM LichSuTrangThaiDonHang
                 WHERE IDDonHang = d.IDDonHang
                 ORDER BY ThoiGian DESC
             ) ls
-            WHERE 1=1 {where_clause}
+            WHERE 1=1 {time_where}
             GROUP BY ISNULL(ls.TrangThai, N'CHỜ')
         """, tuple(params))
-        
-        thong_ke = {}
-        for row in cursor.fetchall():
-            trang_thai = row[0]
-            so_luong = row[1]
-            thong_ke[trang_thai] = so_luong
-        
-        # Tính thời gian nấu trung bình
+
+        thong_ke = {row[0]: row[1] for row in cursor.fetchall()}
+
+        # 2. Thời gian nấu trung bình
         cursor.execute(f"""
             SELECT 
                 AVG(DATEDIFF(MINUTE, d.NgayTao, ls.ThoiGian)) AS ThoiGianTrungBinh
@@ -893,22 +904,22 @@ def bep_thong_ke():
                 WHERE IDDonHang = d.IDDonHang AND TrangThai = N'Hoàn thành'
                 ORDER BY ThoiGian DESC
             ) ls
-            WHERE ls.ThoiGian IS NOT NULL {where_clause}
+            WHERE ls.ThoiGian IS NOT NULL {time_where}
         """, tuple(params))
-        
+
         avg_time = cursor.fetchone()
-        thoi_gian_tb = avg_time[0] if avg_time and avg_time[0] else 0
-        
+        thoi_gian_tb = round(avg_time[0], 1) if avg_time and avg_time[0] else 0
+
         conn.close()
-        
+
         return jsonify_response(True, "Thống kê bếp", {
+            "type": type_,
             "thong_ke": thong_ke,
-            "thoi_gian_trung_binh": round(thoi_gian_tb, 1),
-            "ngay": ngay or "Hôm nay"
+            "thoi_gian_trung_binh": thoi_gian_tb
         })
-        
+
     except Exception as e:
-        return handle_exception(e, "Lỗi lấy thống kê bếp")
+        return handle_exception(e, "Lỗi thống kê bếp")
 
 # ═════════════════════════════════════════════════════════════
 # 📦 ADMIN - ĐƠN HÀNG ĐÃ HOÀN THÀNH
