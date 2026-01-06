@@ -23,7 +23,7 @@
 </div>
 
 <div class="address-bar mb-3 mb-md-0">
-  <p class="mb-0">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phúc Yên, Vĩnh Phúc</p>
+  <p class="mb-0">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phú Thọ</p>
 </div>
 
 <div class="header-info d-flex flex-column flex-sm-row align-items-center gap-3">
@@ -168,19 +168,15 @@
 </div>
 
 <!-- ================= LỊCH SỬ ĐẶT MÓN (BUBBLE + MODAL) ================= -->
-<div id="history-bubble" class="history-bubble" title="Xem lịch sử đặt món">📜</div>
-<div id="history-modal" class="modal hidden">
+<div id="history-bubble">📜</div>
+<div id="history-modal" class="hidden">
   <div class="modal-backdrop"></div>
-  <div class="history-panel shadow rounded">
-    <div class="history-header d-flex justify-content-between align-items-center p-3 border-bottom">
-      <h5 class="mb-0">📜 Lịch sử đặt món của bàn</h5>
-      <button id="close-history" class="btn-close btn-close-white"></button>
-    </div>
-    <div id="history-list" class="p-3" style="max-height: 70vh; overflow-y: auto;">
-      <p class="text-muted text-center py-5">Chưa có đơn hàng nào</p>
-    </div>
+  <div class="history-panel">
+    <button id="close-history">✕</button>
+    <div id="history-list"></div>
   </div>
 </div>
+
 <!-- ================= SCRIPTS ================= -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="/static/js/client.js"></script>

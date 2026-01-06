@@ -601,29 +601,6 @@ async function confirmPayment() {
   }
 }
 
-document.getElementById('payment-method').addEventListener('change', (e) => {
-  const cashGroup = document.getElementById('cash-group');
-  const cashQuick = document.getElementById('cash-quick');
-
-  if (e.target.value === '1') {
-    // 💵 TIỀN MẶT
-    cashGroup.style.display = 'block';
-    cashQuick.style.display = 'flex';
-  } else {
-    // 💳 CHUYỂN KHOẢN
-    cashGroup.style.display = 'none';
-    cashQuick.style.display = 'none';
-  }
-});
-function setCash(amount) {
-  const input = document.getElementById('cash-received');
-  input.value = amount;
-  calculatePayment(); // tính lại tiền thừa ngay
-}
-const method = document.getElementById('payment-method').value;
-const cashQuick = document.getElementById('cash-quick');
-
-cashQuick.style.display = method === '1' ? 'flex' : 'none';
 
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -684,7 +661,7 @@ function generateVietQR() {
 
   // ⚠️ THÔNG TIN TÀI KHOẢN
   const bankId = 'Techcombank'; // Vietcombank
-  const accountNo = '6982121680';
+  const accountNo = '098212680';
   const accountName = 'MI CAY ONE';
   const description = `Thanh toan don ${state.currentPayment.order.IDDonHang}`;
 
@@ -886,8 +863,8 @@ function printInvoice(paymentResult, paymentData) {
     </head>
     <body>
       <h2>🌶️ MÌ CAY ONE</h2>
-      <p class="center">88 Hoàng Hoa Thám, Phúc Yên</p>
-      <p class="center">ĐT: 0123 456 789</p>
+      <p class="center">88 Hoàng Hoa Thám, Xuân Hòa, Phú Thọ</p>
+      <p class="center">ĐT: 0982 121 680</p>
       <div class="line"></div>
       <p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
       <p><strong>Bàn:</strong> ${order.TenBan}</p>

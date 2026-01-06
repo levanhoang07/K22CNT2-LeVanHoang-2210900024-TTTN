@@ -533,54 +533,88 @@ async function sendStaffRequest() {
     closeStaffModal();
   }
 }
+// ================= LỊCH SỬ ĐẶT MÓN =================
 
+// MỞ MODAL
 function openHistoryModal() {
-  document.getElementById('history-modal').classList.remove('hidden');
+  const modal = document.getElementById('history-modal');
+  if (!modal) {
+    console.error('❌ Không tìm thấy history-modal');
+    return;
+  }
+
+  modal.classList.remove('hidden');
   loadOrderHistory();
 }
 
+// ĐÓNG MODAL
 function closeHistoryModal() {
-  document.getElementById('history-modal').classList.add('hidden');
+  const modal = document.getElementById('history-modal');
+  if (modal) modal.classList.add('hidden');
 }
 
+// LOAD LỊCH SỬ ĐƠN HÀNG
 async function loadOrderHistory() {
   const historyList = document.getElementById('history-list');
-  historyList.innerHTML = '<div class="text-center py-5"><div class="spinner-border"></div></div>';
-  
+  if (!historyList) {
+    console.error('❌ Không tìm thấy history-list');
+    return;
+  }
+
+  historyList.innerHTML = `
+    <div class="text-center py-5">
+      <div class="spinner-border"></div>
+      <div class="mt-2">Đang tải lịch sử...</div>
+    </div>
+  `;
+
   try {
-    const response = await fetch(`${API_BASE}/ban/${state.idBan}/donhang`);
-    const result = await response.json();
-    
-    if (result.success && result.data) {
+    const res = await fetch(`${API_BASE}/ban/${state.idBan}/donhang`);
+    const json = await res.json();
+
+    // ❌ Không có đơn
+    if (!json.success || !json.data) {
       historyList.innerHTML = `
-        <div class="order-history-item p-3 border rounded">
-          <div class="d-flex justify-content-between mb-3">
-            <span class="badge bg-primary">Đơn hiện tại</span>
-            <small class="text-muted">${formatDate(result.data.NgayTao)}</small>
-          </div>
-          
-          <div class="mb-2">
-            ${result.data.chi_tiet.map(item => `
-              <div class="d-flex justify-content-between mb-1">
-                <span>${item.TenMon} (x${item.SoLuong})</span>
-                <span class="text-danger">${formatPrice(item.ThanhTien)}</span>
-              </div>
-            `).join('')}
-          </div>
-          
-          <hr>
-          <div class="d-flex justify-content-between fw-bold">
-            <span>Tổng cộng:</span>
-            <span class="text-danger">${formatPrice(result.data.TongTien)}</span>
-          </div>
-        </div>
+        <p class="text-muted text-center py-5">
+          📭 Chưa có đơn hàng nào
+        </p>
       `;
-    } else {
-      historyList.innerHTML = '<p class="text-muted text-center py-5">Chưa có đơn hàng nào</p>';
+      return;
     }
-  } catch (error) {
-    console.error('❌ Load history error:', error);
-    historyList.innerHTML = '<p class="text-danger text-center py-5">Lỗi khi tải lịch sử</p>';
+
+    const order = json.data;
+
+    historyList.innerHTML = `
+      <div class="order-history-item p-3 border rounded shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <strong>🧾 Đơn #${order.IDDonHang}</strong>
+          <small class="text-muted">${formatDate(order.NgayTao)}</small>
+        </div>
+
+        <div class="mb-2">
+          ${order.chi_tiet.map(item => `
+            <div class="d-flex justify-content-between mb-1">
+              <span>${item.TenMon} × ${item.SoLuong}</span>
+              <span class="text-danger">${formatPrice(item.ThanhTien)}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between fw-bold fs-5 text-danger">
+          <span>TỔNG CỘNG</span>
+          <span>${formatPrice(order.TongTien)} đồng</span>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    console.error('❌ Load history error:', err);
+    historyList.innerHTML = `
+      <p class="text-danger text-center py-5">
+        ❌ Lỗi khi tải lịch sử đơn hàng
+      </p>
+    `;
   }
 }
 
