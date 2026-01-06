@@ -1259,7 +1259,6 @@ async function createPromotion(data) {
     return false;
   }
 }
-
 async function updatePromotion(id, data) {
   try {
     const response = await fetch(`${API_BASE}/admin/khuyenmai/${id}`, {
@@ -1267,34 +1266,41 @@ async function updatePromotion(id, data) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    
+
     const result = await response.json();
-    
-    if (result.success) {
-      showToast('✅ Cập nhật khuyến mãi thành công!', 'success');
-      return true;
+
+    if (!result.success) {
+      showToast(result.message || 'Không thể cập nhật', 'error');
+      return false;
     }
+
+    showToast('✅ Cập nhật khuyến mãi thành công!', 'success');
+    return true;
+
   } catch (error) {
     console.error('❌ Update promotion error:', error);
     showToast('Lỗi khi cập nhật khuyến mãi', 'error');
     return false;
   }
 }
-
 async function deletePromotion(id) {
   if (!confirm('🗑️ Xác nhận xóa khuyến mãi này?')) return;
-  
+
   try {
     const response = await fetch(`${API_BASE}/admin/khuyenmai/${id}`, {
       method: 'DELETE'
     });
-    
+
     const result = await response.json();
-    
-    if (result.success) {
-      showToast('✅ Xóa khuyến mãi thành công!', 'success');
-      await loadPromotions();
+
+    if (!result.success) {
+      showToast(result.message || 'Không thể xóa', 'error');
+      return;
     }
+
+    showToast('✅ Xóa khuyến mãi thành công!', 'success');
+    await loadPromotions();
+
   } catch (error) {
     console.error('❌ Delete promotion error:', error);
     showToast('Lỗi khi xóa khuyến mãi', 'error');

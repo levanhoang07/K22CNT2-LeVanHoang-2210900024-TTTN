@@ -430,7 +430,7 @@ state.currentPayment = null;
 // ═══════════════════════════════════════════════════════════════════════════
 async function loadPromotions() {
   try {
-    const res = await fetch('/api/admin/khuyenmai');
+    const res = await fetch('/api/thungan/khuyenmai');
     const json = await res.json();
 
     if (!json.success) {
@@ -558,10 +558,16 @@ async function confirmPayment() {
   if (!state.currentPayment) return;
 
   const method = Number(document.getElementById('payment-method').value);
-  const cashReceived = Number(document.getElementById('cash-received').value || 0);
+  let cashReceived = Number(document.getElementById('cash-received').value || 0);
   const phone = document.getElementById('customer-phone').value.trim();
   const finalTotal = state.currentPayment.final;
 
+  // ✅ NẾU LÀ TIỀN MẶT & KHÔNG NHẬP → MẶC ĐỊNH KHÁCH ĐƯA ĐỦ
+  if (method === 1 && cashReceived === 0) {
+    cashReceived = finalTotal;
+  }
+
+  // ❌ CHỈ CHẶN KHI NHẬP MÀ KHÔNG ĐỦ
   if (method === 1 && cashReceived < finalTotal) {
     showToast('⚠️ Tiền khách đưa không đủ!', 'warning');
     document.getElementById('cash-received').focus();
@@ -595,6 +601,31 @@ async function confirmPayment() {
   }
 }
 
+document.getElementById('payment-method').addEventListener('change', (e) => {
+  const cashGroup = document.getElementById('cash-group');
+  const cashQuick = document.getElementById('cash-quick');
+
+  if (e.target.value === '1') {
+    // 💵 TIỀN MẶT
+    cashGroup.style.display = 'block';
+    cashQuick.style.display = 'flex';
+  } else {
+    // 💳 CHUYỂN KHOẢN
+    cashGroup.style.display = 'none';
+    cashQuick.style.display = 'none';
+  }
+});
+function setCash(amount) {
+  const input = document.getElementById('cash-received');
+  input.value = amount;
+  calculatePayment(); // tính lại tiền thừa ngay
+}
+const method = document.getElementById('payment-method').value;
+const cashQuick = document.getElementById('cash-quick');
+
+cashQuick.style.display = method === '1' ? 'flex' : 'none';
+
+
 // ═══════════════════════════════════════════════════════════════════════════
 // EVENT HANDLERS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -616,9 +647,25 @@ function setupEventListeners() {
     }
   });
   document.getElementById('payment-method').addEventListener('change', (e) => {
-    const cashGroup = document.getElementById('cash-group');
-    cashGroup.style.display = e.target.value === '1' ? 'block' : 'none';
-  });
+  const method = Number(e.target.value);
+
+  const cashGroup = document.getElementById('cash-group');
+  const qrGroup = document.getElementById('qr-group');
+
+  if (method === 1) {
+    // TIỀN MẶT
+    cashGroup.style.display = 'block';
+    qrGroup.style.display = 'none';
+  } else if (method === 2) {
+    // CHUYỂN KHOẢN
+    cashGroup.style.display = 'none';
+    qrGroup.style.display = 'block';
+
+    generateVietQR(); // 🔥 tạo QR
+  }
+});
+
+ 
   document.getElementById('cash-received').addEventListener('input', calculatePayment);
   document.getElementById('promotion').addEventListener('change', calculatePayment);
   document.getElementById('btn-confirm-payment').addEventListener('click', confirmPayment);
@@ -628,6 +675,25 @@ function setupEventListeners() {
       closePaymentModal();
     }
   });
+}
+
+function generateVietQR() {
+  if (!state.currentPayment) return;
+
+  const amount = state.currentPayment.final;
+
+  // ⚠️ THÔNG TIN TÀI KHOẢN
+  const bankId = 'Techcombank'; // Vietcombank
+  const accountNo = '6982121680';
+  const accountName = 'MI CAY ONE';
+  const description = `Thanh toan don ${state.currentPayment.order.IDDonHang}`;
+
+  const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png` +
+    `?amount=${amount}` +
+    `&addInfo=${encodeURIComponent(description)}` +
+    `&accountName=${encodeURIComponent(accountName)}`;
+
+  document.getElementById('vietqr-img').src = qrUrl;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

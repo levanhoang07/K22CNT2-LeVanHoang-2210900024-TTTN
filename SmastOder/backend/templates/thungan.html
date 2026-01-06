@@ -166,6 +166,15 @@
         </div>
       </div>
 
+      <!-- Promotion -->
+      <div class="form-group-custom">
+        <label class="form-label-custom">
+          <i class="fas fa-gift me-2"></i>Khuyến mãi
+        </label>
+        <select class="form-control-custom" id="promotion">
+          <option value="">Không áp dụng</option>
+        </select>
+      </div>
       <!-- Payment Method -->
       <div class="form-group-custom">
         <label class="form-label-custom">
@@ -178,27 +187,37 @@
         </select>
       </div>
 
-      <!-- Cash Received -->
-      <div class="form-group-custom" id="cash-group">
-        <label class="form-label-custom">
-          <i class="fas fa-money-bill-wave me-2"></i>Tiền khách đưa
-        </label>
-        <input type="number" class="form-control-custom" id="cash-received" placeholder="Nhập số tiền khách đưa">
-        <div class="mt-3 text-end">
-          <span class="me-2">Tiền thừa:</span>
-          <strong style="color: #00b894; font-size: 1.5rem;" id="change">0đ</strong>
-        </div>
-      </div>
+     <!-- Cash Received -->
+<div class="form-group-custom" id="cash-group">
+  <label class="form-label-custom">
+    <i class="fas fa-money-bill-wave me-2"></i>Tiền khách đưa
+  </label>
 
-      <!-- Promotion -->
-      <div class="form-group-custom">
-        <label class="form-label-custom">
-          <i class="fas fa-gift me-2"></i>Khuyến mãi
-        </label>
-        <select class="form-control-custom" id="promotion">
-          <option value="">Không áp dụng</option>
-        </select>
-      </div>
+  <input type="number"
+         class="form-control-custom"
+         id="cash-received"
+         placeholder="Nhập số tiền khách đưa">
+
+  <!-- QUICK CASH -->
+  <div class="cash-quick mt-2">
+    <button onclick="setCash(50000)">50k</button>
+    <button onclick="setCash(100000)">100k</button>
+    <button onclick="setCash(200000)">200k</button>
+    <button onclick="setCash(500000)">500k</button>
+  </div>
+
+  <div class="mt-3 text-end">
+    <span class="me-2">Tiền thừa:</span>
+    <strong style="color:#00b894;font-size:1.5rem" id="change">0đ</strong>
+  </div>
+</div>
+
+
+      <!-- QR CHUYỂN KHOẢN -->
+<div id="qr-group" style="display:none; text-align:center; margin-top:15px">
+  <p><strong>Quét mã để thanh toán</strong></p>
+  <img id="vietqr-img" style="max-width:260px; border-radius:10px;">
+</div>
 
       <!-- Customer Phone -->
       <div class="form-group-custom">

@@ -574,24 +574,46 @@ def thanh_toan_don_hang(id_don_hang):
         id_ban = don_hang[1]
         so_tien_giam = 0
         
-        # Áp dụng khuyến mãi
+                # ================== ÁP DỤNG KHUYẾN MÃI ==================
+        so_tien_giam = 0
+
         if id_khuyen_mai:
             cursor.execute("""
-                SELECT LoaiGiamGia, GiaTri FROM KhuyenMai
-                WHERE IDKhuyenMai = ? AND TrangThai = 1
+                SELECT LoaiGiamGia, GiaTri
+                FROM KhuyenMai
+                WHERE IDKhuyenMai = ?
+                AND TrangThai = 1
             """, (id_khuyen_mai,))
+
             khuyen_mai = cursor.fetchone()
-            if khuyen_mai:
-                loai_giam = khuyen_mai[0]
-                gia_tri = float(khuyen_mai[1])
-                if loai_giam == 'PhanTram':
-                    so_tien_giam = tong_tien * (gia_tri / 100)
-                else:
-                    so_tien_giam = gia_tri
-                cursor.execute("""
-                    INSERT INTO DonHang_KhuyenMai (IDDonHang, IDKhuyenMai, SoTienGiam)
-                    VALUES (?, ?, ?)
-                """, (id_don_hang, id_khuyen_mai, so_tien_giam))
+
+            if not khuyen_mai:
+                conn.rollback()
+                conn.close()
+                return jsonify_response(
+                    False,
+                    "Khuyến mãi không tồn tại hoặc đã bị tắt",
+                    None,
+                    400
+                )
+
+            loai_giam, gia_tri = khuyen_mai
+            gia_tri = float(gia_tri)
+
+            if loai_giam == 'PhanTram':
+                so_tien_giam = tong_tien * (gia_tri / 100)
+            elif loai_giam == 'SoTien':
+                so_tien_giam = gia_tri
+
+            # ❗ Không cho giảm vượt tổng tiền
+            so_tien_giam = min(so_tien_giam, tong_tien)
+
+            # Lưu lịch sử áp dụng khuyến mãi
+            cursor.execute("""
+                INSERT INTO DonHang_KhuyenMai (IDDonHang, IDKhuyenMai, SoTienGiam)
+                VALUES (?, ?, ?)
+            """, (id_don_hang, id_khuyen_mai, so_tien_giam))
+
         
         so_tien_thanh_toan = tong_tien - so_tien_giam
         tien_thua = 0
@@ -652,7 +674,32 @@ def thanh_toan_don_hang(id_don_hang):
             conn.close()
         return handle_exception(e, "Lỗi thanh toán")
     
-    
+# ═════════════════════════════════════════════
+# 💳 THU NGÂN - LẤY KHUYẾN MÃI ĐANG ÁP DỤNG
+# ═════════════════════════════════════════════
+@app.route('/api/thungan/khuyenmai', methods=['GET'])
+def thungan_lay_khuyen_mai():
+    try:
+        cursor, conn = get_cursor()
+        cursor.execute("""
+            SELECT IDKhuyenMai, TenKhuyenMai, LoaiGiamGia, GiaTri
+            FROM KhuyenMai
+            WHERE TrangThai = 1
+            ORDER BY IDKhuyenMai DESC
+        """)
+        km_list = rows_to_dict_list(cursor, cursor.fetchall())
+        conn.close()
+
+        return jsonify_response(
+            True,
+            "Danh sách khuyến mãi đang áp dụng",
+            {'khuyen_mai': km_list}
+        )
+    except Exception as e:
+        return handle_exception(e, "Lỗi lấy khuyến mãi thu ngân")
+
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🔥 API BẾP - VERSION 2.0 (Có lịch sử hoàn thành)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1336,15 +1383,20 @@ def admin_sua_khuyen_mai(id_khuyen_mai):
 def admin_xoa_khuyen_mai(id_khuyen_mai):
     try:
         cursor, conn = get_cursor()
-        cursor.execute("DELETE FROM KhuyenMai WHERE IDKhuyenMai = ?", (id_khuyen_mai,))
+        cursor.execute("""
+            UPDATE KhuyenMai
+            SET TrangThai = 0
+            WHERE IDKhuyenMai = ?
+        """, (id_khuyen_mai,))
         conn.commit()
         conn.close()
-        return jsonify_response(True, "Xóa khuyến mãi thành công")
+        return jsonify_response(True, "Đã tắt khuyến mãi")
     except Exception as e:
         if 'conn' in locals():
             conn.rollback()
             conn.close()
-        return handle_exception(e, "Lỗi xóa khuyến mãi")
+        return handle_exception(e, "Lỗi tắt khuyến mãi")
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🛠 API ADMIN - CRUD NGƯỜI DÙNG
