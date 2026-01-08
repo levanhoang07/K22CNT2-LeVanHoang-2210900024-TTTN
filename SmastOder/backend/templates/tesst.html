@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Biểu đồ lớp – MyCay_Oder</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #f4f6f8;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    .wrapper {
+      max-width: 1400px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      text-align: center;
+      color: #1a237e;
+      margin-bottom: 20px;
+    }
+
+    /* KHỐI BIỂU ĐỒ */
+    .mermaid {
+      background: #fafafa;
+      border-radius: 10px;
+      padding: 25px;
+      overflow-x: auto;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #555;
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrapper">
+  <h1>BIỂU ĐỒ LỚP – HỆ THỐNG ĐẶT MÓN QR CODE</h1>
+
+  <div class="mermaid">
+classDiagram
+direction LR
+
+%% ================= USER =================
+class NguoiDung {
+  +IDNguoiDung int
+  +TenDangNhap string
+  +MatKhau string
+  +HoTen string
+  +VaiTro string
+  +TrangThai bit
+}
+
+class KhachHang {
+  +IDKhachHang int
+  +TenKhachHang string
+  +SoDienThoai string
+  +DiemTichLuy int
+}
+
+%% ================= BÀN =================
+class Ban {
+  +IDBan int
+  +TenBan string
+  +MaQR string
+  +TrangThai string
+}
+
+%% ================= MENU =================
+class DanhMuc {
+  +IDDanhMuc int
+  +TenDanhMuc string
+}
+
+class Menu {
+  +IDMon int
+  +TenMon string
+  +Gia decimal
+  +TrangThai bit
+}
+
+%% ================= ĐƠN HÀNG =================
+class DonHang {
+  +IDDonHang int
+  +TongTien decimal
+  +TrangThaiThanhToan bit
+  +NgayTao datetime
+}
+
+class ChiTietDonHang {
+  +IDChiTiet int
+  +SoLuong int
+  +DonGia decimal
+  +CapDoCay string
+  +ThanhTien decimal
+}
+
+class LichSuTrangThaiDonHang {
+  +ID int
+  +TrangThai string
+  +ThoiGian datetime
+}
+
+%% ================= THANH TOÁN =================
+class PhuongThucThanhToan {
+  +IDPhuongThuc int
+  +TenPhuongThuc string
+}
+
+class ThanhToan {
+  +IDThanhToan int
+  +SoTien decimal
+  +ThoiGian datetime
+}
+
+%% ================= KHUYẾN MÃI =================
+class KhuyenMai {
+  +IDKhuyenMai int
+  +TenKhuyenMai string
+  +LoaiGiamGia string
+  +GiaTri decimal
+}
+
+class DonHang_KhuyenMai {
+  +ID int
+  +SoTienGiam decimal
+}
+
+%% ================= KHÁC =================
+class ThongBao {
+  +IDThongBao int
+  +NoiDung string
+}
+
+class DanhGia {
+  +IDDanhGia int
+  +NoiDung string
+}
+
+class LichSuTichDiem {
+  +ID int
+  +SoDiem int
+}
+
+%% =============== QUAN HỆ (1 - N) ===============
+Ban "1" --> "n" DonHang
+NguoiDung "1" --> "n" DonHang
+
+DanhMuc "1" --> "n" Menu
+Menu "1" --> "n" ChiTietDonHang
+DonHang "1" --> "n" ChiTietDonHang
+
+DonHang "1" --> "n" LichSuTrangThaiDonHang
+
+DonHang "1" --> "1" ThanhToan
+PhuongThucThanhToan "1" --> "n" ThanhToan
+
+KhachHang "1" --> "n" LichSuTichDiem
+DonHang "1" --> "n" LichSuTichDiem
+
+DonHang "1" --> "n" DonHang_KhuyenMai
+KhuyenMai "1" --> "n" DonHang_KhuyenMai
+
+Ban "1" --> "n" ThongBao
+Ban "1" --> "n" DanhGia
+  </div>
+
+  <footer>
+    © 2026 – UML Class Diagram | MyCay_Oder
+  </footer>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "default",
+    flowchart: {
+      curve: "basis"
+    },
+    classDiagram: {
+      diagramPadding: 12,
+      nodeSpacing: 60,
+      rankSpacing: 80
+    }
+  });
+</script>
+</body>
+</html>

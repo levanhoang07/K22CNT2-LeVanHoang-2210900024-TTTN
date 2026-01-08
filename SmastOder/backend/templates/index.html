@@ -32,6 +32,25 @@
   <div class="table-box">
     <strong></strong><span id="table-name" class="fw-bold">Đang tải...</span>
   </div>
+  <div class="dropdown lang-dropdown">
+  <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2"
+        data-bs-toggle="dropdown">
+  <span id="current-lang-flag">🇻🇳</span>
+  <span id="current-lang">Tiếng Việt</span>
+</button>
+
+<ul class="dropdown-menu dropdown-menu-end">
+  <li>
+    <a class="dropdown-item lang-item" data-lang="vi">🇻🇳 Tiếng Việt</a>
+  </li>
+  <li>
+    <a class="dropdown-item lang-item" data-lang="en">🇺🇸 English</a>
+  </li>
+  <li>
+    <a class="dropdown-item lang-item" data-lang="kr">🇰🇷 한국어</a>
+  </li>
+</ul>
+</div>
 </div>
 </div>
 </header>
@@ -84,7 +103,15 @@
       <button id="btn-review" class="btn btn-outline-primary btn-lg w-100 mt-2">
   ⭐ Góp ý dịch vụ
 </button>
-
+<!-- ================= LỊCH SỬ ĐẶT MÓN (BUBBLE + MODAL) ================= -->
+<div id="history-bubble">🔔</div>
+<div id="history-modal" class="hidden">
+  <div class="modal-backdrop"></div>
+  <div class="history-panel">
+    <button id="close-history">✕</button>
+    <div id="history-list"></div>
+  </div>
+</div>
     </div>
   </div>
 </aside>
@@ -167,18 +194,12 @@
   </div>
 </div>
 
-<!-- ================= LỊCH SỬ ĐẶT MÓN (BUBBLE + MODAL) ================= -->
-<div id="history-bubble">📜</div>
-<div id="history-modal" class="hidden">
-  <div class="modal-backdrop"></div>
-  <div class="history-panel">
-    <button id="close-history">✕</button>
-    <div id="history-list"></div>
-  </div>
-</div>
+
 
 <!-- ================= SCRIPTS ================= -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="/static/js/client.js"></script>
+<script src="/static/js/lang-switcher.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

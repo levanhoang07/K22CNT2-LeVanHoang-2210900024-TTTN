@@ -63,7 +63,6 @@ async function initializePage() {
 // ═══════════════════════════════════════════════════════════════════════════
 // API CALLS
 // ═══════════════════════════════════════════════════════════════════════════
-
 async function loadTableInfo() {
   try {
     const response = await fetch(`${API_BASE}/ban/${state.idBan}`);
@@ -71,7 +70,10 @@ async function loadTableInfo() {
     
     if (result.success) {
       state.tenBan = result.data.TenBan;
-      document.getElementById('table-name').textContent = state.tenBan;
+
+      // 🔥 GỌI QUA LANG-SWITCHER
+      setTableFromApi(state.tenBan);
+
       console.log('✅ Table info loaded:', state.tenBan);
     } else {
       throw new Error(result.message);
@@ -82,6 +84,7 @@ async function loadTableInfo() {
     throw error;
   }
 }
+
 
 async function loadMenu() {
   try {
@@ -229,6 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+
+  
   // ===== MỞ MODAL =====
   btnReview.addEventListener("click", () => {
     reviewModal.classList.remove("hidden");
@@ -553,7 +558,7 @@ function closeHistoryModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-// LOAD LỊCH SỬ ĐƠN HÀNG
+// ================= LOAD LỊCH SỬ ĐƠN HÀNG (CHUẨN API THẬT) =================
 async function loadOrderHistory() {
   const historyList = document.getElementById('history-list');
   if (!historyList) {
@@ -561,6 +566,7 @@ async function loadOrderHistory() {
     return;
   }
 
+  // Loading UI
   historyList.innerHTML = `
     <div class="text-center py-5">
       <div class="spinner-border"></div>
@@ -569,45 +575,78 @@ async function loadOrderHistory() {
   `;
 
   try {
-    const res = await fetch(`${API_BASE}/ban/${state.idBan}/donhang`);
-    const json = await res.json();
-
-    // ❌ Không có đơn
-    if (!json.success || !json.data) {
+    if (!state.idBan) {
       historyList.innerHTML = `
         <p class="text-muted text-center py-5">
-          📭 Chưa có đơn hàng nào
+          ⚠️ Chưa xác định được bàn
         </p>
       `;
       return;
     }
 
-    const order = json.data;
+    const res = await fetch(`${API_BASE}/ban/${state.idBan}/donhang`);
+    const json = await res.json();
 
-    historyList.innerHTML = `
-      <div class="order-history-item p-3 border rounded shadow-sm">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <strong>🧾 Đơn #${order.IDDonHang}</strong>
-          <small class="text-muted">${formatDate(order.NgayTao)}</small>
+    // ===== VALIDATE RESPONSE =====
+    if (!json || json.success !== true || !json.data) {
+      historyList.innerHTML = `
+        <p class="text-muted text-center py-5">
+          📭 Chưa có lịch sử đơn hàng
+        </p>
+      `;
+      return;
+    }
+
+    // ===== LUÔN CHUẨN HÓA DATA VỀ ARRAY =====
+    const orders = Array.isArray(json.data)
+      ? json.data
+      : [json.data];
+
+    if (orders.length === 0) {
+      historyList.innerHTML = `
+        <p class="text-muted text-center py-5">
+          📭 Chưa có lịch sử đơn hàng
+        </p>
+      `;
+      return;
+    }
+
+    // ===== RENDER =====
+    historyList.innerHTML = orders.map(order => {
+      const chiTiet = Array.isArray(order.chi_tiet) ? order.chi_tiet : [];
+
+      return `
+        <div class="order-history-item p-3 border rounded shadow-sm mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>🧾 Đơn #${order.IDDonHang ?? '-'}</strong>
+            <small class="text-muted">
+              ${order.NgayTao ? formatDate(order.NgayTao) : ''}
+            </small>
+          </div>
+
+          ${
+            chiTiet.length
+              ? chiTiet.map(item => `
+                  <div class="d-flex justify-content-between mb-1">
+                    <span>${item.TenMon ?? 'Món'} × ${item.SoLuong ?? 0}</span>
+                    <span class="text-danger">
+                      ${formatPrice(item.ThanhTien ?? 0)}
+                    </span>
+                  </div>
+                `).join('')
+              : `<div class="text-muted small">Không có chi tiết món</div>`
+          }
+
+          <hr>
+
+          <div class="d-flex justify-content-between fw-bold text-danger">
+            <span>Tổng cộng</span>
+            <span>${formatPrice(order.TongTien ?? 0)}</span>
+          </div>
         </div>
+      `;
+    }).join('');
 
-        <div class="mb-2">
-          ${order.chi_tiet.map(item => `
-            <div class="d-flex justify-content-between mb-1">
-              <span>${item.TenMon} × ${item.SoLuong}</span>
-              <span class="text-danger">${formatPrice(item.ThanhTien)}</span>
-            </div>
-          `).join('')}
-        </div>
-
-        <hr>
-
-        <div class="d-flex justify-content-between fw-bold fs-5 text-danger">
-          <span>TỔNG CỘNG</span>
-          <span>${formatPrice(order.TongTien)} đồng</span>
-        </div>
-      </div>
-    `;
   } catch (err) {
     console.error('❌ Load history error:', err);
     historyList.innerHTML = `
@@ -771,6 +810,67 @@ style.textContent = `
     to { transform: translateX(400px); opacity: 0; }
   }
 `;
+
+// ================= DRAG HISTORY BUBBLE =================
+(function () {
+  const bubble = document.getElementById('history-bubble');
+  if (!bubble) return;
+
+  let isDragging = false;
+  let startX, startY, initialX, initialY;
+
+  // Load vị trí đã lưu
+  const savedPos = localStorage.getItem('historyBubblePos');
+  if (savedPos) {
+    const { x, y } = JSON.parse(savedPos);
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+    bubble.style.left = x + 'px';
+    bubble.style.top = y + 'px';
+  }
+
+  bubble.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+
+    const rect = bubble.getBoundingClientRect();
+    initialX = rect.left;
+    initialY = rect.top;
+
+    bubble.style.transition = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    const newX = initialX + dx;
+    const newY = initialY + dy;
+
+    bubble.style.left = newX + 'px';
+    bubble.style.top = newY + 'px';
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+
+    // Lưu vị trí
+    const rect = bubble.getBoundingClientRect();
+    localStorage.setItem(
+      'historyBubblePos',
+      JSON.stringify({ x: rect.left, y: rect.top })
+    );
+
+    bubble.style.transition = 'all 0.25s ease';
+  });
+})();
+
 document.head.appendChild(style);
 
 console.log('📱 MyCay_Oder Client Loaded');

@@ -1,130 +1,124 @@
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-    }
-
-    /* ===== HEADER ===== */
-    .site-header {
-      background: white;
-      border-bottom: 3px solid #667eea;
-    }
-
-    .logo {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #667eea;
-    }
-
-    .brand h1 {
-      font-size: 1.8rem;
-      color: #667eea;
-      font-weight: 800;
-    }
-
-    .info-item {
-      padding: 8px 15px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-
-    .table-box {
-      padding: 10px 20px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-
-    /* ===== MAIN LAYOUT ===== */
-    .layout {
-      background: white;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    }
-
-    .menu-title {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #667eea;
-    }
-
-    /* ===== SEARCH ===== */
-    .search-input {
-      border: 2px solid #667eea;
-      border-radius: 15px;
-      padding: 12px 20px;
-      font-size: 1rem;
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: #764ba2;
-      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
-
-    /* ===== CATEGORY BAR ===== */
-    .category-btn {
-      white-space: nowrap;
-      border-radius: 20px;
-      padding: 8px 20px;
-      font-weight: 600;
-    }
-
-    .category-btn.active {
-      background: #667eea;
-      color: white;
-      border-color: #667eea;
-    }
-
-    /* ===== DISH CARD ===== */
-    .dish-card {
-      border: 2px solid transparent;
-      border-radius: 15px;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .dish-card:hover {
-      border-color: #667eea;
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    }
-
-    .dish-image-wrapper {
-      height: 200px;
-      overflow: hidden;
-      border-radius: 15px 15px 0 0;
-    }
-
-    .dish-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-    }
-
-    .dish-card:hover .dish-image {
-      transform: scale(1.1);
-    }
-
-    /* ===== CART ===== */
-    .cart-title {
-      font-size:1.5rem;
-font-weight: 800;
-color: #667eea;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.site-header {
+  background: white;
+  border-bottom: 3px solid #667eea;
+}
+
+.logo {
+  width: 70px; /* Tăng kích thước logo cho nổi bật hơn */
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #667eea; /* Tăng độ dày viền cho lộng lẫy */
+}
+
+.brand h1 {
+  font-size: 2rem; /* Tăng font size cho dễ đọc */
+  color: #667eea;
+  font-weight: 800;
+}
+
+.info-item {
+  padding: 10px 18px; /* Tăng padding cho thoải mái hơn */
+  background: #f8f9fa;
+  border-radius: 10px; /* Bo tròn hơn */
+  font-size: 1rem; /* Tăng font size cho dễ sử dụng */
+}
+
+.table-box {
+  padding: 12px 24px; /* Tăng padding cho rộng rãi */
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 12px; /* Bo tròn hơn */
+  font-weight: 600;
+}
+
+/* ===== MAIN LAYOUT ===== */
+.layout {
+  background: white;
+  border-radius: 24px; /* Bo tròn hơn cho mềm mại */
+  padding: 40px; /* Tăng padding cho không gian rộng rãi */
+  box-shadow: 0 12px 50px rgba(0,0,0,0.12); /* Tăng shadow cho chiều sâu */
+}
+
+/* ===== SEARCH ===== */
+.search-input {
+  border: 2px solid #667eea;
+  border-radius: 20px; /* Bo tròn hơn cho hiện đại */
+  padding: 14px 24px; /* Tăng padding cho dễ nhập */
+  font-size: 1.1rem; /* Tăng font size cho dễ đọc */
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #764ba2;
+  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.3); /* Tăng shadow cho nổi bật */
+}
+
+/* ===== CATEGORY BAR ===== */
+.category-btn {
+  white-space: nowrap;
+  border-radius: 24px; /* Bo tròn hơn */
+  padding: 10px 24px; /* Tăng padding cho dễ click */
+  font-weight: 600;
+}
+
+.category-btn.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+/* ===== DISH CARD ===== */
+.dish-card {
+  border: 2px solid transparent;
+  border-radius: 20px; /* Bo tròn hơn cho lộng lẫy */
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.dish-card:hover {
+  border-color: #667eea;
+  transform: translateY(-6px); /* Tăng hiệu ứng nổi */
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.35); /* Tăng shadow cho chiều sâu */
+}
+
+.dish-image-wrapper {
+  height: 220px; /* Tăng chiều cao hình ảnh cho hấp dẫn */
+  overflow: hidden;
+  border-radius: 20px 20px 0 0; /* Đồng bộ bo tròn */
+}
+
+.dish-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease; /* Mượt mà hơn */
+}
+
+.dish-card:hover .dish-image {
+  transform: scale(1.12); /* Tăng zoom cho lộng lẫy */
+}
+
+/* ===== CART ===== */
+.cart-title {
+  font-size: 1.6rem; /* Tăng font size cho nổi bật */
+  font-weight: 800;
+  color: #667eea;
+}
+
 .cart-item {
   background: #f8f9fa;
   transition: all 0.3s ease;
@@ -135,8 +129,8 @@ color: #667eea;
 }
 
 .quantity-control button {
-  width: 30px;
-  height: 30px;
+  width: 32px; /* Tăng kích thước nút cho dễ sử dụng */
+  height: 32px;
   padding: 0;
   border-radius: 50%;
 }
@@ -164,56 +158,21 @@ color: #667eea;
 .modal-content {
   position: relative;
   background: white;
-  max-width: 500px;
-  width: 90%;
-  max-height: 90vh;
+  max-width: 520px; /* Tăng chiều rộng cho thoải mái */
+  width: 92%;
+  max-height: 92vh; /* Tăng chiều cao cho dễ cuộn */
   overflow-y: auto;
   z-index: 10000;
-}
-
-/* ===== HISTORY BUBBLE ===== */
-.history-bubble {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  cursor: pointer;
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
-  transition: all 0.3s ease;
-  z-index: 999;
-}
-
-.history-bubble:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.7);
-}
-
-.history-panel {
-  position: relative;
-  background: white;
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
-  z-index: 10000;
-}
-
-.history-header {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  border-radius: 20px; /* Thêm bo tròn cho đẹp */
+  box-shadow: 0 15px 50px rgba(0,0,0,0.3); /* Thêm shadow cho lộng lẫy */
 }
 
 /* ===== BUTTONS ===== */
 .btn-primary {
   background: linear-gradient(135deg, #667eea, #764ba2);
   border: none;
+  padding: 12px 24px; /* Tăng padding cho dễ click */
+  border-radius: 12px; /* Bo tròn hơn */
 }
 
 .btn-primary:hover {
@@ -223,10 +182,112 @@ color: #667eea;
 .btn-success {
   background: linear-gradient(135deg, #11998e, #38ef7d);
   border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
 }
 
 .btn-warning {
   background: linear-gradient(135deg, #f093fb, #f5576c);
   border: none;
   color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+}
+
+.lang-dropdown .dropdown-toggle {
+  border-radius: 24px; /* Bo tròn hơn */
+  font-size: 0.9rem; /* Tăng font size */
+  padding: 6px 14px;
+}
+
+.lang-dropdown .dropdown-menu {
+  min-width: 170px; /* Tăng chiều rộng */
+}
+
+.lang-dropdown .dropdown-item {
+  font-size: 0.95rem; /* Tăng font size cho dễ đọc */
+  cursor: pointer;
+}
+
+/* ================= HISTORY BUBBLE ================= */
+#history-bubble {
+  position: fixed;
+  bottom: 100px; /* Tăng khoảng cách dưới cho dễ tiếp cận */
+  right: 80px; /* Dịch sang trái như yêu cầu, tăng cho cân bằng */
+
+  width: 60px; /* Tăng kích thước cho nổi bật */
+  height: 60px;
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 28px; /* Tăng font size icon */
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(102,126,234,0.5); /* Tăng shadow cho lộng lẫy */
+  z-index: 99999;
+
+  transition: all 0.3s ease; /* Mượt mà hơn */
+}
+
+/* hover nổi + sáng hơn */
+#history-bubble:hover {
+  transform: translateY(-5px) scale(1.1); /* Tăng hiệu ứng */
+  box-shadow: 0 18px 40px rgba(102,126,234,0.7);
+}
+
+/* ================= HISTORY MODAL ================= */
+#history-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+}
+
+#history-modal.hidden {
+  display: none !important;
+}
+
+#history-modal .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100000;
+}
+
+.history-panel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 380px; /* Tăng chiều rộng cho dễ đọc */
+  height: 100%;
+  background: #fff;
+  padding: 25px; /* Tăng padding cho thoải mái */
+  overflow-y: auto;
+
+  z-index: 100001; /* cao hơn backdrop */
+  border-radius: 16px 0 0 16px; /* Bo tròn hơn */
+  box-shadow: -12px 0 40px rgba(0,0,0,0.28); /* Tăng shadow cho chiều sâu */
+}
+
+#close-history {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 24px; /* Tăng font size cho dễ click */
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+#history-bubble {
+  cursor: grab;
+  user-select: none;
+}
+
+#history-bubble:active {
+  cursor: grabbing;
 }
