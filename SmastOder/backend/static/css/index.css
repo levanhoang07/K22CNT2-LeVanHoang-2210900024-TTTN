@@ -182,14 +182,24 @@ to { transform: translateY(0); opacity: 1; }
 }
 
 .menu-title {
-  font-size: 1.75rem;
+  font-family: 'Poppins','Inter','Segoe UI',Roboto,Arial,sans-serif;
+  font-size: 1.9rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
   margin-bottom: 1.5rem;
+
+  /* gradient text an toàn */
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+
+  /* chống mờ chữ */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
+
 
 /* ===== SEARCH ===== */
 .search-input {
@@ -423,15 +433,26 @@ to { transform: translateY(0); opacity: 1; }
 }
 
 .cart-title {
-  font-size: 1.5rem;
+  font-family: 'Poppins','Inter','Segoe UI',Roboto,Arial,sans-serif;
+  font-size: 1.6rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: fadeIn 0.8s ease-out;
   margin-bottom: 1.5rem;
+
+  /* gradient text */
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+
+  /* chống mờ chữ */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+
+  animation: fadeIn 0.8s ease-out;
 }
+
 
 #cart-list {
   max-height: 400px;
@@ -1718,3 +1739,80 @@ textarea.form-control {
     transition-duration: 0.01ms !important;
   }
 }}
+
+#food-chat-btn {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: linear-gradient(135deg,#ff7675,#d63031);
+  color: #fff;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 6px 20px rgba(0,0,0,.3);
+  z-index:9999;
+}
+
+#food-chat-box {
+  position: fixed;
+  bottom: 90px;
+  right: 25px;
+  width: 320px;
+  height: 420px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+  display:flex;
+  flex-direction:column;
+  z-index:9999;
+}
+
+.hidden { display:none; }
+
+.chat-header {
+  padding:12px;
+  background:linear-gradient(135deg,#ff7675,#d63031);
+  color:#fff;
+  font-weight:700;
+  display:flex;
+  justify-content:space-between;
+  border-radius:16px 16px 0 0;
+}
+
+#chat-messages {
+  flex:1;
+  padding:10px;
+  overflow-y:auto;
+  font-size:14px;
+}
+
+.chat-msg {
+  margin-bottom:8px;
+}
+
+.user { text-align:right; color:#0984e3; }
+.bot { color:#2d3436; }
+
+.chat-input {
+  display:flex;
+  border-top:1px solid #eee;
+}
+
+.chat-input input {
+  flex:1;
+  border:none;
+  padding:10px;
+  outline:none;
+}
+
+.chat-input button {
+  border:none;
+  background:#d63031;
+  color:#fff;
+  padding:0 16px;
+}

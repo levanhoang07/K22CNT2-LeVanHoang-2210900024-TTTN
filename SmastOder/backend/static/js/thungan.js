@@ -501,6 +501,18 @@ function openPaymentModal() {
   document.getElementById('cash-group').style.display = 'block';
   modal.classList.add('show');
 }
+function setCash(amount) {
+  const input = document.getElementById('cash-received');
+  if (!input) return;
+
+  input.value = amount;
+
+  // cập nhật lại tính toán
+  calculatePayment();
+
+  // focus cho đẹp UX
+  input.focus();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CLOSE PAYMENT MODAL
@@ -926,6 +938,7 @@ function printInvoice(paymentResult, paymentData) {
 // ═══════════════════════════════════════════════════════════════════════════
 // GLOBAL FUNCTIONS (Called from HTML onclick)
 // ═══════════════════════════════════════════════════════════════════════════
+window.setCash = setCash;
 
 window.selectOrder = selectOrder;
 window.handleSendToKitchen = handleSendToKitchen;

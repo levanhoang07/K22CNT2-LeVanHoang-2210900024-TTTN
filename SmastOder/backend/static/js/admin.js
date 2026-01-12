@@ -1162,9 +1162,7 @@ function renderPromotions() {
                 <button class="btn-warning-custom btn-sm" onclick="editPromotion(${promo.IDKhuyenMai})">
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-danger-custom btn-sm" onclick="deletePromotion(${promo.IDKhuyenMai})">
-                  <i class="fas fa-trash"></i>
-                </button>
+                
               </td>
             </tr>
           `).join('')}

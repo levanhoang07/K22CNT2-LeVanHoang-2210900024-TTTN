@@ -23592,3 +23592,792 @@ IndexError: list index out of range
 2026-01-10 21:20:24,995 - werkzeug - INFO - 127.0.0.1 - - [10/Jan/2026 21:20:24] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
 2026-01-10 21:20:24,998 - werkzeug - INFO - 127.0.0.1 - - [10/Jan/2026 21:20:24] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
 2026-01-10 21:20:25,311 - werkzeug - INFO - 127.0.0.1 - - [10/Jan/2026 21:20:25] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:41,896 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2026-01-11 12:34:42,337 - __main__ - INFO - ✅ Kết nối database thành công
+2026-01-11 12:34:42,437 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.100.180:5000
+2026-01-11 12:34:42,437 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-11 12:34:42,439 - werkzeug - INFO -  * Restarting with stat
+2026-01-11 12:34:43,657 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2026-01-11 12:34:43,771 - __main__ - INFO - ✅ Kết nối database thành công
+2026-01-11 12:34:43,792 - werkzeug - WARNING -  * Debugger is active!
+2026-01-11 12:34:43,802 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2026-01-11 12:34:53,840 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:53] "GET /?ban=1 HTTP/1.1" 200 -
+2026-01-11 12:34:54,084 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "GET /static/css/index.css HTTP/1.1" 200 -
+2026-01-11 12:34:54,084 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:54,241 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-11 12:34:54,298 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-11 12:34:54,584 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "GET /socket.io/?EIO=4&transport=polling&t=PkhZDr1 HTTP/1.1" 200 -
+2026-01-11 12:34:54,631 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-11 12:34:54,777 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-11 12:34:54,899 - __main__ - INFO - ✅ Client connected: 1fZLRxFLHP-OFR7nAAAB
+2026-01-11 12:34:54,903 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "POST /socket.io/?EIO=4&transport=polling&t=PkhZDvy&sid=r_cvOWi1srGDKpaKAAAA HTTP/1.1" 200 -
+2026-01-11 12:34:54,912 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:54] "GET /socket.io/?EIO=4&transport=polling&t=PkhZDv_&sid=r_cvOWi1srGDKpaKAAAA HTTP/1.1" 200 -
+2026-01-11 12:34:55,159 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "GET /api/menu HTTP/1.1" 200 -
+2026-01-11 12:34:55,546 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,579 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,581 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,599 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,601 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,655 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-11 12:34:55,853 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-11 12:34:55,916 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,916 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,946 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,951 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:55,995 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:55] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:56,190 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:56] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:56,252 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:56] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:56,252 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:56] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:34:56,282 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:34:56] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:35:35,259 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:35:35] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-11 12:36:02,770 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:02] "POST /api/order/add HTTP/1.1" 200 -
+2026-01-11 12:36:02,849 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:02] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-11 12:36:05,221 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:05] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-11 12:36:17,563 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:17] "POST /api/ban/1/call HTTP/1.1" 200 -
+2026-01-11 12:36:42,629 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:42] "GET /thungan HTTP/1.1" 200 -
+2026-01-11 12:36:42,664 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:42] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:36:42,832 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:42] "GET /static/css/thungan.css HTTP/1.1" 200 -
+2026-01-11 12:36:43,118 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:43] "[36mGET /static/js/thungan.js HTTP/1.1[0m" 304 -
+2026-01-11 12:36:43,453 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:43] "GET /socket.io/?EIO=4&transport=polling&t=PkhZePu HTTP/1.1" 200 -
+2026-01-11 12:36:43,486 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:43] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:36:43,544 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:43] "GET /api/thungan/khuyenmai HTTP/1.1" 200 -
+2026-01-11 12:36:43,581 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:43] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:36:43,605 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:43] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-11 12:36:43,708 - __main__ - INFO - ✅ Client connected: 9skNbIzes6zAqYNoAAAD
+2026-01-11 12:36:43,708 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:43] "POST /socket.io/?EIO=4&transport=polling&t=PkhZeV3&sid=FoRbJpfTzGhrL5LnAAAC HTTP/1.1" 200 -
+2026-01-11 12:36:43,771 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:43] "GET /socket.io/?EIO=4&transport=polling&t=PkhZeV6&sid=FoRbJpfTzGhrL5LnAAAC HTTP/1.1" 200 -
+2026-01-11 12:36:44,083 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:44] "GET /socket.io/?EIO=4&transport=polling&t=PkhZea4&sid=FoRbJpfTzGhrL5LnAAAC HTTP/1.1" 200 -
+2026-01-11 12:36:55,723 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:36:55] "GET /api/ban/donhang/86 HTTP/1.1" 200 -
+2026-01-11 12:37:01,244 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:01] "PUT /api/thungan/donhang/86/xacnhan HTTP/1.1" 200 -
+2026-01-11 12:37:01,577 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:01] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:37:01,840 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:01] "GET /api/ban/donhang/86 HTTP/1.1" 200 -
+2026-01-11 12:37:01,892 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:01] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-11 12:37:09,120 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:09] "GET /api/thungan/khuyenmai HTTP/1.1" 200 -
+2026-01-11 12:37:09,384 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:09] "GET /api/ban/donhang/86 HTTP/1.1" 200 -
+2026-01-11 12:37:13,945 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:13] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:37:13,945 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:13] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:37:46,562 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:46] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:37:46,588 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:46] "POST /api/thungan/thanhtoan/86 HTTP/1.1" 200 -
+2026-01-11 12:37:46,589 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:46] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:37:46,767 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:46] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:37:48,981 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:37:48] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-11 12:38:03,388 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:03] "GET /bep HTTP/1.1" 200 -
+2026-01-11 12:38:03,429 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:03] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:38:03,607 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:03] "GET /static/css/bep.css HTTP/1.1" 200 -
+2026-01-11 12:38:03,807 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:03] "[36mGET /static/js/bep.js HTTP/1.1[0m" 304 -
+2026-01-11 12:38:04,133 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:04] "GET /socket.io/?EIO=4&transport=polling&t=PkhZy6e HTTP/1.1" 200 -
+2026-01-11 12:38:04,168 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:04] "GET /api/bep/donhang/lichsu?limit=100&type=day HTTP/1.1" 200 -
+2026-01-11 12:38:04,189 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:04] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:04,394 - __main__ - INFO - ✅ Client connected: BJBJ4A2GWKp6-mv7AAAF
+2026-01-11 12:38:04,398 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:04] "POST /socket.io/?EIO=4&transport=polling&t=PkhZyBi&sid=jb3Zqm-VNL6Mnd-GAAAE HTTP/1.1" 200 -
+2026-01-11 12:38:04,452 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:04] "GET /socket.io/?EIO=4&transport=polling&t=PkhZyBk&sid=jb3Zqm-VNL6Mnd-GAAAE HTTP/1.1" 200 -
+2026-01-11 12:38:11,444 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:11] "PUT /api/bep/donhang/86/trangthai HTTP/1.1" 200 -
+2026-01-11 12:38:11,718 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:11] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:11,762 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:11] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:11,791 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:11] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:12,029 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:12] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-11 12:38:13,635 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:13] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:13,950 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:13] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:38:14,703 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:14] "PUT /api/bep/donhang/86/trangthai HTTP/1.1" 200 -
+2026-01-11 12:38:14,948 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:14] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:15,021 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:15,029 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:15] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:15,267 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:15] "GET /api/bep/donhang/lichsu?limit=100&type=day HTTP/1.1" 200 -
+2026-01-11 12:38:17,063 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:17] "GET /api/bep/donhang/lichsu?limit=100&type=day HTTP/1.1" 200 -
+2026-01-11 12:38:21,153 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:21] "GET /admin HTTP/1.1" 200 -
+2026-01-11 12:38:21,187 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:21] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:38:21,384 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:21] "GET /static/css/admin.css HTTP/1.1" 200 -
+2026-01-11 12:38:21,539 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:21] "[36mGET /static/js/admin.js HTTP/1.1[0m" 304 -
+2026-01-11 12:38:21,875 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:21] "GET /socket.io/?EIO=4&transport=polling&t=Pkha0S0 HTTP/1.1" 200 -
+2026-01-11 12:38:21,902 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:21] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-11 12:38:22,134 - __main__ - INFO - ✅ Client connected: 2MZhlIM92hEyV7bzAAAH
+2026-01-11 12:38:22,135 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:22] "POST /socket.io/?EIO=4&transport=polling&t=Pkha0Wz&sid=vvngdvaNpITuEgOhAAAG HTTP/1.1" 200 -
+2026-01-11 12:38:22,204 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:22] "GET /socket.io/?EIO=4&transport=polling&t=Pkha0X0&sid=vvngdvaNpITuEgOhAAAG HTTP/1.1" 200 -
+2026-01-11 12:38:22,212 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:22] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:22,249 - __main__ - ERROR - ❌ Lỗi lấy top món bán chạy: ('42000', '[42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer. (1060) (SQLExecDirectW); [42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Statement(s) could not be prepared. (8180)')
+2026-01-11 12:38:22,249 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:22] "[35m[1mGET /api/admin/baocao/topmon?limit=5 HTTP/1.1[0m" 500 -
+2026-01-11 12:38:24,255 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:24] "GET /api/admin/donhang/hoanthanh HTTP/1.1" 200 -
+2026-01-11 12:38:24,553 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:24] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:27,997 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:27] "GET /api/ban/donhang/86 HTTP/1.1" 200 -
+2026-01-11 12:38:40,888 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:40] "GET /api/admin/ban HTTP/1.1" 200 -
+2026-01-11 12:38:44,344 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:44] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:44,349 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:44] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:38:44,534 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:44] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:38:46,864 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:46] "GET /api/admin/danhmuc HTTP/1.1" 200 -
+2026-01-11 12:38:49,357 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:49] "GET /api/khachhang HTTP/1.1" 200 -
+2026-01-11 12:38:58,932 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:38:58] "GET /api/khachhang/0982121680 HTTP/1.1" 200 -
+2026-01-11 12:39:05,359 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:05] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:39:14,040 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:14] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:39:14,352 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:14] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:39:24,690 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:24] "GET /api/admin/danhmuc HTTP/1.1" 200 -
+2026-01-11 12:39:25,049 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:25] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:39:25,839 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:25] "GET /api/admin/khuyenmai HTTP/1.1" 200 -
+2026-01-11 12:39:26,665 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:26] "GET /api/khachhang HTTP/1.1" 200 -
+2026-01-11 12:39:29,759 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:29] "GET /api/admin/baocao/doanhthu?tu_ngay=2025-12-12&den_ngay=2026-01-11 HTTP/1.1" 200 -
+2026-01-11 12:39:44,371 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:44] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:39:44,372 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:44] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:39:45,054 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:45] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:39:47,962 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:47] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-11 12:39:48,207 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:48] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-11 12:39:48,276 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:48] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:39:48,285 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:48] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:39:48,598 - __main__ - ERROR - ❌ Lỗi lấy top món bán chạy: ('42000', '[42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer. (1060) (SQLExecDirectW); [42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Statement(s) could not be prepared. (8180)')
+2026-01-11 12:39:48,598 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:48] "[35m[1mGET /api/admin/baocao/topmon?limit=5 HTTP/1.1[0m" 500 -
+2026-01-11 12:39:48,912 - __main__ - ERROR - ❌ Lỗi lấy top món bán chạy: ('42000', '[42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer. (1060) (SQLExecDirectW); [42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Statement(s) could not be prepared. (8180)')
+2026-01-11 12:39:48,914 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:48] "[35m[1mGET /api/admin/baocao/topmon?limit=5 HTTP/1.1[0m" 500 -
+2026-01-11 12:39:49,188 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:49] "GET /api/admin/donhang/hoanthanh HTTP/1.1" 200 -
+2026-01-11 12:39:53,041 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "GET /api/admin/menu HTTP/1.1" 200 -
+2026-01-11 12:39:53,380 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-11 12:39:53,382 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,382 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,382 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,389 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,402 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,698 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,712 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,714 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,716 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,731 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:53,736 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:53] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:54,020 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:54] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:54,044 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:54] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:54,044 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:54] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:39:56,271 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:39:56] "GET /api/admin/danhmuc HTTP/1.1" 200 -
+2026-01-11 12:40:04,759 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:04] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:40:14,354 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:14] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:40:14,356 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:14] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:40:25,363 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:25] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:40:25,584 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:25] "GET /?ban=1 HTTP/1.1" 200 -
+2026-01-11 12:40:25,846 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:25] "GET /static/css/index.css HTTP/1.1" 200 -
+2026-01-11 12:40:25,917 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:25] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:25,925 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:25] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-11 12:40:25,925 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:25] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-11 12:40:26,015 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "GET /socket.io/?EIO=4&transport=polling&t=PkhaUqQ HTTP/1.1" 200 -
+2026-01-11 12:40:26,355 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-11 12:40:26,359 - __main__ - INFO - ✅ Client connected: KKToVwcqDWaYOlltAAAJ
+2026-01-11 12:40:26,359 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "POST /socket.io/?EIO=4&transport=polling&t=PkhaUr3&sid=R0K0wV4ZAdEmtGkWAAAI HTTP/1.1" 200 -
+2026-01-11 12:40:26,385 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "GET /socket.io/?EIO=4&transport=polling&t=PkhaUrB&sid=R0K0wV4ZAdEmtGkWAAAI HTTP/1.1" 200 -
+2026-01-11 12:40:26,624 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "GET /api/menu HTTP/1.1" 200 -
+2026-01-11 12:40:26,670 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "GET /socket.io/?EIO=4&transport=polling&t=PkhaUwR&sid=R0K0wV4ZAdEmtGkWAAAI HTTP/1.1" 200 -
+2026-01-11 12:40:26,710 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-11 12:40:26,990 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-11 12:40:26,990 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:26,990 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:26,998 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:26] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,004 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,033 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,318 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,354 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,354 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,358 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,375 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,383 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,642 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,685 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:27,687 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:27] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:40:44,350 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:44] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:40:44,350 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:44] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:40:45,056 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:40:45] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:03,551 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2026-01-11 12:54:03,867 - __main__ - INFO - ✅ Kết nối database thành công
+2026-01-11 12:54:03,935 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.100.180:5000
+2026-01-11 12:54:03,937 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-11 12:54:03,937 - werkzeug - INFO -  * Restarting with stat
+2026-01-11 12:54:05,412 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2026-01-11 12:54:05,572 - __main__ - INFO - ✅ Kết nối database thành công
+2026-01-11 12:54:05,592 - werkzeug - WARNING -  * Debugger is active!
+2026-01-11 12:54:05,601 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2026-01-11 12:54:06,321 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:06] "GET /socket.io/?EIO=4&transport=polling&t=Pkhdd0s HTTP/1.1" 200 -
+2026-01-11 12:54:06,476 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:06] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:06,493 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:06] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:54:06,571 - __main__ - INFO - ✅ Client connected: EbqZ0S_JXadNjaV7AAAB
+2026-01-11 12:54:06,571 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:06] "POST /socket.io/?EIO=4&transport=polling&t=Pkhdd5w&sid=xmyyquUSax6VQAa9AAAA HTTP/1.1" 200 -
+2026-01-11 12:54:06,648 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:06] "GET /socket.io/?EIO=4&transport=polling&t=Pkhdd5-&sid=xmyyquUSax6VQAa9AAAA HTTP/1.1" 200 -
+2026-01-11 12:54:06,662 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:06] "GET /socket.io/?EIO=4&transport=polling&t=PkhddB2&sid=xmyyquUSax6VQAa9AAAA HTTP/1.1" 200 -
+2026-01-11 12:54:07,370 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:07] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:09,634 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:09] "GET /bep HTTP/1.1" 200 -
+2026-01-11 12:54:09,950 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:09] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:12,792 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:12] "GET /bep HTTP/1.1" 200 -
+2026-01-11 12:54:12,810 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:12] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:14,396 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:14] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:54:14,400 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:14] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:20,587 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:20] "GET /bep HTTP/1.1" 200 -
+2026-01-11 12:54:20,900 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:20] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:24,852 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:24] "GET /?ban=1 HTTP/1.1" 200 -
+2026-01-11 12:54:24,883 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:24] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-11 12:54:25,100 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:25,214 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-11 12:54:25,222 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-11 12:54:25,547 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "GET /socket.io/?EIO=4&transport=polling&t=PkhdhjH HTTP/1.1" 200 -
+2026-01-11 12:54:25,593 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-11 12:54:25,813 - __main__ - INFO - ✅ Client connected: k19T_7jQ_2YOwGxsAAAD
+2026-01-11 12:54:25,813 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "POST /socket.io/?EIO=4&transport=polling&t=PkhdhoO&sid=tUVirnI1ZnfWa_CKAAAC HTTP/1.1" 200 -
+2026-01-11 12:54:25,869 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "GET /socket.io/?EIO=4&transport=polling&t=PkhdhoT&sid=tUVirnI1ZnfWa_CKAAAC HTTP/1.1" 200 -
+2026-01-11 12:54:25,914 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "GET /socket.io/?EIO=4&transport=polling&t=PkhdhtO&sid=tUVirnI1ZnfWa_CKAAAC HTTP/1.1" 200 -
+2026-01-11 12:54:25,936 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:25] "GET /api/menu HTTP/1.1" 200 -
+2026-01-11 12:54:26,200 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:26,291 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,295 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,297 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-11 12:54:26,297 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,309 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,528 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,635 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,637 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,637 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,637 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,640 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,846 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,959 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,959 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:26,959 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:26] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:33,514 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:33] "POST /api/order/add HTTP/1.1" 200 -
+2026-01-11 12:54:33,642 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:33] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:33,848 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:33] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:35,961 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:35] "GET /bep HTTP/1.1" 200 -
+2026-01-11 12:54:36,300 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:36] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:54:43,036 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:43] "PUT /api/thungan/donhang/87/xacnhan HTTP/1.1" 200 -
+2026-01-11 12:54:43,055 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:43] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:43,944 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:43] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-11 12:54:43,964 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:43] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-11 12:54:45,970 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:45] "GET /bep HTTP/1.1" 200 -
+2026-01-11 12:54:46,295 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:54:46] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:55:03,218 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:03] "GET /bep HTTP/1.1" 200 -
+2026-01-11 12:55:03,246 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:03] "[36mGET /static/css/bep.css HTTP/1.1[0m" 304 -
+2026-01-11 12:55:03,460 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:03] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-11 12:55:03,562 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:03] "[36mGET /static/js/bep.js HTTP/1.1[0m" 304 -
+2026-01-11 12:55:03,895 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:03] "GET /socket.io/?EIO=4&transport=polling&t=Pkhdr4L HTTP/1.1" 200 -
+2026-01-11 12:55:03,917 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:03] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-11 12:55:03,933 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:03] "GET /api/bep/donhang/lichsu?limit=100&type=day HTTP/1.1" 200 -
+2026-01-11 12:55:04,138 - __main__ - INFO - ✅ Client connected: IRsE-5wPC5oTHYyAAAAF
+2026-01-11 12:55:04,138 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:04] "POST /socket.io/?EIO=4&transport=polling&t=Pkhdr9T&sid=Y_ovttf74YKILJ-FAAAE HTTP/1.1" 200 -
+2026-01-11 12:55:04,210 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:04] "GET /socket.io/?EIO=4&transport=polling&t=Pkhdr9V&sid=Y_ovttf74YKILJ-FAAAE HTTP/1.1" 200 -
+2026-01-11 12:55:04,217 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:04] "GET /socket.io/?EIO=4&transport=polling&t=PkhdrEO&sid=Y_ovttf74YKILJ-FAAAE HTTP/1.1" 200 -
+2026-01-11 12:55:13,589 - __main__ - INFO - ❌ Client disconnected: IRsE-5wPC5oTHYyAAAAF
+2026-01-11 12:55:13,591 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:13] "GET /socket.io/?EIO=4&transport=websocket&sid=Y_ovttf74YKILJ-FAAAE HTTP/1.1" 200 -
+2026-01-11 12:55:13,644 - __main__ - INFO - ❌ Client disconnected: EbqZ0S_JXadNjaV7AAAB
+2026-01-11 12:55:13,644 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:13] "GET /socket.io/?EIO=4&transport=websocket&sid=xmyyquUSax6VQAa9AAAA HTTP/1.1" 200 -
+2026-01-11 12:55:13,660 - __main__ - INFO - ❌ Client disconnected: k19T_7jQ_2YOwGxsAAAD
+2026-01-11 12:55:13,662 - werkzeug - INFO - 127.0.0.1 - - [11/Jan/2026 12:55:13] "GET /socket.io/?EIO=4&transport=websocket&sid=tUVirnI1ZnfWa_CKAAAC HTTP/1.1" 200 -
+2026-01-12 08:08:01,726 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2026-01-12 08:08:02,082 - __main__ - INFO - ✅ Kết nối database thành công
+2026-01-12 08:08:02,173 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.16.1.179:5000
+2026-01-12 08:08:02,173 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-01-12 08:08:02,175 - werkzeug - INFO -  * Restarting with stat
+2026-01-12 08:08:03,406 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2026-01-12 08:08:03,513 - __main__ - INFO - ✅ Kết nối database thành công
+2026-01-12 08:08:03,537 - werkzeug - WARNING -  * Debugger is active!
+2026-01-12 08:08:03,548 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2026-01-12 08:08:34,878 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:34] "GET /?ban=1 HTTP/1.1" 200 -
+2026-01-12 08:08:35,065 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:35,096 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-12 08:08:35,286 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-12 08:08:35,305 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-12 08:08:35,618 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "GET /socket.io/?EIO=4&transport=polling&t=PkllsTb HTTP/1.1" 200 -
+2026-01-12 08:08:35,661 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-12 08:08:35,676 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-12 08:08:35,940 - __main__ - INFO - ✅ Client connected: Vr0M0j_yGuJymlMHAAAB
+2026-01-12 08:08:35,940 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "POST /socket.io/?EIO=4&transport=polling&t=PkllsYf&sid=VnHhW59gjZw9ZywPAAAA HTTP/1.1" 200 -
+2026-01-12 08:08:35,946 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:35] "GET /socket.io/?EIO=4&transport=polling&t=PkllsYi&sid=VnHhW59gjZw9ZywPAAAA HTTP/1.1" 200 -
+2026-01-12 08:08:36,008 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "GET /api/menu HTTP/1.1" 200 -
+2026-01-12 08:08:36,360 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,375 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:08:36,398 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,404 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,414 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:08:36,417 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,693 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,731 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,757 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,774 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,783 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:36,789 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:36] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:37,051 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:37] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:37,080 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:37] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:37,107 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:37] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:37,112 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:37] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:39,709 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:39] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:08:53,832 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:53] "GET /?thungan HTTP/1.1" 200 -
+2026-01-12 08:08:53,877 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:53] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-12 08:08:54,068 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:54,157 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-12 08:08:54,177 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "GET /socket.io/?EIO=4&transport=polling&t=Pkllx4L HTTP/1.1" 200 -
+2026-01-12 08:08:54,177 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-12 08:08:54,474 - __main__ - INFO - ✅ Client connected: yeHkgEP6hrJtL0tpAAAD
+2026-01-12 08:08:54,474 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "POST /socket.io/?EIO=4&transport=polling&t=Pkllx4d&sid=fbyROCl2-84Fo5baAAAC HTTP/1.1" 200 -
+2026-01-12 08:08:54,493 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "GET /socket.io/?EIO=4&transport=polling&t=Pkllx4f&sid=fbyROCl2-84Fo5baAAAC HTTP/1.1" 200 -
+2026-01-12 08:08:54,499 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-12 08:08:54,507 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "GET /socket.io/?EIO=4&transport=polling&t=Pkllx9c&sid=fbyROCl2-84Fo5baAAAC HTTP/1.1" 200 -
+2026-01-12 08:08:54,830 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:54] "GET /api/menu HTTP/1.1" 200 -
+2026-01-12 08:08:55,174 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:08:55,177 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,177 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,180 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,183 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,185 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:08:55,487 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,513 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,513 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,513 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,513 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,517 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,826 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,828 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,842 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:08:55,843 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:08:55] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:06,156 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "GET /?8 HTTP/1.1" 200 -
+2026-01-12 08:09:06,190 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-12 08:09:06,226 - __main__ - INFO - ❌ Client disconnected: yeHkgEP6hrJtL0tpAAAD
+2026-01-12 08:09:06,228 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "GET /socket.io/?EIO=4&transport=websocket&sid=fbyROCl2-84Fo5baAAAC HTTP/1.1" 200 -
+2026-01-12 08:09:06,415 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:06,490 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:06,490 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:06,502 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "GET /socket.io/?EIO=4&transport=polling&t=Pkll-53 HTTP/1.1" 200 -
+2026-01-12 08:09:06,813 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-12 08:09:06,829 - __main__ - INFO - ✅ Client connected: S399uW66ddNUk0V4AAAF
+2026-01-12 08:09:06,833 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "POST /socket.io/?EIO=4&transport=polling&t=Pkll-5N&sid=yXvXBK_wBDUjAvOnAAAE HTTP/1.1" 200 -
+2026-01-12 08:09:06,833 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:06] "GET /socket.io/?EIO=4&transport=polling&t=Pkll-5O&sid=yXvXBK_wBDUjAvOnAAAE HTTP/1.1" 200 -
+2026-01-12 08:09:07,135 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "GET /api/menu HTTP/1.1" 200 -
+2026-01-12 08:09:07,143 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "GET /socket.io/?EIO=4&transport=polling&t=Pkll-AN&sid=yXvXBK_wBDUjAvOnAAAE HTTP/1.1" 200 -
+2026-01-12 08:09:07,467 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,469 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,470 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,473 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,473 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,483 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:09:07,799 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,800 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,800 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,802 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,806 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:07,821 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:07] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:08,116 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:08] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:09:08,116 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:08] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:08,116 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:08] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:08,442 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:08] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:17,917 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:17] "GET /?ban=6 HTTP/1.1" 200 -
+2026-01-12 08:09:18,111 - __main__ - INFO - ❌ Client disconnected: Vr0M0j_yGuJymlMHAAAB
+2026-01-12 08:09:18,112 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "GET /socket.io/?EIO=4&transport=websocket&sid=VnHhW59gjZw9ZywPAAAA HTTP/1.1" 200 -
+2026-01-12 08:09:18,253 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-12 08:09:18,253 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:18,277 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:18,290 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:18,500 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "GET /socket.io/?EIO=4&transport=polling&t=Pklm0zC HTTP/1.1" 200 -
+2026-01-12 08:09:18,603 - __main__ - INFO - ✅ Client connected: 4IEG4I7pTfTZXpSdAAAH
+2026-01-12 08:09:18,606 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "POST /socket.io/?EIO=4&transport=polling&t=Pklm10h&sid=kqwxzsj_iKmScT0AAAAG HTTP/1.1" 200 -
+2026-01-12 08:09:18,607 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "[33mGET /api/ban/6 HTTP/1.1[0m" 404 -
+2026-01-12 08:09:18,813 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "GET /socket.io/?EIO=4&transport=polling&t=Pklm10i&sid=kqwxzsj_iKmScT0AAAAG HTTP/1.1" 200 -
+2026-01-12 08:09:18,825 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:18] "GET /socket.io/?EIO=4&transport=polling&t=Pklm15d&sid=kqwxzsj_iKmScT0AAAAG HTTP/1.1" 200 -
+2026-01-12 08:09:23,797 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:23] "GET /?6 HTTP/1.1" 200 -
+2026-01-12 08:09:23,834 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:23] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-12 08:09:23,879 - __main__ - INFO - ❌ Client disconnected: S399uW66ddNUk0V4AAAF
+2026-01-12 08:09:23,879 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:23] "GET /socket.io/?EIO=4&transport=websocket&sid=yXvXBK_wBDUjAvOnAAAE HTTP/1.1" 200 -
+2026-01-12 08:09:24,059 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:24,133 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:24,136 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:24,158 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "GET /socket.io/?EIO=4&transport=polling&t=Pklm2Ok HTTP/1.1" 200 -
+2026-01-12 08:09:24,482 - __main__ - INFO - ✅ Client connected: E3kVX9j6d5vw_7KvAAAJ
+2026-01-12 08:09:24,484 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "POST /socket.io/?EIO=4&transport=polling&t=Pklm2PC&sid=VK6LBv6TezKa5ZF7AAAI HTTP/1.1" 200 -
+2026-01-12 08:09:24,486 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-12 08:09:24,493 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "GET /socket.io/?EIO=4&transport=polling&t=Pklm2PE&sid=VK6LBv6TezKa5ZF7AAAI HTTP/1.1" 200 -
+2026-01-12 08:09:24,813 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "GET /api/menu HTTP/1.1" 200 -
+2026-01-12 08:09:24,825 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:24] "GET /socket.io/?EIO=4&transport=polling&t=Pklm2US&sid=VK6LBv6TezKa5ZF7AAAI HTTP/1.1" 200 -
+2026-01-12 08:09:25,152 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,152 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,152 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,152 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,162 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,186 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:09:25,484 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,488 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,503 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,516 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,526 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,534 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,803 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,831 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:25,832 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:25] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:09:26,162 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:26] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:33,314 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:33] "GET /?ban=1 HTTP/1.1" 200 -
+2026-01-12 08:09:33,411 - __main__ - INFO - ❌ Client disconnected: 4IEG4I7pTfTZXpSdAAAH
+2026-01-12 08:09:33,411 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:33] "GET /socket.io/?EIO=4&transport=websocket&sid=kqwxzsj_iKmScT0AAAAG HTTP/1.1" 200 -
+2026-01-12 08:09:33,656 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:33] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-12 08:09:33,656 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:33] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:33,678 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:33] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:33,690 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:33] "GET /socket.io/?EIO=4&transport=polling&t=Pklm4jo HTTP/1.1" 200 -
+2026-01-12 08:09:33,907 - __main__ - INFO - ✅ Client connected: hLw4dZhyjOIttT5mAAAL
+2026-01-12 08:09:33,908 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:33] "POST /socket.io/?EIO=4&transport=polling&t=Pklm4j-&sid=W8QothmK7LUx909mAAAK HTTP/1.1" 200 -
+2026-01-12 08:09:33,991 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:33] "GET /socket.io/?EIO=4&transport=polling&t=Pklm4k0&sid=W8QothmK7LUx909mAAAK HTTP/1.1" 200 -
+2026-01-12 08:09:34,023 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "GET /socket.io/?EIO=4&transport=polling&t=Pklm4oi&sid=W8QothmK7LUx909mAAAK HTTP/1.1" 200 -
+2026-01-12 08:09:34,023 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:34,310 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-12 08:09:34,361 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "GET /api/menu HTTP/1.1" 200 -
+2026-01-12 08:09:34,646 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:09:34,693 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:34,693 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:34,701 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:34,702 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:34,708 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:34,965 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:34] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:35,022 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:35,025 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:35,033 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:35,033 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:35,041 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:35,279 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:35,341 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:09:35,341 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:35,667 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:35] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:44,138 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "GET /thungan HTTP/1.1" 200 -
+2026-01-12 08:09:44,267 - __main__ - INFO - ❌ Client disconnected: E3kVX9j6d5vw_7KvAAAJ
+2026-01-12 08:09:44,268 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "GET /socket.io/?EIO=4&transport=websocket&sid=VK6LBv6TezKa5ZF7AAAI HTTP/1.1" 200 -
+2026-01-12 08:09:44,414 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "[36mGET /static/css/thungan.css HTTP/1.1[0m" 304 -
+2026-01-12 08:09:44,475 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:09:44,578 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "[36mGET /static/js/thungan.js HTTP/1.1[0m" 304 -
+2026-01-12 08:09:44,909 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "GET /socket.io/?EIO=4&transport=polling&t=Pklm7ON HTTP/1.1" 200 -
+2026-01-12 08:09:44,971 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:09:44,975 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "GET /api/thungan/khuyenmai HTTP/1.1" 200 -
+2026-01-12 08:09:44,983 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:44] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:09:45,004 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:45] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-12 08:09:45,174 - __main__ - INFO - ✅ Client connected: Dn07chH1Jz8nq7azAAAN
+2026-01-12 08:09:45,175 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:45] "POST /socket.io/?EIO=4&transport=polling&t=Pklm7TH&sid=gvdriI1sONbXbfRcAAAM HTTP/1.1" 200 -
+2026-01-12 08:09:45,227 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:45] "GET /socket.io/?EIO=4&transport=polling&t=Pklm7TI&sid=gvdriI1sONbXbfRcAAAM HTTP/1.1" 200 -
+2026-01-12 08:09:45,536 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:45] "GET /socket.io/?EIO=4&transport=polling&t=Pklm7YH&sid=gvdriI1sONbXbfRcAAAM HTTP/1.1" 200 -
+2026-01-12 08:09:49,081 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:49] "GET /api/thungan/khuyenmai HTTP/1.1" 200 -
+2026-01-12 08:09:49,420 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:49] "GET /api/ban/donhang/87 HTTP/1.1" 200 -
+2026-01-12 08:09:53,401 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:53] "POST /api/thungan/thanhtoan/87 HTTP/1.1" 200 -
+2026-01-12 08:09:53,722 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:53] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:09:54,767 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:54] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:09:55,099 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:55] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-12 08:09:55,350 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:55] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-12 08:09:55,410 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:55] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-12 08:09:59,730 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:09:59] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:10:00,042 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:00] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:10:15,349 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:10:15,358 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:10:37,412 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:37] "GET /bep HTTP/1.1" 200 -
+2026-01-12 08:10:37,497 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:37] "[36mGET /static/css/bep.css HTTP/1.1[0m" 304 -
+2026-01-12 08:10:37,675 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:37] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:10:37,769 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:37] "[36mGET /static/js/bep.js HTTP/1.1[0m" 304 -
+2026-01-12 08:10:37,780 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:37] "GET /socket.io/?EIO=4&transport=polling&t=PklmKNH HTTP/1.1" 200 -
+2026-01-12 08:10:38,112 - __main__ - INFO - ✅ Client connected: 23k67wvTfTD9X-zTAAAP
+2026-01-12 08:10:38,114 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:38] "POST /socket.io/?EIO=4&transport=polling&t=PklmKNW&sid=ookTxJVnU67WYYlTAAAO HTTP/1.1" 200 -
+2026-01-12 08:10:38,114 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:38] "GET /socket.io/?EIO=4&transport=polling&t=PklmKNZ&sid=ookTxJVnU67WYYlTAAAO HTTP/1.1" 200 -
+2026-01-12 08:10:38,149 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:38] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:10:38,167 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:38] "GET /api/bep/donhang/lichsu?limit=100&type=day HTTP/1.1" 200 -
+2026-01-12 08:10:45,786 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:10:45,798 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:10:46,400 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:46] "GET /admin HTTP/1.1" 200 -
+2026-01-12 08:10:46,669 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:46] "[36mGET /static/css/admin.css HTTP/1.1[0m" 304 -
+2026-01-12 08:10:46,727 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:46] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:10:46,769 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:46] "[36mGET /static/js/admin.js HTTP/1.1[0m" 304 -
+2026-01-12 08:10:47,097 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:47] "GET /socket.io/?EIO=4&transport=polling&t=PklmMZy HTTP/1.1" 200 -
+2026-01-12 08:10:47,120 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:47] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-12 08:10:47,361 - __main__ - INFO - ✅ Client connected: rFjJ0z_oLEVzNWCeAAAR
+2026-01-12 08:10:47,361 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:47] "POST /socket.io/?EIO=4&transport=polling&t=PklmMf2&sid=YGkk6dr5hSnNF1siAAAQ HTTP/1.1" 200 -
+2026-01-12 08:10:47,416 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:47] "GET /socket.io/?EIO=4&transport=polling&t=PklmMf4&sid=YGkk6dr5hSnNF1siAAAQ HTTP/1.1" 200 -
+2026-01-12 08:10:47,432 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:47] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:10:47,448 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:47] "GET /socket.io/?EIO=4&transport=polling&t=PklmMk0&sid=YGkk6dr5hSnNF1siAAAQ HTTP/1.1" 200 -
+2026-01-12 08:10:47,752 - __main__ - ERROR - ❌ Lỗi lấy top món bán chạy: ('42000', '[42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer. (1060) (SQLExecDirectW); [42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Statement(s) could not be prepared. (8180)')
+2026-01-12 08:10:47,754 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:47] "[35m[1mGET /api/admin/baocao/topmon?limit=5 HTTP/1.1[0m" 500 -
+2026-01-12 08:10:58,795 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:10:58] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:10,637 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:10] "PUT /api/bep/donhang/87/trangthai HTTP/1.1" 200 -
+2026-01-12 08:11:10,897 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:10] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:10,978 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:10] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:11,003 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:11] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:11,205 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:11] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-01-12 08:11:13,482 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:13] "PUT /api/bep/donhang/87/trangthai HTTP/1.1" 200 -
+2026-01-12 08:11:13,820 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:13] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:13,834 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:13] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:14,076 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:14] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:14,176 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:14] "GET /api/bep/donhang/lichsu?limit=100&type=day HTTP/1.1" 200 -
+2026-01-12 08:11:15,773 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:11:15,782 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:16,116 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:16] "GET /api/bep/donhang/lichsu?limit=100&type=day HTTP/1.1" 200 -
+2026-01-12 08:11:18,570 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:18] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:27,248 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:27] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:38,571 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:38] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:45,780 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:11:45,780 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:11:58,799 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:11:58] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:12:15,797 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:12:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:12:15,800 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:12:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:12:18,488 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:12:18] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:12:38,800 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:12:38] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:12:45,778 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:12:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:12:45,780 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:12:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:13:09,816 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:13:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:14:09,789 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:14:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:14:09,799 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:14:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:14:09,812 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:14:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:15:09,786 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:15:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:15:09,790 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:15:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:15:09,802 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:15:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:15:51,196 - __main__ - INFO - ❌ Client disconnected: rFjJ0z_oLEVzNWCeAAAR
+2026-01-12 08:15:51,200 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:15:51] "GET /socket.io/?EIO=4&transport=websocket&sid=YGkk6dr5hSnNF1siAAAQ HTTP/1.1" 200 -
+2026-01-12 08:16:02,887 - __main__ - INFO - ❌ Client disconnected: Dn07chH1Jz8nq7azAAAN
+2026-01-12 08:16:02,890 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:02] "GET /socket.io/?EIO=4&transport=websocket&sid=gvdriI1sONbXbfRcAAAM HTTP/1.1" 200 -
+2026-01-12 08:16:09,803 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:16:17,523 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:17] "GET /socket.io/?EIO=4&transport=polling&t=PklndJl HTTP/1.1" 200 -
+2026-01-12 08:16:17,840 - __main__ - INFO - ✅ Client connected: Yn3llYQIiOZYPqfaAAAT
+2026-01-12 08:16:17,840 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:17] "POST /socket.io/?EIO=4&transport=polling&t=PklndJt&sid=xLCzcbrUScNm_iSyAAAS HTTP/1.1" 200 -
+2026-01-12 08:16:17,846 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:17] "GET /socket.io/?EIO=4&transport=polling&t=PklndJv&sid=xLCzcbrUScNm_iSyAAAS HTTP/1.1" 200 -
+2026-01-12 08:16:18,007 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:18] "GET /api/admin/khuyenmai HTTP/1.1" 200 -
+2026-01-12 08:16:23,249 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:23] "DELETE /api/admin/khuyenmai/4 HTTP/1.1" 200 -
+2026-01-12 08:16:23,562 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:23] "GET /api/admin/khuyenmai HTTP/1.1" 200 -
+2026-01-12 08:16:28,818 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:28] "GET /api/admin/ban HTTP/1.1" 200 -
+2026-01-12 08:16:31,246 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:31] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:16:31,254 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:31] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:16:32,461 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:32] "GET /socket.io/?EIO=4&transport=polling&t=PklngzA HTTP/1.1" 200 -
+2026-01-12 08:16:32,788 - __main__ - INFO - ✅ Client connected: l-IiWhTpJE-vqApFAAAV
+2026-01-12 08:16:32,788 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:32] "POST /socket.io/?EIO=4&transport=polling&t=PklngzK&sid=Wg7Y9RolfNW8tQVCAAAU HTTP/1.1" 200 -
+2026-01-12 08:16:32,788 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:32] "GET /socket.io/?EIO=4&transport=polling&t=PklngzM&sid=Wg7Y9RolfNW8tQVCAAAU HTTP/1.1" 200 -
+2026-01-12 08:16:45,466 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:16:45,767 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:16:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:17:10,674 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:17:10] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:17:15,471 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:17:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:17:15,779 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:17:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:18:12,591 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:18:12] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:18:12,591 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:18:12] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:18:12,608 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:18:12] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:09,798 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:19:09,799 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:09,817 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:25,164 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:25] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:26,923 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:26] "GET /api/admin/khuyenmai HTTP/1.1" 200 -
+2026-01-12 08:19:32,350 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:32] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:19:32,350 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:32] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:36,520 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:36] "POST /api/order/add HTTP/1.1" 200 -
+2026-01-12 08:19:36,861 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:36] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:36,863 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:36] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:38,494 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:38] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:40,472 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:40] "GET /api/thungan/khuyenmai HTTP/1.1" 200 -
+2026-01-12 08:19:40,733 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:40] "GET /api/ban/donhang/88 HTTP/1.1" 200 -
+2026-01-12 08:19:45,367 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:19:45,370 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:19:58,802 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:19:58] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:20:15,357 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:20:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:20:15,361 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:20:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:20:18,490 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:20:18] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:20:45,354 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:20:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:20:45,360 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:20:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:21:01,695 - __main__ - INFO - ❌ Client disconnected: 23k67wvTfTD9X-zTAAAP
+2026-01-12 08:21:01,695 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:21:01] "GET /socket.io/?EIO=4&transport=websocket&sid=ookTxJVnU67WYYlTAAAO HTTP/1.1" 200 -
+2026-01-12 08:21:17,079 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:21:17] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:21:17,083 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:21:17] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:21:45,355 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:21:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:21:45,358 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:21:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:22:15,355 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:22:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:22:15,357 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:22:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:22:45,351 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:22:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:22:45,358 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:22:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:23:00,691 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:23:00] "GET /api/ban/donhang/88 HTTP/1.1" 200 -
+2026-01-12 08:23:15,772 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:23:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:23:15,777 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:23:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:23:45,777 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:23:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:23:45,781 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:23:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:24:50,510 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:24:50] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-12 08:24:50,764 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:24:50] "GET /api/admin/dashboard HTTP/1.1" 200 -
+2026-01-12 08:24:50,828 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:24:50] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:24:50,850 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:24:50] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:24:51,162 - __main__ - ERROR - ❌ Lỗi lấy top món bán chạy: ('42000', '[42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer. (1060) (SQLExecDirectW); [42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Statement(s) could not be prepared. (8180)')
+2026-01-12 08:24:51,162 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:24:51] "[35m[1mGET /api/admin/baocao/topmon?limit=5 HTTP/1.1[0m" 500 -
+2026-01-12 08:24:51,480 - __main__ - ERROR - ❌ Lỗi lấy top món bán chạy: ('42000', '[42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The number of rows provided for a TOP or FETCH clauses row count parameter must be an integer. (1060) (SQLExecDirectW); [42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Statement(s) could not be prepared. (8180)')
+2026-01-12 08:24:51,482 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:24:51] "[35m[1mGET /api/admin/baocao/topmon?limit=5 HTTP/1.1[0m" 500 -
+2026-01-12 08:24:58,088 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:24:58] "GET /api/admin/baocao/doanhthu?tu_ngay=2025-12-13&den_ngay=2026-01-12 HTTP/1.1" 200 -
+2026-01-12 08:25:09,475 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:25:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:25:09,775 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:25:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:26:10,394 - __main__ - INFO - ❌ Client disconnected: l-IiWhTpJE-vqApFAAAV
+2026-01-12 08:26:10,394 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:26:10] "GET /socket.io/?EIO=4&transport=websocket&sid=Wg7Y9RolfNW8tQVCAAAU HTTP/1.1" 200 -
+2026-01-12 08:31:34,032 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:31:34] "GET /api/admin/khuyenmai HTTP/1.1" 200 -
+2026-01-12 08:31:45,441 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:31:45] "GET /api/admin/danhmuc HTTP/1.1" 200 -
+2026-01-12 08:32:32,764 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:32] "GET /api/admin/menu HTTP/1.1" 200 -
+2026-01-12 08:32:33,012 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:32:33,100 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,100 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,103 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,104 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,125 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,328 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,418 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,428 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,428 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,443 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,462 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,660 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,736 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:33,745 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:33] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:49,772 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:49] "GET /api/admin/danhmuc HTTP/1.1" 200 -
+2026-01-12 08:32:53,741 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:53] "PUT /api/admin/menu/17 HTTP/1.1" 200 -
+2026-01-12 08:32:54,061 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:54] "GET /api/admin/menu HTTP/1.1" 200 -
+2026-01-12 08:32:54,326 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:54] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:32:56,935 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:56] "GET /?ban=1 HTTP/1.1" 200 -
+2026-01-12 08:32:56,957 - __main__ - INFO - ❌ Client disconnected: hLw4dZhyjOIttT5mAAAL
+2026-01-12 08:32:56,957 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:56] "GET /socket.io/?EIO=4&transport=websocket&sid=W8QothmK7LUx909mAAAK HTTP/1.1" 200 -
+2026-01-12 08:32:57,239 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-12 08:32:57,276 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-12 08:32:57,276 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:57,280 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-12 08:32:57,593 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "GET /socket.io/?EIO=4&transport=polling&t=PklrRP3 HTTP/1.1" 200 -
+2026-01-12 08:32:57,626 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-12 08:32:57,862 - __main__ - INFO - ✅ Client connected: HYgRLLEp3RfQ0JFWAAAX
+2026-01-12 08:32:57,862 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "POST /socket.io/?EIO=4&transport=polling&t=PklrRT_&sid=Zw2415SeRxcTZ_4zAAAW HTTP/1.1" 200 -
+2026-01-12 08:32:57,923 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "GET /socket.io/?EIO=4&transport=polling&t=PklrRU1&sid=Zw2415SeRxcTZ_4zAAAW HTTP/1.1" 200 -
+2026-01-12 08:32:57,943 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "GET /api/menu HTTP/1.1" 200 -
+2026-01-12 08:32:57,946 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:57] "GET /socket.io/?EIO=4&transport=polling&t=PklrRZC&sid=Zw2415SeRxcTZ_4zAAAW HTTP/1.1" 200 -
+2026-01-12 08:32:58,260 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:32:58,280 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,287 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,289 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,289 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,293 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,585 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,604 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,604 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,621 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,621 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,621 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,906 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:58,938 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:32:58,938 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:58] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:32:59,269 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:32:59] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:33:05,336 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:05] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:33:07,584 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:07] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:33:07,599 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:07] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:33:08,129 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:08] "GET /socket.io/?EIO=4&transport=polling&t=PklrU2V HTTP/1.1" 200 -
+2026-01-12 08:33:08,447 - __main__ - INFO - ✅ Client connected: 38G9vsqo1miLkbW6AAAZ
+2026-01-12 08:33:08,449 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:08] "POST /socket.io/?EIO=4&transport=polling&t=PklrU2c&sid=TqzkD9OtlfxgFI2nAAAY HTTP/1.1" 200 -
+2026-01-12 08:33:08,451 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:08] "GET /socket.io/?EIO=4&transport=polling&t=PklrU2e&sid=TqzkD9OtlfxgFI2nAAAY HTTP/1.1" 200 -
+2026-01-12 08:33:15,045 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:33:15,344 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:33:19,865 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:19] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:33:20,538 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:20] "GET /socket.io/?EIO=4&transport=polling&t=PklrX4M HTTP/1.1" 200 -
+2026-01-12 08:33:20,858 - __main__ - INFO - ✅ Client connected: av4Iw-OVPe3RYikZAAAb
+2026-01-12 08:33:20,858 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:20] "POST /socket.io/?EIO=4&transport=polling&t=PklrX4T&sid=TVA67S9kSOAuz5fHAAAa HTTP/1.1" 200 -
+2026-01-12 08:33:20,858 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:20] "GET /socket.io/?EIO=4&transport=polling&t=PklrX4V&sid=TVA67S9kSOAuz5fHAAAa HTTP/1.1" 200 -
+2026-01-12 08:33:38,252 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:38] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:33:45,793 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:33:45,793 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:33:58,485 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:33:58] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:34:15,336 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:34:15,339 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:34:18,472 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:18] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:34:38,791 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:38] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:34:45,471 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:34:45,789 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:34:53,579 - werkzeug - INFO -  * Detected change in 'C:\\ThucTapTotNghiep\\K22CNT3K22-LeVanHoang-2210900024-TTTN\\SmastOder\\backend\\db.py', reloading
+2026-01-12 08:34:53,768 - werkzeug - INFO -  * Restarting with stat
+2026-01-12 08:34:55,404 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2026-01-12 08:34:55,545 - __main__ - INFO - ✅ Kết nối database thành công
+2026-01-12 08:34:55,572 - werkzeug - WARNING -  * Debugger is active!
+2026-01-12 08:34:55,583 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2026-01-12 08:34:55,604 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "GET /socket.io/?EIO=4&transport=polling&t=Pklrt_z HTTP/1.1" 200 -
+2026-01-12 08:34:55,604 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "GET /socket.io/?EIO=4&transport=polling&t=Pklrt_- HTTP/1.1" 200 -
+2026-01-12 08:34:55,609 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "GET /socket.io/?EIO=4&transport=polling&t=PklruFZ HTTP/1.1" 200 -
+2026-01-12 08:34:55,770 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "GET /socket.io/?EIO=4&transport=polling&t=PklruFe HTTP/1.1" 200 -
+2026-01-12 08:34:55,924 - __main__ - INFO - ✅ Client connected: -vx86Twwx9Nlp8CVAAAE
+2026-01-12 08:34:55,931 - __main__ - INFO - ✅ Client connected: GBqBh7KWOBQFe8zEAAAF
+2026-01-12 08:34:55,937 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "POST /socket.io/?EIO=4&transport=polling&t=PklruHv&sid=D8zyfpioksk5IzT1AAAA HTTP/1.1" 200 -
+2026-01-12 08:34:55,939 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "POST /socket.io/?EIO=4&transport=polling&t=PklruHz&sid=_weXtuYz9W4VDq87AAAB HTTP/1.1" 200 -
+2026-01-12 08:34:55,939 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "GET /socket.io/?EIO=4&transport=polling&t=PklruH_&sid=_weXtuYz9W4VDq87AAAB HTTP/1.1" 200 -
+2026-01-12 08:34:55,939 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "GET /socket.io/?EIO=4&transport=polling&t=PklruHz&sid=D8zyfpioksk5IzT1AAAA HTTP/1.1" 200 -
+2026-01-12 08:34:55,942 - __main__ - INFO - ✅ Client connected: rzGc5O_IbrrKPrwwAAAG
+2026-01-12 08:34:55,955 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:55] "POST /socket.io/?EIO=4&transport=polling&t=PklruI3&sid=0qLsRwNdvHF5KAl7AAAC HTTP/1.1" 200 -
+2026-01-12 08:34:56,076 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:56] "GET /socket.io/?EIO=4&transport=polling&t=PklruI5&sid=0qLsRwNdvHF5KAl7AAAC HTTP/1.1" 200 -
+2026-01-12 08:34:56,256 - __main__ - INFO - ✅ Client connected: b22sRc4ICqBG6tdoAAAH
+2026-01-12 08:34:56,256 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:56] "POST /socket.io/?EIO=4&transport=polling&t=PklruKX&sid=nFhiXWOSVj6i9MorAAAD HTTP/1.1" 200 -
+2026-01-12 08:34:56,261 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:56] "GET /socket.io/?EIO=4&transport=polling&t=PklruKZ&sid=nFhiXWOSVj6i9MorAAAD HTTP/1.1" 200 -
+2026-01-12 08:34:56,291 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:56] "GET /socket.io/?EIO=4&transport=polling&t=PklruNZ&sid=_weXtuYz9W4VDq87AAAB HTTP/1.1" 200 -
+2026-01-12 08:34:58,802 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:58] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:34:59,916 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:59] "GET /?ban=1 HTTP/1.1" 200 -
+2026-01-12 08:34:59,930 - __main__ - INFO - ❌ Client disconnected: -vx86Twwx9Nlp8CVAAAE
+2026-01-12 08:34:59,930 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:34:59] "GET /socket.io/?EIO=4&transport=websocket&sid=D8zyfpioksk5IzT1AAAA HTTP/1.1" 200 -
+2026-01-12 08:35:00,461 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:00] "[36mGET /static/css/index.css HTTP/1.1[0m" 304 -
+2026-01-12 08:35:00,526 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:00] "[36mGET /static/image/logo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:00,534 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:00] "[36mGET /static/js/client.js HTTP/1.1[0m" 304 -
+2026-01-12 08:35:00,539 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:00] "[36mGET /static/js/lang-switcher.js HTTP/1.1[0m" 304 -
+2026-01-12 08:35:00,855 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:00] "GET /socket.io/?EIO=4&transport=polling&t=PklrvUw HTTP/1.1" 200 -
+2026-01-12 08:35:00,860 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:00] "GET /api/ban/1 HTTP/1.1" 200 -
+2026-01-12 08:35:01,176 - __main__ - INFO - ✅ Client connected: D0nJ646sjBV0TtooAAAJ
+2026-01-12 08:35:01,180 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "POST /socket.io/?EIO=4&transport=polling&t=PklrvZz&sid=oGBjH71c0M0u80IqAAAI HTTP/1.1" 200 -
+2026-01-12 08:35:01,184 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "GET /socket.io/?EIO=4&transport=polling&t=PklrvZ_&sid=oGBjH71c0M0u80IqAAAI HTTP/1.1" 200 -
+2026-01-12 08:35:01,212 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "GET /api/menu HTTP/1.1" 200 -
+2026-01-12 08:35:01,533 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/miga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,538 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/mirau.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,545 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/midb.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,552 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/combo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,555 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/comga.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,563 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "GET /api/ban/1/donhang HTTP/1.1" 200 -
+2026-01-12 08:35:01,851 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/chanh.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,870 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/coca.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,875 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/camep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,878 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/duaep.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,888 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/themcom.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:01,894 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:01] "[36mGET /static/images/thembo.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:02,173 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:02] "[36mGET /static/images/themmi.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:02,191 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:02] "[33mGET /static/images/ HTTP/1.1[0m" 404 -
+2026-01-12 08:35:02,191 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:02] "[36mGET /static/images/nemnuong.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:02,294 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:02] "[36mGET /static/images/no-image.jpg HTTP/1.1[0m" 304 -
+2026-01-12 08:35:07,703 - werkzeug - INFO -  * Detected change in 'C:\\ThucTapTotNghiep\\K22CNT3K22-LeVanHoang-2210900024-TTTN\\SmastOder\\backend\\db.py', reloading
+2026-01-12 08:35:07,847 - werkzeug - INFO -  * Restarting with stat
+2026-01-12 08:35:09,151 - __main__ - INFO - Selected ODBC driver: ODBC Driver 17 for SQL Server
+2026-01-12 08:35:09,264 - __main__ - INFO - ✅ Kết nối database thành công
+2026-01-12 08:35:09,288 - werkzeug - WARNING -  * Debugger is active!
+2026-01-12 08:35:09,294 - werkzeug - INFO -  * Debugger PIN: 197-835-312
+2026-01-12 08:35:09,317 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:09] "GET /socket.io/?EIO=4&transport=polling&t=PklrxQi HTTP/1.1" 200 -
+2026-01-12 08:35:09,323 - __main__ - INFO - ✅ Client connected: E-ignLzwr7R7vPBPAAAB
+2026-01-12 08:35:09,323 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:09] "POST /socket.io/?EIO=4&transport=polling&t=PklrxeA&sid=tSCEhB48tW2i3DXTAAAA HTTP/1.1" 200 -
+2026-01-12 08:35:09,635 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:09] "GET /socket.io/?EIO=4&transport=polling&t=PklrxeB&sid=tSCEhB48tW2i3DXTAAAA HTTP/1.1" 200 -
+2026-01-12 08:35:09,768 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:09] "GET /socket.io/?EIO=4&transport=polling&t=PklrxgI HTTP/1.1" 200 -
+2026-01-12 08:35:09,768 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:09] "GET /socket.io/?EIO=4&transport=polling&t=PklrxgJ HTTP/1.1" 200 -
+2026-01-12 08:35:10,080 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:10] "GET /socket.io/?EIO=4&transport=polling&t=PklrxgI HTTP/1.1" 200 -
+2026-01-12 08:35:10,086 - __main__ - INFO - ✅ Client connected: wRhvnd3vwEQBcOGbAAAF
+2026-01-12 08:35:10,091 - __main__ - INFO - ✅ Client connected: diy0_i4hutWy_LZ9AAAG
+2026-01-12 08:35:10,091 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:10] "POST /socket.io/?EIO=4&transport=polling&t=PklrxlI&sid=xSUvRML3w5_D8fcNAAAC HTTP/1.1" 200 -
+2026-01-12 08:35:10,094 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:10] "POST /socket.io/?EIO=4&transport=polling&t=PklrxlK&sid=ryIpMgngBXwT2MQPAAAD HTTP/1.1" 200 -
+2026-01-12 08:35:10,095 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:10] "GET /socket.io/?EIO=4&transport=polling&t=PklrxlM&sid=ryIpMgngBXwT2MQPAAAD HTTP/1.1" 200 -
+2026-01-12 08:35:10,096 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:10] "GET /socket.io/?EIO=4&transport=polling&t=PklrxlK&sid=xSUvRML3w5_D8fcNAAAC HTTP/1.1" 200 -
+2026-01-12 08:35:10,401 - __main__ - INFO - ✅ Client connected: oXAafE4_ZWvBOAm9AAAH
+2026-01-12 08:35:10,401 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:10] "POST /socket.io/?EIO=4&transport=polling&t=Pklrxq8&sid=eu0bP4gA1Bi1RqmqAAAE HTTP/1.1" 200 -
+2026-01-12 08:35:10,401 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:10] "GET /socket.io/?EIO=4&transport=polling&t=Pklrxq9&sid=eu0bP4gA1Bi1RqmqAAAE HTTP/1.1" 200 -
+2026-01-12 08:35:10,412 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:10] "GET /socket.io/?EIO=4&transport=polling&t=PklrxqU&sid=ryIpMgngBXwT2MQPAAAD HTTP/1.1" 200 -
+2026-01-12 08:35:15,782 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:15] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:35:15,782 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:15] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:35:45,784 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:45] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:35:45,790 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:35:45] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:36:09,494 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:36:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:37:09,807 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:37:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:37:09,807 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:37:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:37:09,824 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:37:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:38:09,461 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:38:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:38:09,777 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:38:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:38:09,777 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:38:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:39:09,770 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:39:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:39:09,770 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:39:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:39:09,784 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:39:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:40:09,472 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:40:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:40:09,776 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:40:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:40:09,776 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:40:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:41:09,774 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:41:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:41:09,790 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:41:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:41:09,790 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:41:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:42:09,468 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:42:09] "GET /api/thungan/donhang HTTP/1.1" 200 -
+2026-01-12 08:42:09,764 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:42:09] "GET /api/thongbao HTTP/1.1" 200 -
+2026-01-12 08:42:09,780 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:42:09] "GET /api/bep/donhang HTTP/1.1" 200 -
+2026-01-12 08:43:00,087 - __main__ - INFO - ❌ Client disconnected: diy0_i4hutWy_LZ9AAAG
+2026-01-12 08:43:00,088 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:43:00] "GET /socket.io/?EIO=4&transport=websocket&sid=ryIpMgngBXwT2MQPAAAD HTTP/1.1" 200 -
+2026-01-12 08:43:05,089 - __main__ - INFO - ❌ Client disconnected: oXAafE4_ZWvBOAm9AAAH
+2026-01-12 08:43:05,090 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:43:05] "GET /socket.io/?EIO=4&transport=websocket&sid=eu0bP4gA1Bi1RqmqAAAE HTTP/1.1" 200 -
+2026-01-12 08:43:10,091 - __main__ - INFO - ❌ Client disconnected: E-ignLzwr7R7vPBPAAAB
+2026-01-12 08:43:10,092 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:43:10] "GET /socket.io/?EIO=4&transport=websocket&sid=tSCEhB48tW2i3DXTAAAA HTTP/1.1" 200 -
+2026-01-12 08:43:13,471 - __main__ - INFO - ❌ Client disconnected: wRhvnd3vwEQBcOGbAAAF
+2026-01-12 08:43:13,472 - werkzeug - INFO - 127.0.0.1 - - [12/Jan/2026 08:43:13] "GET /socket.io/?EIO=4&transport=websocket&sid=xSUvRML3w5_D8fcNAAAC HTTP/1.1" 200 -
