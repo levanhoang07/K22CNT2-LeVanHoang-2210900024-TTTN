@@ -494,7 +494,7 @@ function confirmDishModal() {
     hinhAnh: state.currentDish.HinhAnh,
     donGia: state.currentDish.Gia,
     soLuong: 1,
-    capDoCay: state.currentDish.TenDanhMuc === 'Mì cay' ? `Cấp ${spicyLevel}` : 'Không cay',
+    capDoCay: state.currentDish.TenDanhMuc === 'Mì cay' ? `Cấp ${spicyLevel}` : '',
     ghiChu: note
   };
   

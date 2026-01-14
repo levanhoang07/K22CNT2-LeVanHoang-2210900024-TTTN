@@ -604,3 +604,54 @@ body {
 .cash-quick button:hover {
   background: #000;
 }
+/* ===== VAT FORM SIMPLE CLEAN ===== */
+
+.vat-wrapper{
+  margin-top:12px;
+}
+
+.vat-checkbox{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+  font-weight:600;
+  color:#2d3436;
+  cursor:pointer;
+}
+
+.vat-checkbox input{
+  width:16px;
+  height:16px;
+  cursor:pointer;
+}
+
+#vat-form{
+  margin-top:10px;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #dfe6e9;
+  background:#fafafa;
+  display:grid;
+  gap:8px;
+}
+
+#vat-form input{
+  width:100%;
+  padding:8px 10px;
+  border-radius:6px;
+  border:1px solid #ced6e0;
+  font-size:14px;
+  outline:none;
+  transition:0.15s;
+}
+
+#vat-form input:focus{
+  border-color:#0984e3;
+  box-shadow:0 0 0 2px rgba(9,132,227,0.15);
+}
+
+#vat-form input[readonly]{
+  background:#f1f2f6;
+  color:#636e72;
+}

@@ -612,8 +612,49 @@ async function confirmPayment() {
     btn.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận thanh toán';
   }
 }
+document.getElementById('vat-tax').addEventListener('blur', () => {
+  const tax = document.getElementById('vat-tax').value.trim();
+  if (tax.length >= 10) {
+    lookupTaxCode(tax);
+  }
+});
+async function lookupTaxCode(taxCode) {
+  try {
+    showToast('🔎 Đang tra cứu mã số thuế...', 'info');
 
+    const res = await fetch(`/api/tra-cuu-mst?mst=${encodeURIComponent(taxCode)}`);
 
+    // ❗ kiểm tra HTTP status
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    // ❗ đọc text trước để debug
+    const text = await res.text();
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      console.error('API trả về không phải JSON:', text);
+      throw new Error('Invalid JSON response');
+    }
+
+    if (!json.success) {
+      showToast('❌ Không tìm thấy mã số thuế', 'warning');
+      return;
+    }
+
+    document.getElementById('vat-company').value = json.data.ten_cong_ty || '';
+    document.getElementById('vat-address').value = json.data.dia_chi || '';
+
+    showToast('✅ Đã lấy thông tin doanh nghiệp', 'success');
+
+  } catch (err) {
+    console.error('Tax lookup error:', err);
+    showToast('❌ Lỗi tra cứu mã số thuế', 'error');
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // EVENT HANDLERS
@@ -880,9 +921,20 @@ function printInvoice(paymentResult, paymentData) {
       <div class="line"></div>
       <p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
       <p><strong>Bàn:</strong> ${order.TenBan}</p>
-      <p><strong>Thời gian:</strong> ${formatDateTime(new Date())}</p>
-      <div class="line"></div>
-      <p><strong>Chi tiết:</strong></p>
+<p><strong>Thời gian:</strong> ${formatDateTime(new Date())}</p>
+
+${paymentData.vat && paymentData.vat.tax ? `
+  <div class="line"></div>
+  <p><strong>THÔNG TIN XUẤT HÓA ĐƠN VAT</strong></p>
+  <p><strong>MST:</strong> ${paymentData.vat.tax}</p>
+  <p><strong>Công ty:</strong> ${paymentData.vat.company}</p>
+  <p><strong>Địa chỉ:</strong> ${paymentData.vat.address}</p>
+  ${paymentData.vat.email ? `<p><strong>Email:</strong> ${paymentData.vat.email}</p>` : ''}
+` : ''}
+
+<div class="line"></div>
+<p><strong>Chi tiết:</strong></p>
+
       ${order.chi_tiet.map(item => `
         <div class="row">
           <span>${item.TenMon} (x${item.SoLuong})</span>
