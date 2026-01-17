@@ -1816,3 +1816,58 @@ textarea.form-control {
   color:#fff;
   padding:0 16px;
 }
+
+
+/* ===== MENU GRID MOBILE 2–4 ITEMS PER ROW ===== */
+
+/* Mobile nhỏ: 2 món / hàng */
+@media (max-width: 575px) {
+  .menu-grid,
+  .row.menu-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+
+  .dish-image-wrapper {
+    height: 120px;
+  }
+
+  .card-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .card-text {
+    font-size: 0.75rem;
+  }
+
+  .add-to-cart-btn {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
+}
+
+/* Mobile lớn / Tablet dọc: 3 món / hàng */
+@media (min-width: 576px) and (max-width: 767px) {
+  .menu-grid,
+  .row.menu-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px;
+  }
+
+  .dish-image-wrapper {
+    height: 140px;
+  }
+}
+
+/* Tablet ngang: 4 món / hàng */
+@media (min-width: 768px) and (max-width: 991px) {
+  .menu-grid,
+  .row.menu-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 14px;
+  }
+}

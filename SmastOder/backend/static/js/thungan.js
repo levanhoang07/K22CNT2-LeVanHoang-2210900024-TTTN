@@ -866,6 +866,32 @@ function playSound(type) {
   }
 }
 
+
+// function playSound(type) {
+//   try {
+//     if (type === 'notification' || type === 'payment') {
+//       // Sử dụng Web Speech API để đọc văn bản
+//       const utterance = new SpeechSynthesisUtterance('Bạn có đơn hàng mới');
+//       utterance.lang = 'vi-VN'; // Tiếng Việt
+//       utterance.rate = 4.0; // Tốc độ đọc bình thường
+//       utterance.pitch = 3.0; // Cao độ bình thường
+//       utterance.volume = 0.8; // Âm lượng
+      
+//       window.speechSynthesis.speak(utterance);
+//     } else if (type === 'success') {
+//       const utterance = new SpeechSynthesisUtterance('Đặt hàng thành công');
+//       utterance.lang = 'vi-VN';
+//       utterance.rate = 4.0;
+//       utterance.pitch = 3.0;
+//       utterance.volume = 0.8;
+      
+//       window.speechSynthesis.speak(utterance);
+//     }
+//   } catch (e) {
+//     console.log('Sound error:', e);
+//   }
+// }
+
 function showLoading(show) {
   console.log(show ? 'Loading...' : 'Loaded');
 }

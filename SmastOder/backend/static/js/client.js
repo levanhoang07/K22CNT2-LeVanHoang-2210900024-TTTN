@@ -872,6 +872,11 @@ style.textContent = `
   });
 })();
 
+const cartEl = document.querySelector('.cart');
+
+cartEl.addEventListener('click', () => {
+  cartEl.classList.toggle('open');
+});
 
 
 document.head.appendChild(style);
