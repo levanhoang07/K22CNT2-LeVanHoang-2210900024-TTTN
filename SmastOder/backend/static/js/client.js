@@ -9,8 +9,9 @@
 // CONFIGURATION & GLOBAL STATE
 // ═══════════════════════════════════════════════════════════════════════════
 
-const API_BASE = 'http://localhost:5000/api';
-const socket = io('http://localhost:5000');
+const API_BASE = '/api';
+const socket = io();
+
 
 // State quản lý
 const state = {

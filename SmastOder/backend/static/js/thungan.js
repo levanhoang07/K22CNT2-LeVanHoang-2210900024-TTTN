@@ -1,14 +1,3 @@
-/**
- * ════════════════════════════════════════════════════════════════════════════
- *  MyCay_Oder - Thu Ngân System (Full Version)
- *  Tính năng: Quản lý đơn hàng, xác nhận, gửi bếp, thanh toán
- * ════════════════════════════════════════════════════════════════════════════
- */
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CONFIGURATION & STATE
-// ═══════════════════════════════════════════════════════════════════════════
-
 const API_BASE = 'http://localhost:5000/api';
 const socket = io('http://localhost:5000');
 
@@ -915,7 +904,10 @@ function printInvoice(paymentResult, paymentData) {
       </style>
     </head>
     <body>
-      <h2>🌶️ MÌ CAY ONE</h2>
+      <h2 class="center" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <img src="/static/image/logo.jpg" width="28" height="28" alt="Logo">
+        Mì Cay HoangChef
+      </h2>
       <p class="center">88 Hoàng Hoa Thám, Xuân Hòa, Phú Thọ</p>
       <p class="center">ĐT: 0982 121 680</p>
       <div class="line"></div>
@@ -935,12 +927,13 @@ ${paymentData.vat && paymentData.vat.tax ? `
 <div class="line"></div>
 <p><strong>Chi tiết:</strong></p>
 
-      ${order.chi_tiet.map(item => `
-        <div class="row">
-          <span>${item.TenMon} (x${item.SoLuong})</span>
-          <span>${formatPrice(item.ThanhTien)}</span>
-        </div>
-      `).join('')}
+        ${(order.chi_tiet || []).map(item => `
+          <div class="row">
+            <span>${item.TenMon} (x${item.SoLuong})</span>
+            <span>${formatPrice(item.ThanhTien)}</span>
+          </div>
+        `).join('')}
+
       <div class="line"></div>
       <div class="row">
         <span>Tổng cộng:</span>
@@ -973,7 +966,7 @@ ${paymentData.vat && paymentData.vat.tax ? `
         </p>
       ` : ''}
       <div class="line"></div>
-      <p class="center"><strong>Cảm ơn quý khách!</strong></p>
+      <p class="center"><strong>HoangChef cảm ơn quý khách!</strong></p>
       <p class="center">Hẹn gặp lại!</p>
       <script>
         window.onload = function() {

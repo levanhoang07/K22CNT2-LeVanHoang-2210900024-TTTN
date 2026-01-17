@@ -954,11 +954,7 @@ function renderTables() {
     </div>
   `;
   
-  // Generate QR codes after rendering
-  state.tables.forEach(table => {
-    generateQRCode(table.IDBan);
-  });
-}
+
 
 async function openTableModal(id = null) {
   const isEdit = id !== null;
@@ -1084,15 +1080,22 @@ async function deleteTable(id) {
 function editTable(id) {
   openTableModal(id);
 }
+
+  // Generate QR codes after rendering
+  state.tables.forEach(table => {
+    generateQRCode(table.IDBan);
+  });
+}
 function generateQRCode(idBan) {
   const el = document.getElementById(`qrcode-${idBan}`);
   if (!el) return;
 
-  // ❗ Clear QR cũ (tránh bị chồng khi reload)
+  // Clear QR cũ
   el.innerHTML = '';
 
-  // ✅ LINK ORDER CHUẨN
-  const orderUrl = `http://localhost:5000/?ban=${idBan}`;
+  // ✅ Tự động lấy domain hiện tại
+  const baseUrl = window.location.origin;
+  const orderUrl = `${baseUrl}/?ban=${idBan}`;
 
   new QRCode(el, {
     text: orderUrl,
@@ -1103,6 +1106,7 @@ function generateQRCode(idBan) {
     correctLevel: QRCode.CorrectLevel.H
   });
 }
+
 
 
 // ═══════════════════════════════════════════════════════════════════════════

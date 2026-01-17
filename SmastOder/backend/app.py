@@ -121,34 +121,24 @@ def build_time_filter(type_):
 
 def get_connection():
     try:
-        server = os.getenv("MSSQL_SERVER", r"LEVANHOANG\SQLEXPRESS")
+        server = os.getenv("MSSQL_SERVER", r"localhost\SQLEXPRESS")
         database = os.getenv("MSSQL_DATABASE", "MyCay_Oder")
-        uid = os.getenv("MSSQL_UID", "")
-        pwd = os.getenv("MSSQL_PWD", "")
-        encrypt = os.getenv("MSSQL_ENCRYPT", "yes")
-        trust_cert = os.getenv("MSSQL_TRUST_CERT", "yes")
+
+        # BẮT BUỘC dùng SQL Authentication
+        uid = os.getenv("MSSQL_UID", "flaskuser")
+        pwd = os.getenv("MSSQL_PWD", "Flask@123")
+
         timeout = int(os.getenv("MSSQL_TIMEOUT", "10"))
         autocommit = os.getenv("MSSQL_AUTOCOMMIT", "false").lower() in ("1", "true", "yes")
 
-        if uid:
-            # SQL Server Authentication
-            conn_str = (
-                f"DRIVER={DRV_STR};"
-                f"SERVER={server};"
-                f"DATABASE={database};"
-                f"UID={uid};"
-                f"PWD={pwd};"
-                f"Encrypt={encrypt};"
-                f"TrustServerCertificate={trust_cert};"
-            )
-        else:
-            # Windows Authentication
-            conn_str = (
-                f"DRIVER={DRV_STR};"
-                f"SERVER={server};"
-                f"DATABASE={database};"
-                f"Trusted_Connection=yes;"
-            )
+        conn_str = (
+            f"DRIVER={DRV_STR};"
+            f"SERVER={server};"
+            f"DATABASE={database};"
+            f"UID={uid};"
+            f"PWD={pwd};"
+            f"TrustServerCertificate=yes;"
+        )
 
         return pyodbc.connect(
             conn_str,
@@ -159,6 +149,19 @@ def get_connection():
     except Exception as e:
         logger.exception("❌ Lỗi kết nối database")
         raise
+
+
+@app.route("/api/testdb")
+def testdb():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM Ban")
+        n = cur.fetchone()[0]
+        conn.close()
+        return {"ok": True, "count": n}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 
 def get_cursor():
@@ -2008,7 +2011,10 @@ def lay_lich_su_don_hang(id_don_hang):
     except Exception as e:
         return handle_exception(e, "Lỗi lấy lịch sử đơn hàng")
 
-
+@app.after_request
+def add_header(response):
+    response.headers["ngrok-skip-browser-warning"] = "true"
+    return response
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🚀 MAIN - KHỞI ĐỘNG SERVER

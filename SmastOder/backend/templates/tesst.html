@@ -1,49 +1,36 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Biểu đồ hành động - Đặt món khách hàng</title>
+<meta charset="utf-8">
+<title>Use Case Dat Mon</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<script>
-  mermaid.initialize({ startOnLoad: true, theme: "default" });
-</script>
 </head>
-<body style="font-family: Arial">
-
-<h2>Biểu đồ hành động – Đặt món của khách hàng</h2>
+<body>
 
 <div class="mermaid">
-flowchart TD
+usecaseDiagram
 
-A((Bat dau)) --> B[Quet ma QR tai ban]
-B --> C[He thong xac thuc QR]
+actor KH
+actor BEP
+actor TN
 
-C -->|Sai| D[Thong bao loi]
-D --> B
+KH --> (Quet QR)
+KH --> (Xem menu)
+KH --> (Chon mon)
+KH --> (Them gio hang)
+KH --> (Xac nhan dat mon)
+KH --> (Thanh toan)
+KH --> (Danh gia)
 
-C -->|Dung| E[Hien menu]
+(Xac nhan dat mon) --> (Tao don hang)
+(Tao don hang) --> BEP
 
-E --> F[Xem mon]
-F --> G[Tim mon]
-
-G --> H[Chon mon va so luong]
-H --> I[Chon do cay va ghi chu]
-I --> J[Them vao gio]
-
-J --> K{Dat them?}
-
-K -->|Co| H
-K -->|Khong| L[Xac nhan dat mon]
-
-L --> M[Tao don hang]
-M --> N[Gui bep]
-M --> O[Gui thu ngan]
-
-O --> P[Thong bao thanh cong]
-
-P --> Q((Ket thuc))
-
+TN --> (Xu ly thanh toan)
 </div>
+
+<script>
+mermaid.initialize({ startOnLoad: true });
+</script>
 
 </body>
 </html>
