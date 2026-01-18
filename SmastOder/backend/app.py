@@ -545,7 +545,6 @@ def thu_ngan_lay_don_hang():
         return jsonify_response(True, "Lấy danh sách đơn hàng thành công", {'don_hang': don_hang_list})
     except Exception as e:
         return handle_exception(e, "Lỗi lấy danh sách đơn hàng")
-
 @app.route('/api/thungan/donhang/<int:id_don_hang>/xacnhan', methods=['PUT'])
 def xac_nhan_don_gui_bep(id_don_hang):
     try:
@@ -559,27 +558,43 @@ def xac_nhan_don_gui_bep(id_don_hang):
         if not don_hang:
             conn.close()
             return jsonify_response(False, "Đơn hàng không tồn tại hoặc đã thanh toán", None, 404)
-        
+
         don_hang_dict = row_to_dict(cursor, don_hang)
+
         cursor.execute("""
             INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai)
             VALUES (?, N'Đã xác nhận - Chờ bếp')
         """, (id_don_hang,))
         conn.commit()
         conn.close()
-        
+
+        # ===== GỬI CHO BẾP (đang có) =====
         socketio.emit('send_to_kitchen', {
             'id_don_hang': id_don_hang,
             'id_ban': don_hang_dict['IDBan'],
             'ten_ban': don_hang_dict['TenBan'],
             'tong_tien': don_hang_dict['TongTien']
         }, namespace='/')
+
+        # ===== GỬI CHO KHÁCH HÀNG (MỚI) =====
+        socketio.emit(
+            'order_confirmed_to_customer',
+            {
+                'id_don_hang': id_don_hang,
+                'message': 'Đơn hàng của bạn đã được xác nhận và gửi đến bếp. Vui lòng chờ ra món 🍜'
+            },
+            room=f"ban_{don_hang_dict['IDBan']}",
+            namespace='/'
+        )
+
         return jsonify_response(True, "Đã xác nhận đơn hàng và gửi cho bếp")
+
     except Exception as e:
         if 'conn' in locals():
             conn.rollback()
             conn.close()
         return handle_exception(e, "Lỗi xác nhận đơn hàng")
+
 
 @app.route('/api/thungan/thanhtoan/<int:id_don_hang>', methods=['POST'])
 def thanh_toan_don_hang(id_don_hang):

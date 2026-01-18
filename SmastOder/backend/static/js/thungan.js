@@ -727,17 +727,19 @@ function setupSocketListeners() {
     console.log('❌ Socket disconnected');
   });
   socket.on('new_order', async (data) => {
-    console.log('📦 New order:', data);
-    showToast(`📦 Đơn hàng mới từ ${data.ten_ban || 'Bàn ' + data.id_ban}!`, 'info');
-    playSound('notification');
-    await loadOrders();
-  });
-  socket.on('call_staff', async (data) => {
-    console.log('📢 Call staff:', data);
-    showToast(`📢 ${data.ten_ban} cần hỗ trợ!`, 'warning');
-    playSound('notification');
-    await loadNotifications();
-  });
+  console.log('📦 New order:', data);
+  showToast(`📦 Đơn hàng mới từ ${data.ten_ban || 'Bàn ' + data.id_ban}!`, 'info');
+  playSound('new_order');
+  await loadOrders();
+});
+
+socket.on('call_staff', async (data) => {
+  console.log('📢 Call staff:', data);
+  showToast(`📢 ${data.ten_ban} cần hỗ trợ!`, 'warning');
+  playSound('call_staff');
+  await loadNotifications();
+});
+
   socket.on('order_status_update', async (data) => {
     console.log('🔄 Order status update:', data);
     await loadOrders();
@@ -851,20 +853,26 @@ function getToastTitle(type) {
   return titles[type] || 'Thông báo';
 }
 
+const audioPlayers = {
+  new_order: new Audio('/static/sounds/new_order1.mp3'),
+  call_staff: new Audio('/static/sounds/call_staff.mp3'),
+  payment: new Audio('/static/sounds/payment.mp3')
+};
+
 function playSound(type) {
-  const sounds = {
-    notification: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
-    success: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
-    payment: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA=='
-  };
+  const audio = audioPlayers[type];
+  if (!audio) return;
+
   try {
-    const audio = new Audio(sounds[type] || sounds.notification);
-    audio.volume = 0.4;
-    audio.play().catch(e => console.log('Cannot play sound:', e));
+    audio.currentTime = 0;
+    audio.volume = 0.6;
+    audio.play().catch(err => console.log('Play blocked:', err));
   } catch (e) {
     console.log('Sound error:', e);
   }
 }
+
+
 
 
 // function playSound(type) {

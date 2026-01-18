@@ -1,8 +1,6 @@
 /* =====================================================
-   LOGIN PAGE - MÌ CAY ONE - LỘNG LẪY, SANG TRỌNG, ĐẲNG CẤP (2025)
-   - Vàng kim chuyển động + ánh sáng shine
-   - Thiết kế VIP luxury, tinh tế
-   - Responsive hoàn hảo
+   LOGIN PAGE - MÌ CAY ONE - RESPONSIVE HOÀN HẢO
+   Tối ưu cho mọi thiết bị: Desktop, Tablet, Mobile
 ===================================================== */
 
 :root {
@@ -10,11 +8,12 @@
   --gold-light: #ffed9e;
   --gold-dark: #b8860b;
   --red: #c8102e;
+  --red-dark: #8b0a1f;
   --dark: #0f0f0f;
   --dark-2: #1a1a1a;
+  --dark-3: #1e1e1e;
   --text-light: #ffffff;
   --text-muted: #cccccc;
-  --shadow-gold: 0 0 40px rgba(255, 215, 0, 0.4);
   --transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -32,14 +31,15 @@ body {
   justify-content: center;
   align-items: center;
   background: #000;
-  overflow: hidden;
+  overflow-x: hidden;
   position: relative;
+  padding: 20px;
 }
 
 /* Nền vàng kim chuyển động */
 body::before {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: linear-gradient(135deg, #1e0d00 0%, #331a00 25%, #4d2600 50%, #331a00 75%, #1e0d00 100%);
   background-size: 400% 400%;
@@ -49,7 +49,7 @@ body::before {
 
 body::after {
   content: '';
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: radial-gradient(circle at center, rgba(255,215,0,0.1) 0%, transparent 70%);
   animation: pulseGlow 8s infinite alternate;
@@ -69,17 +69,16 @@ body::after {
 
 /* CONTAINER CHÍNH - VIP CARD */
 .container {
-  width: 92%;
+  width: 100%;
   max-width: 1100px;
-  height: 680px;
   display: flex;
-  border-radius: 28px;
+  border-radius: 24px;
   overflow: hidden;
   position: relative;
   box-shadow: 
     0 0 60px rgba(255, 215, 0, 0.3),
     0 30px 100px rgba(0, 0, 0, 0.6);
-  background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+  background: linear-gradient(145deg, var(--dark-2) 0%, var(--dark) 100%);
   border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
@@ -109,15 +108,16 @@ body::after {
 
 /* LEFT BOX - THƯƠNG HIỆU SANG TRỌNG */
 .left-box {
-  width: 50%;
+  flex: 1;
   padding: 60px 50px;
-  background: linear-gradient(135deg, var(--red) 0%, #8b0a1f 100%);
+  background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
   color: var(--text-light);
   display: flex;
   flex-direction: column;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  min-height: 500px;
 }
 
 .left-box::before {
@@ -144,22 +144,23 @@ body::after {
 }
 
 .brand i {
-  font-size: 3.5rem;
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
   color: var(--gold);
   filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
 }
 
 .brand h1 {
-  font-size: 3.2rem;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
   font-weight: 900;
   background: linear-gradient(135deg, var(--gold), var(--gold-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: -1px;
 }
 
 .left-box h2 {
-  font-size: 2.6rem;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
   font-weight: 800;
   margin: 20px 0;
   position: relative;
@@ -167,7 +168,7 @@ body::after {
 }
 
 .slogan {
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
   line-height: 1.7;
   opacity: 0.95;
   max-width: 380px;
@@ -177,18 +178,19 @@ body::after {
 
 /* RIGHT BOX - FORM VIP */
 .login-box {
-  width: 50%;
-  background: linear-gradient(145deg, #1e1e1e 0%, #0f0f0f 100%);
+  flex: 1;
+  background: linear-gradient(145deg, var(--dark-3) 0%, var(--dark) 100%);
   padding: 60px 50px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   position: relative;
   z-index: 2;
+  min-height: 500px;
 }
 
 .login-box h2 {
-  font-size: 2.6rem;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
   font-weight: 800;
   color: var(--gold);
   margin-bottom: 40px;
@@ -211,7 +213,7 @@ body::after {
 /* INPUT FIELD */
 .input-field {
   position: relative;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .input-field i {
@@ -220,19 +222,19 @@ body::after {
   left: 20px;
   transform: translateY(-50%);
   color: var(--gold);
-  font-size: 1.4rem;
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
   z-index: 2;
 }
 
 .input-field input,
 .input-field select {
   width: 100%;
-  padding: 18px 20px 18px 60px;
+  padding: 16px 20px 16px 55px;
   background: rgba(255, 255, 255, 0.05);
   border: 2px solid rgba(255, 215, 0, 0.3);
-  border-radius: 16px;
+  border-radius: 14px;
   color: white;
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
   transition: var(--transition);
   backdrop-filter: blur(10px);
 }
@@ -249,14 +251,25 @@ body::after {
   color: rgba(255, 255, 255, 0.5);
 }
 
+.input-field select {
+  cursor: pointer;
+}
+
+.input-field select option {
+  background: var(--dark);
+  color: white;
+}
+
 /* OPTIONS */
 .options {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 30px 0;
-  font-size: 0.95rem;
+  margin: 24px 0;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .options label {
@@ -274,9 +287,10 @@ body::after {
   height: 20px;
   border: 2px solid var(--gold);
   border-radius: 6px;
-  margin-right: 10px;
+  margin-right: 8px;
   position: relative;
   transition: var(--transition);
+  flex-shrink: 0;
 }
 
 .options input:checked + .checkmark {
@@ -288,6 +302,7 @@ body::after {
   position: absolute;
   color: var(--dark);
   font-weight: bold;
+  font-size: 14px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -308,12 +323,12 @@ body::after {
 /* BUTTON */
 .btn {
   width: 100%;
-  padding: 20px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  padding: 18px;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
   color: white;
   border: none;
-  border-radius: 16px;
-  font-size: 1.3rem;
+  border-radius: 14px;
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
@@ -338,8 +353,12 @@ body::after {
 }
 
 .btn:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 50px rgba(200, 16, 46, 0.6);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(200, 16, 46, 0.6);
+}
+
+.btn:active {
+  transform: translateY(-1px);
 }
 
 /* POPUP QUÊN MẬT KHẨU */
@@ -352,12 +371,13 @@ body::after {
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  padding: 20px;
 }
 
 .popup-box {
-  background: linear-gradient(145deg, #1e1e1e, #0f0f0f);
-  width: 90%;
-  max-width: 420px;
+  background: linear-gradient(145deg, var(--dark-3), var(--dark));
+  width: 100%;
+  max-width: 450px;
   padding: 40px;
   border-radius: 24px;
   text-align: center;
@@ -372,7 +392,7 @@ body::after {
 }
 
 .popup-box h3 {
-  font-size: 1.8rem;
+  font-size: clamp(1.5rem, 3vw, 1.8rem);
   color: var(--gold);
   margin-bottom: 20px;
 }
@@ -380,7 +400,8 @@ body::after {
 .popup-box p {
   color: var(--text-muted);
   margin-bottom: 24px;
-  font-size: 1.1rem;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.6;
 }
 
 .admin-info {
@@ -392,14 +413,14 @@ body::after {
 }
 
 .admin-info p {
-  margin: 16px 0;
-  font-size: 1.1rem;
+  margin: 12px 0;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
   color: white;
 }
 
 .close-popup {
   padding: 14px 40px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
   color: white;
   border: none;
   border-radius: 50px;
@@ -407,6 +428,7 @@ body::after {
   cursor: pointer;
   transition: var(--transition);
   box-shadow: 0 10px 30px rgba(200, 16, 46, 0.4);
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
 }
 
 .close-popup:hover {
@@ -414,20 +436,27 @@ body::after {
   box-shadow: 0 15px 40px rgba(200, 16, 46, 0.6);
 }
 
-/* RESPONSIVE */
-@media (max-width: 992px) {
+.close-popup:active {
+  transform: translateY(-1px);
+}
+
+/* =====================================================
+   RESPONSIVE - TỐI ƯU CHO MỌI THIẾT BỊ
+===================================================== */
+
+/* TABLET (768px - 968px) */
+@media (max-width: 968px) {
   .container {
     flex-direction: column;
-    height: auto;
-    margin: 20px;
+    max-width: 600px;
   }
 
   .left-box, .login-box {
-    width: 100%;
+    min-height: auto;
   }
 
   .left-box {
-    padding: 60px 40px;
+    padding: 50px 40px;
     text-align: center;
   }
 
@@ -435,30 +464,237 @@ body::after {
     justify-content: center;
   }
 
+  .slogan {
+    margin: 0 auto;
+  }
+
   .login-box {
-    padding: 60px 40px;
+    padding: 50px 40px;
   }
 }
 
-@media (max-width: 576px) {
+/* MOBILE (577px - 768px) */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
   .container {
-    margin: 10px;
     border-radius: 20px;
   }
 
   .left-box {
-    padding: 50px 30px;
+    padding: 40px 30px;
   }
 
   .login-box {
-    padding: 50px 30px;
-  }
-
-  .brand h1 {
-    font-size: 2.8rem;
+    padding: 40px 30px;
   }
 
   .login-box h2 {
-    font-size: 2.2rem;
+    margin-bottom: 35px;
+  }
+
+  .input-field {
+    margin-bottom: 20px;
+  }
+
+  .options {
+    margin: 20px 0;
+  }
+}
+
+/* SMALL MOBILE (380px - 576px) */
+@media (max-width: 576px) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    border-radius: 18px;
+  }
+
+  .left-box {
+    padding: 35px 24px;
+  }
+
+  .login-box {
+    padding: 35px 24px;
+  }
+
+  .brand {
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .login-box h2 {
+    margin-bottom: 30px;
+  }
+
+  .input-field {
+    margin-bottom: 18px;
+  }
+
+  .input-field input,
+  .input-field select {
+    padding: 14px 16px 14px 50px;
+  }
+
+  .input-field i {
+    left: 16px;
+  }
+
+  .options {
+    margin: 18px 0;
+    font-size: 0.85rem;
+  }
+
+  .btn {
+    padding: 16px;
+  }
+
+  .popup-box {
+    padding: 30px 24px;
+  }
+
+  .admin-info {
+    padding: 20px;
+  }
+}
+
+/* EXTRA SMALL MOBILE (<380px) */
+@media (max-width: 380px) {
+  body {
+    padding: 8px;
+  }
+
+  .container {
+    border-radius: 16px;
+  }
+
+  .left-box {
+    padding: 30px 20px;
+  }
+
+  .login-box {
+    padding: 30px 20px;
+  }
+
+  .brand {
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .left-box h2 {
+    margin: 16px 0;
+  }
+
+  .login-box h2 {
+    margin-bottom: 25px;
+  }
+
+  .login-box h2::after {
+    width: 80px;
+    height: 3px;
+    bottom: -10px;
+  }
+
+  .input-field {
+    margin-bottom: 16px;
+  }
+
+  .input-field input,
+  .input-field select {
+    padding: 12px 14px 12px 46px;
+    border-radius: 12px;
+  }
+
+  .input-field i {
+    left: 14px;
+    font-size: 1.1rem;
+  }
+
+  .options {
+    margin: 16px 0;
+    gap: 10px;
+  }
+
+  .options .checkmark {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .popup-box {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+
+  .admin-info {
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  .close-popup {
+    padding: 12px 32px;
+  }
+}
+
+/* LANDSCAPE MODE - ĐIỆN THOẠI NGANG */
+@media (max-height: 600px) and (orientation: landscape) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    max-height: 90vh;
+  }
+
+  .left-box, .login-box {
+    padding: 30px 40px;
+    min-height: auto;
+  }
+
+  .brand {
+    margin-bottom: 20px;
+  }
+
+  .left-box h2 {
+    margin: 12px 0;
+  }
+
+  .login-box h2 {
+    margin-bottom: 25px;
+  }
+
+  .input-field {
+    margin-bottom: 16px;
+  }
+
+  .options {
+    margin: 16px 0;
+  }
+
+  .btn {
+    padding: 14px;
+  }
+}
+
+/* LARGE DESKTOP (>1400px) */
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1200px;
+  }
+
+  .left-box {
+    padding: 70px 60px;
+  }
+
+  .login-box {
+    padding: 70px 60px;
   }
 }
