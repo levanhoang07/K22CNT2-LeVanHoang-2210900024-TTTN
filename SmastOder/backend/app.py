@@ -9,7 +9,7 @@
 ═══════════════════════════════════════════════════════════════════════════════
 """
 import os
-from flask import Blueprint, Flask, request, jsonify
+from flask import Blueprint, Flask, redirect, request, jsonify
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import pyodbc
@@ -27,7 +27,6 @@ tax_api = Blueprint('tax_api', __name__)
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mycay_secret_key_2024'
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -209,6 +208,18 @@ def handle_exception(e, context=""):
     error_msg = f"{context}: {str(e)}"
     logger.error(f"❌ {error_msg}")
     return jsonify_response(False, error_msg, None, 500)
+
+
+@app.route("/qr")
+def qr_redirect():
+    ban = request.args.get("ban", "")
+
+    if request.headers.get("User-Agent") and "Mobile" in request.headers.get("User-Agent"):
+        TARGET = "https://unglamorous-lahoma-insolvable.ngrok-free.dev"
+    else:
+        TARGET = "http://localhost:5000"
+
+    return redirect(f"{TARGET}/?ban={ban}", code=302)
 
 # =====================================================
 # SERVE PAGES

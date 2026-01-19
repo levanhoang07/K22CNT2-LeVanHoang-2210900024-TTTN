@@ -1077,9 +1077,6 @@ async function deleteTable(id) {
   }
 }
 
-function editTable(id) {
-  openTableModal(id);
-}
 
   // Generate QR codes after rendering
   state.tables.forEach(table => {
@@ -1090,12 +1087,9 @@ function generateQRCode(idBan) {
   const el = document.getElementById(`qrcode-${idBan}`);
   if (!el) return;
 
-  // Clear QR cũ
   el.innerHTML = '';
 
-  // ✅ Tự động lấy domain hiện tại
-  const baseUrl = window.location.origin;
-  const orderUrl = `${baseUrl}/?ban=${idBan}`;
+  const orderUrl = `https://unglamorous-lahoma-insolvable.ngrok-free.dev/qr?ban=${idBan}`;
 
   new QRCode(el, {
     text: orderUrl,
@@ -1106,7 +1100,6 @@ function generateQRCode(idBan) {
     correctLevel: QRCode.CorrectLevel.H
   });
 }
-
 
 
 // ═══════════════════════════════════════════════════════════════════════════

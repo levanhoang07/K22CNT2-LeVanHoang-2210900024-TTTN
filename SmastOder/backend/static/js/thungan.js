@@ -859,18 +859,36 @@ const audioPlayers = {
   payment: new Audio('/static/sounds/payment.mp3')
 };
 
+let soundUnlocked = false;
+
+// 🔓 Tự unlock khi user click lần đầu (bắt buộc do Chrome policy)
+document.addEventListener("click", () => {
+  if (soundUnlocked) return;
+
+  Object.values(audioPlayers).forEach(audio => {
+    audio.play().then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      soundUnlocked = true;
+      console.log("🔊 Sound unlocked");
+    }).catch(err => console.log("Unlock failed:", err));
+  });
+}, { once: true });
+
 function playSound(type) {
+  if (!soundUnlocked) {
+    console.log("Sound chưa được unlock (cần click 1 lần)");
+    return;
+  }
+
   const audio = audioPlayers[type];
   if (!audio) return;
 
-  try {
-    audio.currentTime = 0;
-    audio.volume = 0.6;
-    audio.play().catch(err => console.log('Play blocked:', err));
-  } catch (e) {
-    console.log('Sound error:', e);
-  }
+  audio.currentTime = 0;
+  audio.volume = 0.6;
+  audio.play().catch(err => console.log('Play blocked:', err));
 }
+
 
 
 
