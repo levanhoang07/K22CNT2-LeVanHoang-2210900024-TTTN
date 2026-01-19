@@ -563,6 +563,22 @@ async function confirmPayment() {
   const phone = document.getElementById('customer-phone').value.trim();
   const finalTotal = state.currentPayment.final;
 
+  // ===== LẤY DỮ LIỆU VAT TỪ FORM =====
+  const vatTax = document.getElementById('vat-tax')?.value.trim();
+  const vatCompany = document.getElementById('vat-company')?.value.trim();
+  const vatAddress = document.getElementById('vat-address')?.value.trim();
+  const vatEmail = document.getElementById('vat-email')?.value.trim();
+
+  let vatData = null;
+  if (vatTax) {
+    vatData = {
+      tax: vatTax,
+      company: vatCompany || '',
+      address: vatAddress || '',
+      email: vatEmail || ''
+    };
+  }
+
   // ✅ NẾU LÀ TIỀN MẶT & KHÔNG NHẬP → MẶC ĐỊNH KHÁCH ĐƯA ĐỦ
   if (method === 1 && cashReceived === 0) {
     cashReceived = finalTotal;
@@ -587,63 +603,75 @@ async function confirmPayment() {
       phuongThuc: method,
       tienNhan: cashReceived,
       soDienThoai: phone || null,
-      khuyenMai: state.currentPayment.promoId
+      khuyenMai: state.currentPayment.promoId,
+      vat: vatData // 🔥 QUAN TRỌNG: đưa VAT vào đây
     };
 
+    console.log("📄 VAT khi thanh toán:", vatData); // debug 1 lần cho chắc
+
     const result = await processPayment(paymentData);
+
     if (result) {
       closePaymentModal();
       state.selectedOrder = null;
       renderOrderDetail();
     }
+
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận thanh toán';
   }
 }
-document.getElementById('vat-tax').addEventListener('blur', () => {
-  const tax = document.getElementById('vat-tax').value.trim();
-  if (tax.length >= 10) {
-    lookupTaxCode(tax);
-  }
-});
+
 async function lookupTaxCode(taxCode) {
   try {
     showToast('🔎 Đang tra cứu mã số thuế...', 'info');
 
     const res = await fetch(`/api/tra-cuu-mst?mst=${encodeURIComponent(taxCode)}`);
 
-    // ❗ kiểm tra HTTP status
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
 
-    // ❗ đọc text trước để debug
     const text = await res.text();
+    console.log("📥 Raw API response:", text); // debug thô
 
     let json;
     try {
       json = JSON.parse(text);
     } catch (e) {
-      console.error('API trả về không phải JSON:', text);
-      throw new Error('Invalid JSON response');
+      console.error('❌ API trả về không phải JSON:', text);
+      showToast('❌ API MST lỗi dữ liệu', 'error');
+      return;
     }
 
-    if (!json.success) {
+    console.log("📥 Parsed MST JSON:", json); // debug JSON
+
+    if (!json.success || !json.data) {
       showToast('❌ Không tìm thấy mã số thuế', 'warning');
       return;
     }
 
-    document.getElementById('vat-company').value = json.data.ten_cong_ty || '';
-    document.getElementById('vat-address').value = json.data.dia_chi || '';
+    const companyInput = document.getElementById('vat-company');
+    const addressInput = document.getElementById('vat-address');
+
+    if (!companyInput || !addressInput) {
+      console.error('❌ Không tìm thấy input VAT trong DOM');
+      showToast('⚠️ Lỗi form VAT (thiếu input)', 'error');
+      return;
+    }
+
+    companyInput.value = json.data.ten_cong_ty || '';
+    addressInput.value = json.data.dia_chi || '';
 
     showToast('✅ Đã lấy thông tin doanh nghiệp', 'success');
 
   } catch (err) {
-    console.error('Tax lookup error:', err);
+    console.error('❌ Tax lookup error:', err);
     showToast('❌ Lỗi tra cứu mã số thuế', 'error');
   }
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // EVENT HANDLERS
@@ -923,113 +951,144 @@ function showLoading(show) {
 }
 
 function printInvoice(paymentResult, paymentData) {
-  const order = state.currentPayment.order;
-  const win = window.open('', '', 'width=300,height=600');
-  win.document.write(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Hóa đơn - ${order.TenBan}</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: 'Courier New', monospace;
-          padding: 20px;
-          font-size: 12px;
-        }
-        h2 { text-align: center; margin-bottom: 10px; }
-        .center { text-align: center; }
-        .line { border-bottom: 1px dashed #000; margin: 10px 0; }
-        .row {
-          display: flex;
-          justify-content: space-between;
-          margin: 5px 0;
-        }
-        .total {
-          font-size: 16px;
-          font-weight: bold;
-          margin-top: 10px;
-          padding-top: 10px;
-          border-top: 2px solid #000;
-        }
-      </style>
-    </head>
-    <body>
-      <h2 class="center" style="display:flex;align-items:center;justify-content:center;gap:8px;">
-        <img src="/static/image/logo.jpg" width="28" height="28" alt="Logo">
-        Mì Cay HoangChef
-      </h2>
-      <p class="center">88 Hoàng Hoa Thám, Xuân Hòa, Phú Thọ</p>
-      <p class="center">ĐT: 0982 121 680</p>
+  const order = state.currentPayment?.order;
+
+  if (!order) {
+    showToast('❌ Không có đơn hàng để in', 'error');
+    return;
+  }
+
+  const html = `
+  <!DOCTYPE html>
+  <html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <title>Hóa đơn - ${order.TenBan}</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: 'Courier New', monospace;
+        padding: 20px;
+        font-size: 12px;
+      }
+      h2 { text-align: center; margin-bottom: 10px; }
+      .center { text-align: center; }
+      .line { border-bottom: 1px dashed #000; margin: 10px 0; }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+      }
+      .total {
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 2px solid #000;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 class="center" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+      <img src="/static/image/logo.jpg" width="28" height="28" alt="Logo">
+      Mì Cay HoangChef
+    </h2>
+    <p class="center">88 Hoàng Hoa Thám, Xuân Hòa, Phú Thọ</p>
+    <p class="center">ĐT: 0982 121 680</p>
+
+    <div class="line"></div>
+    <p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
+    <p><strong>Bàn:</strong> ${order.TenBan}</p>
+    <p><strong>Thời gian:</strong> ${formatDateTime(new Date())}</p>
+
+    ${paymentData?.vat?.tax ? `
       <div class="line"></div>
-      <p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
-      <p><strong>Bàn:</strong> ${order.TenBan}</p>
-<p><strong>Thời gian:</strong> ${formatDateTime(new Date())}</p>
+      <p><strong>THÔNG TIN XUẤT HÓA ĐƠN VAT</strong></p>
+      <p><strong>MST:</strong> ${paymentData.vat.tax}</p>
+      <p><strong>Công ty:</strong> ${paymentData.vat.company || ''}</p>
+      <p><strong>Địa chỉ:</strong> ${paymentData.vat.address || ''}</p>
+      ${paymentData.vat.email ? `<p><strong>Email:</strong> ${paymentData.vat.email}</p>` : ''}
+    ` : ''}
 
-${paymentData.vat && paymentData.vat.tax ? `
-  <div class="line"></div>
-  <p><strong>THÔNG TIN XUẤT HÓA ĐƠN VAT</strong></p>
-  <p><strong>MST:</strong> ${paymentData.vat.tax}</p>
-  <p><strong>Công ty:</strong> ${paymentData.vat.company}</p>
-  <p><strong>Địa chỉ:</strong> ${paymentData.vat.address}</p>
-  ${paymentData.vat.email ? `<p><strong>Email:</strong> ${paymentData.vat.email}</p>` : ''}
-` : ''}
+    <div class="line"></div>
+    <p><strong>Chi tiết:</strong></p>
 
-<div class="line"></div>
-<p><strong>Chi tiết:</strong></p>
-
-        ${(order.chi_tiet || []).map(item => `
-          <div class="row">
-            <span>${item.TenMon} (x${item.SoLuong})</span>
-            <span>${formatPrice(item.ThanhTien)}</span>
-          </div>
-        `).join('')}
-
-      <div class="line"></div>
+    ${(order.chi_tiet || []).map(item => `
       <div class="row">
-        <span>Tổng cộng:</span>
-        <span>${formatPrice(paymentResult.tong_tien)}</span>
+        <span>${item.TenMon} (x${item.SoLuong})</span>
+        <span>${formatPrice(item.ThanhTien)}</span>
       </div>
-      ${paymentResult.so_tien_giam > 0 ? `
-        <div class="row">
-          <span>Giảm giá:</span>
-          <span>-${formatPrice(paymentResult.so_tien_giam)}</span>
-        </div>
-      ` : ''}
-      <div class="row total">
-        <span>THANH TOÁN:</span>
-        <span>${formatPrice(paymentResult.so_tien_thanh_toan)}</span>
+    `).join('')}
+
+    <div class="line"></div>
+    <div class="row">
+      <span>Tổng cộng:</span>
+      <span>${formatPrice(paymentResult.tong_tien)}</span>
+    </div>
+
+    ${paymentResult.so_tien_giam > 0 ? `
+      <div class="row">
+        <span>Giảm giá:</span>
+        <span>-${formatPrice(paymentResult.so_tien_giam)}</span>
       </div>
-      ${paymentData.phuongThuc === 1 && paymentResult.tien_thua > 0 ? `
-        <div class="row">
-          <span>Tiền nhận:</span>
-          <span>${formatPrice(paymentData.tienNhan)}</span>
-        </div>
-        <div class="row">
-          <span>Tiền thừa:</span>
-          <span>${formatPrice(paymentResult.tien_thua)}</span>
-        </div>
-      ` : ''}
-      ${paymentResult.diem_tich_luy > 0 ? `
-        <div class="line"></div>
-        <p class="center">
-          <strong>Tích lũy: +${paymentResult.diem_tich_luy} điểm</strong>
-        </p>
-      ` : ''}
+    ` : ''}
+
+    <div class="row total">
+      <span>THANH TOÁN:</span>
+      <span>${formatPrice(paymentResult.so_tien_thanh_toan)}</span>
+    </div>
+
+    ${paymentData.phuongThuc === 1 && paymentResult.tien_thua > 0 ? `
+      <div class="row">
+        <span>Tiền nhận:</span>
+        <span>${formatPrice(paymentData.tienNhan)}</span>
+      </div>
+      <div class="row">
+        <span>Tiền thừa:</span>
+        <span>${formatPrice(paymentResult.tien_thua)}</span>
+      </div>
+    ` : ''}
+
+    ${paymentResult.diem_tich_luy > 0 ? `
       <div class="line"></div>
-      <p class="center"><strong>HoangChef cảm ơn quý khách!</strong></p>
-      <p class="center">Hẹn gặp lại!</p>
-      <script>
-        window.onload = function() {
-          window.print();
-          setTimeout(() => window.close(), 1000);
-        };F
-      </script>
-    </body>
-    </html>
-  `);
-  win.document.close();
+      <p class="center">
+        <strong>Tích lũy: +${paymentResult.diem_tich_luy} điểm</strong>
+      </p>
+    ` : ''}
+
+    <div class="line"></div>
+    <p class="center"><strong>HoangChef cảm ơn quý khách!</strong></p>
+    <p class="center">Hẹn gặp lại!</p>
+
+    <script>
+      window.onload = function() {
+        window.print();
+        setTimeout(() => window.close(), 1000);
+      };
+    </script>
+  </body>
+  </html>
+  `;
+
+  const win = window.open('', '_blank', 'width=300,height=600');
+
+if (!win) {
+  showToast('❌ Trình duyệt chặn popup in hóa đơn', 'error');
+  console.error('Popup bị chặn khi in hóa đơn');
+  return;
+}
+
+const doc = win.document;
+
+// ❌ KHÔNG doc.open()
+// ❌ KHÔNG doc.body.innerHTML
+
+doc.documentElement.innerHTML = html; // ✅ an toàn, không null
+
+setTimeout(() => {
+  win.focus();
+  win.print();
+}, 300);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

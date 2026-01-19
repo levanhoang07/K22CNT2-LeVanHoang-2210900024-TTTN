@@ -510,7 +510,6 @@ def lay_danh_gia():
 
 from flask import request, jsonify
 import requests
-
 @app.route('/api/tra-cuu-mst')
 def tra_cuu_mst():
     mst = request.args.get('mst')
@@ -520,7 +519,20 @@ def tra_cuu_mst():
 
     try:
         url = f"https://api.vietqr.io/v2/business/{mst}"
-        res = requests.get(url, timeout=5)
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/json"
+        }
+
+        res = requests.get(url, headers=headers, timeout=10)
+
+        # ❗ Nếu VietQR lỗi
+        if res.status_code != 200:
+            return jsonify(
+                success=False,
+                message=f"VietQR error {res.status_code}"
+            )
+
         data = res.json()
 
         if data.get("code") != "00":
