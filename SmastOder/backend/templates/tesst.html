@@ -1,35 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-<meta charset="utf-8">
-<title>Use Case Dat Mon</title>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<meta charset="UTF-8">
+<title>UML Sequence - Dat mon bang QR</title>
+
+<script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+
+<style>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: white;
+    padding: 20px;
+}
+h2 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+.mermaid {
+    font-size: 22px;
+    font-weight: bold;
+}
+</style>
 </head>
 <body>
 
+<h2>Sequence Diagram (UML) – Quy trình Đặt món bằng QR</h2>
+
 <div class="mermaid">
-usecaseDiagram
+sequenceDiagram
+    actor KH as "Khach Hang"
+    participant QR as "QR Code (Ban)"
+    participant UI as "Order UI"
+    participant C as "Order Controller"
+    database DB as "Database"
 
-actor KH
-actor BEP
-actor TN
+    KH ->> QR: Quet ma QR
+    QR ->> UI: Mo trang dat mon
 
-KH --> (Quet QR)
-KH --> (Xem menu)
-KH --> (Chon mon)
-KH --> (Them gio hang)
-KH --> (Xac nhan dat mon)
-KH --> (Thanh toan)
-KH --> (Danh gia)
+    UI ->> C: Xac nhan ban
+    C ->> DB: Lay thong tin ban
+    DB -->> C: Tra ve thong tin ban
+    C -->> UI: Hien thi ban
 
-(Xac nhan dat mon) --> (Tao don hang)
-(Tao don hang) --> BEP
+    KH ->> UI: Xem menu
+    UI ->> C: Lay danh sach mon
+    C ->> DB: Truy van menu
+    DB -->> C: Tra ve danh sach mon
+    C -->> UI: Hien thi menu
 
-TN --> (Xu ly thanh toan)
+    KH ->> UI: Chon mon va so luong
+    UI ->> UI: Them vao gio hang
+
+    KH ->> UI: Nhan Goi mon
+    UI ->> C: Gui don hang
+
+    C ->> DB: Luu DonHang
+    C ->> DB: Luu ChiTietDonHang
+    DB -->> C: OK
+
+    C -->> UI: Dat mon thanh cong
+    UI -->> KH: Hien thi ma don
 </div>
 
 <script>
-mermaid.initialize({ startOnLoad: true });
+mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: "loose",
+    theme: "default"
+});
 </script>
 
 </body>

@@ -7,25 +7,26 @@
 ===================================================== */
 
 :root {
-  /* Màu sắc chủ đạo - Đỏ mì cay ấm áp */
-  --primary: #e74c3c;
-  --primary-dark: #c0392b;
-  --secondary: #f39c12;
-  --accent: #3498db;
-  
-  --success: #27ae60;
-  --warning: #f39c12;
-  --danger: #e74c3c;
-  --info: #2980b9;
+  /* Màu chủ đạo – Đỏ cam hiện đại (Spicy Modern) */
+  --primary: #ff4d4f;        /* đỏ cam tươi */
+  --primary-dark: #d9363e;   /* đỏ đậm hơn */
+  --secondary: #ffa940;      /* cam sáng */
+  --accent: #4f8cff;         /* xanh dương hiện đại */
 
-  /* Nền & thẻ */
-  --bg-body: #f8f9fa;
-  --bg-card: #ffffff;
-  --bg-muted: #ecf0f1;
+  /* Trạng thái */
+  --success: #2ecc71;        /* xanh lá tươi */
+  --warning: #f5a623;        /* cam vàng dịu */
+  --danger: #ff4d4f;         /* đồng bộ với primary */
+  --info: #4f8cff;           /* xanh hiện đại */
 
-  /* Văn bản */
-  --text-primary: #2c3e50;
-  --text-muted: #7f8c8d;
+  /* Nền & thẻ – sáng, sạch, kiểu dashboard */
+  --bg-body: #f5f7fa;        /* xám xanh rất nhạt */
+  --bg-card: #ffffff;       /* trắng tinh */
+  --bg-muted: #f0f2f5;      /* nền phụ nhẹ */
+
+  /* Văn bản – tương phản tốt, dễ đọc */
+  --text-primary: #1f2a37;   /* xám đậm hiện đại */
+  --text-muted: #6b7280;    /* xám trung tính */
 
   /* Hiệu ứng */
   --radius: 16px;
