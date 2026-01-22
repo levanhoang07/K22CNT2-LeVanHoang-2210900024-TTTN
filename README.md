@@ -186,7 +186,7 @@ Trong các phiên bản tiếp theo, hệ thống có thể được mở rộng
 Dự án được phát triển cho mục đích học tập và nghiên cứu.
 ---
 ## 📧 Liên hệ
-Nếu có bất kỳ thắc mắc hoặc góp ý nào, vui lòng liên hệ qua email:levanhoang742004@gmail.com hoặc tạo issue trên GitHub.
+Nếu có bất kỳ thắc mắc hoặc góp ý nào, vui lòng liên hệ qua email:levanhoang742004@gmail.com
 ---
 
 **© 2025 MyCay_Oder - Hệ thống đặt món bằng mã QR**
