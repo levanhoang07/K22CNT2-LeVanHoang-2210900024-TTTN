@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// KITCHEN MANAGEMENT SYSTEM - FRONTEND V4.0 (Trạng thái từng món)
+// KITCHEN MANAGEMENT SYSTEM - FRONTEND V4.1 (FIXED)
 // Filename: bep.js
-// Version: 4.0 - Xử lý trạng thái từng món riêng biệt
+// Version: 4.1 - Sửa lỗi hiển thị đơn và lịch sử
 // ═══════════════════════════════════════════════════════════════════════════
 
 const API_BASE = 'http://localhost:5000/api';
@@ -26,7 +26,7 @@ const state = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🔥 Kitchen System Started v4.0 (Per-Dish Status)');
+  console.log('🔥 Kitchen System Started v4.1 (FIXED - Per-Dish Status)');
   
   await initialize();
   setupEventListeners();
@@ -99,7 +99,7 @@ async function loadCompletedHistory(limit = 100, type = 'day') {
     const result = await response.json();
 
     if (result.success) {
-state.completedHistory = result.data.don_hang || [];
+      state.completedHistory = result.data.don_hang || [];
 
       state.completedHistory.forEach(order => {
         order.statusMapped = 'HOAN_THANH';
@@ -197,7 +197,7 @@ async function updateOrderStatus(orderId, status) {
 function mapBackendStatus(backendStatus) {
   const statusMap = {
     'CHỜ': 'WAITING',
-'Đang nấu': 'DANG_NAU',
+    'Đang nấu': 'DANG_NAU',
     'Hoàn thành': 'HOAN_THANH'
   };
   return statusMap[backendStatus] || 'WAITING';
@@ -213,7 +213,6 @@ function mapDishStatus(dishStatus) {
 }
 
 function getOrderPriorityStatus(order) {
-  // Xác định trạng thái ưu tiên dựa vào trạng thái các món
   const dishes = order.chi_tiet || [];
   
   const hasCooking = dishes.some(d => mapDishStatus(d.TrangThai) === 'DANG_NAU');
@@ -228,7 +227,6 @@ function getOrderPriorityStatus(order) {
 }
 
 function updateStats() {
-  // Đếm đơn theo trạng thái ưu tiên - CHỈ ĐƠN CHƯA THANH TOÁN
   state.stats.waiting = state.orders.filter(o => {
     const priority = getOrderPriorityStatus(o);
     return priority === 'WAITING' && o.TrangThaiThanhToan !== 1;
@@ -256,22 +254,24 @@ function updateStats() {
 function renderTables() {
   const container = document.getElementById('tables-grid');
 
-  let ordersToShow = [];
+let ordersToShow = [];
 
-  if (state.currentTab === 'waiting') {
-    // ✅ CHỈ LẤY ĐƠN CHƯA THANH TOÁN
-    ordersToShow = state.orders.filter(o => {
-      const priority = getOrderPriorityStatus(o);
-      return (priority === 'WAITING' || priority === 'DANG_NAU') && o.TrangThaiThanhToan !== 1;
-    });
-  } 
-  else if (state.currentTab === 'cooking') {
-    // ✅ CHỈ LẤY ĐƠN CHƯA THANH TOÁN
-    ordersToShow = state.orders.filter(o => {
-      const priority = getOrderPriorityStatus(o);
-      return priority === 'DANG_NAU' && o.TrangThaiThanhToan !== 1;
-    });
-  } 
+if (state.currentTab === 'waiting') {
+  // CHỈ LẤY ĐƠN ĐANG CHỜ (chưa nấu, chưa thanh toán)
+  ordersToShow = state.orders.filter(o =>
+    o.TrangThaiThanhToan !== 1 &&
+    getOrderPriorityStatus(o) === 'WAITING'
+  );
+}
+else if (state.currentTab === 'cooking') {
+  // CHỈ LẤY ĐƠN ĐANG NẤU
+  ordersToShow = state.orders.filter(o =>
+    o.TrangThaiThanhToan !== 1 &&
+    getOrderPriorityStatus(o) === 'DANG_NAU'
+  );
+}
+
+
   else if (state.currentTab === 'completed') {
     ordersToShow = state.completedHistory;
   }
@@ -286,12 +286,11 @@ function renderTables() {
             ? 'Chưa có đơn hoàn thành'
             : 'Đơn hàng sẽ xuất hiện ở đây khi có'}
         </p>
-</div>
+      </div>
     `;
     return;
   }
 
-  // Sort
   if (state.currentTab === 'completed') {
     ordersToShow.sort((a, b) =>
       new Date(b.ThoiGianHoanThanh || b.NgayTao) -
@@ -303,64 +302,83 @@ function renderTables() {
     );
   }
 
-  // Group by table name - CHỈ LẤY ĐƠN CHƯA THANH TOÁN
-  const tableMap = {};
-  ordersToShow.forEach(order => {
-    // Bỏ qua đơn đã thanh toán
-    if (order.TrangThaiThanhToan === 1) return;
-    
-    const tableName = order.TenBan;
-    if (!tableMap[tableName]) {
-      tableMap[tableName] = [];
-    }
-    tableMap[tableName].push(order);
-  });
+  if (state.currentTab === 'completed') {
+// HIỂN THỊ THEO TỪNG ĐƠN (KHÔNG GOM THEO BÀN)
+container.innerHTML = ordersToShow.map(order => {
+  const orderStatus = getOrderPriorityStatus(order);
 
-  // Render table cards
-  container.innerHTML = Object.entries(tableMap).map(([tableName, orders]) => {
-    // Tính trạng thái ưu tiên của bàn
-    let priorityStatus = 'WAITING';
-    let hasCooking = false;
-    let hasWaiting = false;
-    
-    orders.forEach(order => {
-      const orderStatus = getOrderPriorityStatus(order);
-      if (orderStatus === 'DANG_NAU') hasCooking = true;
-      if (orderStatus === 'WAITING') hasWaiting = true;
+  const statusClass = `status-${orderStatus}`;
+  const statusText =
+    orderStatus === 'WAITING' ? '⏳ Chờ làm' :
+    orderStatus === 'DANG_NAU' ? '🔥 Đang nấu' : '✅ Hoàn thành';
+
+  const pendingDishes = (order.chi_tiet || []).filter(d =>
+    mapDishStatus(d.TrangThai) !== 'HOAN_THANH'
+  ).length;
+
+  return `
+    <div class="table-item ${statusClass}" onclick="showSingleOrder(${order.IDDonHang})">
+      ${pendingDishes > 0 ? `<div class="order-count">${pendingDishes}</div>` : ''}
+      <div class="table-icon">🍽️</div>
+      <div class="table-name">${order.TenBan}</div>
+      <div class="order-id">#${order.IDDonHang}</div>
+      <div class="table-status">${statusText}</div>
+      <div class="order-time">${formatTime(order.NgayTao)}</div>
+    </div>
+  `;
+}).join('');
+  } else {
+    const tableMap = {};
+    ordersToShow.forEach(order => {
+      if (order.TrangThaiThanhToan === 1) return;
+      
+      const tableName = order.TenBan;
+      if (!tableMap[tableName]) {
+        tableMap[tableName] = [];
+      }
+      tableMap[tableName].push(order);
     });
-    
-    if (hasCooking) {
-      priorityStatus = 'DANG_NAU';
-    } else if (hasWaiting) {
-      priorityStatus = 'WAITING';
-    } else {
-      priorityStatus = 'HOAN_THANH';
-    }
-    
-    const statusClass = `status-${priorityStatus}`;
-    
-    const statusText = priorityStatus === 'WAITING' ? '⏳ Chờ làm' :
-                      priorityStatus === 'DANG_NAU' ? '🔥 Đang nấu' : '✅ Hoàn thành';
-    
-    const statusBadge = priorityStatus;
-    
-    // Đếm tổng món chưa hoàn thành
-    const totalDishes = orders.reduce((sum, order) => {
-      const pendingDishes = (order.chi_tiet || []).filter(d => 
-        mapDishStatus(d.TrangThai) !== 'HOAN_THANH'
-      ).length;
-      return sum + pendingDishes;
-    }, 0);
 
-    return `
-      <div class="table-item ${statusClass}" onclick="showTableOrders('${tableName}')">
-        ${totalDishes > 0 ? `<div class="order-count">${totalDishes}</div>` : ''}
-        <div class="table-icon">🍽️</div>
-        <div class="table-name">${tableName}</div>
-        <div class="table-status ${statusBadge}">${statusText}</div>
-      </div>
-    `;
-  }).join('');
+    container.innerHTML = Object.entries(tableMap).map(([tableName, orders]) => {
+      let priorityStatus = 'WAITING';
+      let hasCooking = false;
+      let hasWaiting = false;
+      
+      orders.forEach(order => {
+        const orderStatus = getOrderPriorityStatus(order);
+        if (orderStatus === 'DANG_NAU') hasCooking = true;
+        if (orderStatus === 'WAITING') hasWaiting = true;
+      });
+      
+      if (hasCooking) {
+        priorityStatus = 'DANG_NAU';
+      } else if (hasWaiting) {
+        priorityStatus = 'WAITING';
+      } else {
+        priorityStatus = 'HOAN_THANH';
+      }
+      
+      const statusClass = `status-${priorityStatus}`;
+      const statusText = priorityStatus === 'WAITING' ? '⏳ Chờ làm' :
+                        priorityStatus === 'DANG_NAU' ? '🔥 Đang nấu' : '✅ Hoàn thành';
+      
+      const totalDishes = orders.reduce((sum, order) => {
+        const pendingDishes = (order.chi_tiet || []).filter(d => 
+          mapDishStatus(d.TrangThai) !== 'HOAN_THANH'
+        ).length;
+        return sum + pendingDishes;
+      }, 0);
+
+      return `
+        <div class="table-item ${statusClass}" onclick="showTableOrders('${tableName}')">
+          ${totalDishes > 0 ? `<div class="order-count">${totalDishes}</div>` : ''}
+          <div class="table-icon">🍽️</div>
+          <div class="table-name">${tableName}</div>
+          <div class="table-status ${priorityStatus}">${statusText}</div>
+        </div>
+      `;
+    }).join('');
+  }
 }
 
 function renderStats() {
@@ -375,7 +393,7 @@ function renderStats() {
   };
   
   if (els.waiting) els.waiting.textContent = state.stats.waiting;
-if (els.cooking) els.cooking.textContent = state.stats.cooking;
+  if (els.cooking) els.cooking.textContent = state.stats.cooking;
   if (els.completed) els.completed.textContent = state.stats.completed;
   if (els.today) els.today.textContent = state.stats.today;
   if (els.badgeWaiting) els.badgeWaiting.textContent = state.stats.waiting;
@@ -384,11 +402,10 @@ if (els.cooking) els.cooking.textContent = state.stats.cooking;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MODAL FUNCTIONS - HIỂN THỊ CHI TIẾT TỪNG MÓN
+// MODAL FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
-function showTableOrders(tableName) {
 
-  // ✅ Chỉ lấy các đơn CHƯA thanh toán của bàn hiện tại
+function showTableOrders(tableName) {
   const allOrders = state.orders.filter(o =>
     o.TenBan === tableName && o.TrangThaiThanhToan !== 1
   );
@@ -398,7 +415,6 @@ function showTableOrders(tableName) {
     return;
   }
 
-  // Sắp xếp theo thời gian tạo (cũ → mới)
   allOrders.sort((a, b) => new Date(a.NgayTao) - new Date(b.NgayTao));
 
   const modal = document.getElementById('order-modal');
@@ -411,95 +427,118 @@ function showTableOrders(tableName) {
   `;
 
   modalBody.innerHTML = allOrders.map((order, index) => {
-    const isPaid = order.TrangThaiThanhToan === 1;
     const orderStatus = getOrderPriorityStatus(order);
-
-    return `
-      <div class="order-card-modal" style="
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-        border: 2px solid ${orderStatus === 'WAITING' ? '#3b82f6' :
-                           orderStatus === 'DANG_NAU' ? '#facc15' : '#22c55e'};
-      ">
-
-        <!-- HEADER ĐƠN -->
-        <div class="order-info-grid">
-          <div class="info-card">
-            <div class="info-label">Mã đơn</div>
-            <div class="info-value">#${order.IDDonHang}</div>
-          </div>
-          <div class="info-card">
-            <div class="info-label">Lần gọi</div>
-            <div class="info-value">#${index + 1}</div>
-          </div>
-          <div class="info-card">
-            <div class="info-label">Thời gian</div>
-            <div class="info-value">${formatTime(order.NgayTao)}</div>
-          </div>
-          <div class="info-card">
-            <div class="info-label">Trạng thái</div>
-            <div class="info-value">
-              ${orderStatus === 'WAITING' ? '⏳ Chờ làm' :
-                orderStatus === 'DANG_NAU' ? '🔥 Đang nấu' :
-                '✅ Hoàn thành'}
-            </div>
-          </div>
-        </div>
-
-        <!-- BẢNG MÓN -->
-        <div class="dishes-table" style="margin-top: 15px;">
-          <table>
-            <thead>
-              <tr>
-                <th>Món ăn</th>
-                <th>SL</th>
-                <th>Độ cay</th>
-                <th>Ghi chú</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${(order.chi_tiet || []).map(item => {
-                const dishStatus = mapDishStatus(item.TrangThai);
-                return `
-                  <tr>
-                    <td class="dish-name">${item.TenMon}</td>
-                    <td class="dish-qty">x${item.SoLuong}</td>
-                    <td>${item.CapDoCay ? `<span class="spicy-level">${item.CapDoCay}</span>` : '-'}</td>
-                    <td>${item.GhiChu || '-'}</td>
-                    <td>
-                      <span class="dish-status-badge status-${dishStatus}">
-                        ${dishStatus === 'WAITING' ? '⏳ Chờ' :
-                          dishStatus === 'DANG_NAU' ? '🔥 Nấu' :
-                          '✅ Xong'}
-                      </span>
-                    </td>
-                    <td>
-                      ${renderDishActions(item.IDChiTiet, dishStatus, false)}
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-
-        <!-- ACTIONS -->
-        <div class="modal-actions" style="margin-top: 15px;">
-          ${renderOrderActions(order.IDDonHang, orderStatus, false)}
-        </div>
-
-      </div>
-    `;
+    return renderOrderCard(order, index, orderStatus, false);
   }).join('');
 
   modal.classList.add('show');
   document.body.style.overflow = 'hidden';
 }
 
+function showSingleOrder(orderId) {
+  const order = state.completedHistory.find(o => o.IDDonHang === orderId);
+  
+  if (!order) {
+    console.error('Order not found:', orderId);
+    return;
+  }
+
+  const modal = document.getElementById('order-modal');
+  const modalBody = document.getElementById('modal-body');
+  const modalTitle = document.getElementById('modal-title');
+
+  const isPaid = order.TrangThaiThanhToan === 1;
+  const orderStatus = getOrderPriorityStatus(order);
+
+  modalTitle.innerHTML = `
+    <i class="fas fa-utensils"></i>
+    ${order.TenBan} - Đơn #${order.IDDonHang}
+    ${isPaid ? '<span style="color:#26de81;margin-left:10px;">💰 Đã thanh toán</span>' : ''}
+  `;
+
+  modalBody.innerHTML = renderOrderCard(order, 0, orderStatus, isPaid);
+
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderOrderCard(order, index, orderStatus, isPaid) {
+  return `
+    <div class="order-card-modal" style="
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 2px solid ${orderStatus === 'WAITING' ? '#3b82f6' :
+                         orderStatus === 'DANG_NAU' ? '#facc15' : '#22c55e'};
+    ">
+      <div class="order-info-grid">
+        <div class="info-card">
+          <div class="info-label">Mã đơn</div>
+          <div class="info-value">#${order.IDDonHang}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Lần gọi</div>
+          <div class="info-value">#${index + 1}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Thời gian</div>
+          <div class="info-value">${formatTime(order.NgayTao)}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Trạng thái</div>
+          <div class="info-value">
+            ${orderStatus === 'WAITING' ? '⏳ Chờ làm' :
+              orderStatus === 'DANG_NAU' ? '🔥 Đang nấu' :
+              '✅ Hoàn thành'}
+          </div>
+        </div>
+      </div>
+
+      <div class="dishes-table" style="margin-top: 15px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Món ăn</th>
+              <th>SL</th>
+              <th>Độ cay</th>
+              <th>Ghi chú</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(order.chi_tiet || []).map(item => {
+              const dishStatus = mapDishStatus(item.TrangThai);
+              return `
+                <tr>
+                  <td class="dish-name">${item.TenMon}</td>
+                  <td class="dish-qty">x${item.SoLuong}</td>
+                  <td>${item.CapDoCay ? `<span class="spicy-level">${item.CapDoCay}</span>` : '-'}</td>
+                  <td>${item.GhiChu || '-'}</td>
+                  <td>
+                    <span class="dish-status-badge status-${dishStatus}">
+                      ${dishStatus === 'WAITING' ? '⏳ Chờ' :
+                        dishStatus === 'DANG_NAU' ? '🔥 Nấu' :
+                        '✅ Xong'}
+                    </span>
+                  </td>
+                  <td>
+                    ${renderDishActions(item.IDChiTiet, dishStatus, isPaid)}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 15px;">
+        ${renderOrderActions(order.IDDonHang, orderStatus, isPaid)}
+      </div>
+    </div>
+  `;
+}
 
 function renderDishActions(idChiTiet, status, isPaid) {
   if (isPaid && status === 'HOAN_THANH') {
@@ -509,14 +548,13 @@ function renderDishActions(idChiTiet, status, isPaid) {
   if (status === 'WAITING') {
     return `
       <button class="btn-dish-action btn-sm" onclick="startCookingDish(${idChiTiet})" 
-             style="background:#facc15;color:#1f2937;border:none;padding:6px 14px;border-radius:999px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all .2s;"
-
+             style="background:#facc15;color:#1f2937;border:none;padding:6px 14px;border-radius:999px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all .2s;">
         <i class="fas fa-fire"></i> Nấu
       </button>
     `;
   } else if (status === 'DANG_NAU') {
     return `
-<button class="btn-dish-action btn-sm" onclick="completeDish(${idChiTiet})" 
+      <button class="btn-dish-action btn-sm" onclick="completeDish(${idChiTiet})" 
               style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); 
                      color: #fff; border: none; padding: 5px 12px; border-radius: 6px; 
                      cursor: pointer; font-size: 0.85rem;">
@@ -567,10 +605,13 @@ async function startCookingDish(idChiTiet) {
   const success = await updateDishStatus(idChiTiet, 'DANG_NAU');
   if (success) {
     playSound('start');
-    // Refresh modal
     const currentTableName = getCurrentTableName();
+    const currentOrderId = getCurrentOrderId();
+    
     if (currentTableName) {
       setTimeout(() => showTableOrders(currentTableName), 500);
+    } else if (currentOrderId) {
+      setTimeout(() => showSingleOrder(currentOrderId), 500);
     }
   }
 }
@@ -582,8 +623,12 @@ async function completeDish(idChiTiet) {
   if (success) {
     playSound('complete');
     const currentTableName = getCurrentTableName();
+    const currentOrderId = getCurrentOrderId();
+    
     if (currentTableName) {
       setTimeout(() => showTableOrders(currentTableName), 500);
+    } else if (currentOrderId) {
+      setTimeout(() => showSingleOrder(currentOrderId), 500);
     }
   }
 }
@@ -591,9 +636,11 @@ async function completeDish(idChiTiet) {
 async function startCookingAllDishes(orderId) {
   if (!confirm('🔥 Bắt đầu nấu TẤT CẢ món chờ trong đơn này?')) return;
   
-  const order = state.orders.find(o => o.IDDonHang === orderId);
+  const order = state.orders.find(o => o.IDDonHang === orderId) ||
+                state.completedHistory.find(o => o.IDDonHang === orderId);
   if (!order) return;
-const waitingDishes = (order.chi_tiet || []).filter(d => 
+  
+  const waitingDishes = (order.chi_tiet || []).filter(d => 
     mapDishStatus(d.TrangThai) === 'WAITING'
   );
   
@@ -605,8 +652,12 @@ const waitingDishes = (order.chi_tiet || []).filter(d =>
   playSound('start');
   
   const currentTableName = getCurrentTableName();
+  const currentOrderId = getCurrentOrderId();
+  
   if (currentTableName) {
     setTimeout(() => showTableOrders(currentTableName), 500);
+  } else if (currentOrderId) {
+    setTimeout(() => showSingleOrder(currentOrderId), 500);
   }
 }
 
@@ -626,6 +677,15 @@ function getCurrentTableName() {
   const text = modalTitle.textContent;
   const match = text.match(/([^\s]+)\s+-\s+\d+\s+đơn hàng/);
   return match ? match[1] : null;
+}
+
+function getCurrentOrderId() {
+  const modalTitle = document.getElementById('modal-title');
+  if (!modalTitle) return null;
+  
+  const text = modalTitle.textContent;
+  const match = text.match(/Đơn #(\d+)/);
+  return match ? parseInt(match[1]) : null;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -683,14 +743,10 @@ function switchTab(tab) {
 
   if (tab === 'completed') {
     loadCompletedHistory();
-} else {
+  } else {
     renderTables();
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// HISTORY FILTER
-// ═══════════════════════════════════════════════════════════════════════════
 
 window.currentHistoryType = 'day';
 
@@ -754,6 +810,7 @@ function setupSocketListeners() {
     await loadCompletedHistory();
   });
 }
+
 // ═══════════════════════════════════════════════════════════════════════════
 // UTILITY FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -775,7 +832,7 @@ function startClock() {
       minute: '2-digit',
       second: '2-digit'
     });
-const dateStr = now.toLocaleDateString('vi-VN', {
+    const dateStr = now.toLocaleDateString('vi-VN', {
       weekday: 'long',
       day: '2-digit',
       month: '2-digit',
@@ -848,7 +905,7 @@ function playSound(type) {
   const sounds = {
     notification: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
     success: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
-start: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
+    start: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA==',
     complete: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUB0NVKnk8bhlKgkldc3y1Y03CA1iqO7poFceDF+46PO0Zi4NQqPn8L1wKA=='
   };
   
@@ -860,10 +917,6 @@ start: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZG
     console.log('Sound error:', e);
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PRINT KITCHEN TICKET
-// ═══════════════════════════════════════════════════════════════════════════
 
 function printKitchenTicket(orderId) {
   const order = state.orders.find(o => o.IDDonHang === orderId) ||
@@ -896,10 +949,10 @@ function printKitchenTicket(orderId) {
         <div class="table-name">${order.TenBan}</div>
       </div>
       <div class="order-info">
-<p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
+        <p><strong>Đơn hàng:</strong> #${order.IDDonHang}</p>
         <p><strong>Thời gian:</strong> ${formatTime(order.NgayTao)}</p>
       </div>
-      ${order.chi_tiet.map(item => `
+      ${(order.chi_tiet || []).map(item => `
         <div class="item">
           <div style="display: flex; justify-content: space-between;">
             <div style="flex: 1;">
@@ -928,25 +981,23 @@ function printKitchenTicket(orderId) {
 // GLOBAL FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
-window.startCooking = startCooking;
-window.completeOrder = completeOrder;
-window.printKitchenTicket = printKitchenTicket;
-window.showOrderDetail = showOrderDetail;
 window.showTableOrders = showTableOrders;
+window.showSingleOrder = showSingleOrder;
 window.closeModal = closeModal;
-
-// ═══════════════════════════════════════════════════════════════════════════
-// DEBUG & HELPERS
-// ═══════════════════════════════════════════════════════════════════════════
+window.startCookingDish = startCookingDish;
+window.completeDish = completeDish;
+window.startCookingAllDishes = startCookingAllDishes;
+window.completeAllDishes = completeAllDishes;
+window.printKitchenTicket = printKitchenTicket;
 
 window.kitchenDebug = {
   state: () => console.table(state.stats),
   orders: () => console.table(state.orders),
+  history: () => console.table(state.completedHistory),
   reload: () => loadOrders(),
   currentOrder: () => console.log(state.currentOrder)
 };
 
-// Show keyboard shortcuts on first load
 if (!localStorage.getItem('kitchen_shortcuts_shown')) {
   setTimeout(() => {
     showToast(
@@ -957,7 +1008,7 @@ if (!localStorage.getItem('kitchen_shortcuts_shown')) {
   }, 2000);
 }
 
-console.log('🔥 Kitchen System v4.0 Loaded Successfully!');
+console.log('🔥 Kitchen System v4.1 FIXED - Loaded Successfully!');
 console.log('📌 Backend API: ' + API_BASE);
-console.log('📌 Keyboard shortcuts: 1 (Waiting), 2 (Cooking), 3 (Completed), ESC (Close), R (Refresh)');
-console.log('🐛 Debug: Use kitchenDebug.state(), kitchenDebug.orders(), etc.');
+console.log('📌 Keyboard: 1 (Waiting), 2 (Cooking), 3 (Completed), ESC (Close), R (Refresh)');
+console.log('🐛 Debug: kitchenDebug.state(), orders(), history()');

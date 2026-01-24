@@ -913,4 +913,19 @@ button:focus-visible,
   body {
     background: #ffffff;
   }
+}.order-id {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
+  margin-top: 5px;
+}
+
+.order-time {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 5px;
+}
+
+.status-PAID {
+  border-color: #26de81 !important;
+  background: linear-gradient(135deg, rgba(38,222,129,0.1), rgba(38,222,129,0.05));
 }

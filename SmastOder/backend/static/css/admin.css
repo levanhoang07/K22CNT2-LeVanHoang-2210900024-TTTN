@@ -642,3 +642,42 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #4f46e5, #9333ea);
 }
+/* ================= LOGOUT BUTTON STYLE ================= */
+
+.logout-container {
+  padding: 25px;
+  margin-top: auto;
+}
+
+.btn-logout-custom {
+  width: 100%;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
+}
+
+.btn-logout-custom i {
+  font-size: 1.2rem;
+}
+
+.btn-logout-custom:hover {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(239, 68, 68, 0.45);
+}
+
+.btn-logout-custom:active {
+  transform: scale(0.97);
+  box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3);
+}
