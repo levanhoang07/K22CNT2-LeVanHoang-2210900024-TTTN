@@ -512,39 +512,78 @@ from flask import request, jsonify
 import requests
 @app.route('/api/tra-cuu-mst')
 def tra_cuu_mst():
-    mst = request.args.get('mst')
+    mst = request.args.get('mst', '').strip()
 
     if not mst:
+        logger.warning("❌ Yêu cầu tra cứu MST nhưng MST trống")
         return jsonify(success=False, message="Thiếu MST")
 
+    logger.info(f"🔍 Tra cứu MST: {mst}")
+
     try:
+        # 🔗 Sử dụng API VietQR chính thức
         url = f"https://api.vietqr.io/v2/business/{mst}"
         headers = {
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "application/json"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
         }
 
+        logger.info(f"📡 Gọi API: {url}")
         res = requests.get(url, headers=headers, timeout=10)
 
-        # ❗ Nếu VietQR lỗi
+        # ❗ Kiểm tra status code
         if res.status_code != 200:
+            logger.error(f"❌ VietQR trả về status {res.status_code}: {res.text}")
             return jsonify(
                 success=False,
-                message=f"VietQR error {res.status_code}"
+                message=f"VietQR lỗi ({res.status_code}): {res.text[:100]}"
             )
 
+        # ✅ Parse JSON response
         data = res.json()
+        logger.info(f"📦 Response từ VietQR: {data}")
 
+        # ❗ Kiểm tra code trong response
         if data.get("code") != "00":
-            return jsonify(success=False, message="Không tìm thấy")
+            error_msg = data.get("message", "Không tìm thấy MST")
+            logger.warning(f"❌ VietQR trả về code {data.get('code')}: {error_msg}")
+            return jsonify(
+                success=False,
+                message=f"MST không hợp lệ hoặc không tồn tại: {error_msg}"
+            )
 
-        return jsonify(success=True, data={
-            "ten_cong_ty": data["data"]["name"],
-            "dia_chi": data["data"]["address"]
-        })
+        # ✅ Trích xuất dữ liệu
+        try:
+            business_data = data.get("data", {})
+            ten_cong_ty = business_data.get("name", "Không xác định")
+            dia_chi = business_data.get("address", "Không xác định")
+            
+            logger.info(f"✅ Tìm thấy: {ten_cong_ty}")
+            return jsonify(success=True, data={
+                "ten_cong_ty": ten_cong_ty,
+                "dia_chi": dia_chi,
+                "mst": mst
+            })
+        except KeyError as ke:
+            logger.error(f"❌ Lỗi parse dữ liệu từ response: {ke}")
+            logger.error(f"📦 Full response: {data}")
+            return jsonify(
+                success=False,
+                message=f"API trả về dữ liệu không đúng format"
+            )
 
+    except requests.exceptions.Timeout:
+        logger.error("❌ Timeout khi gọi VietQR (>10s)")
+        return jsonify(success=False, message="Timeout: VietQR không phản hồi")
+    
+    except requests.exceptions.ConnectionError as e:
+        logger.error(f"❌ Lỗi kết nối: {str(e)}")
+        return jsonify(success=False, message="Lỗi kết nối: Không thể kết nối đến VietQR")
+    
     except Exception as e:
-        return jsonify(success=False, message=str(e))
+        logger.exception(f"❌ Lỗi tra cứu MST: {str(e)}")
+        return jsonify(success=False, message=f"Lỗi: {str(e)}")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 💼 API THU NGÂN

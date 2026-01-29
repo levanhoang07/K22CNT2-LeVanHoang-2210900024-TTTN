@@ -321,14 +321,31 @@
     </div>
   </div>
 
-  <div class="tab-content-section" id="section-reports">
-    <div class="content-car">
-        <div class="card-header-custom">
-<h3 class="card-title"><i class="fas fa-chart-line"></i> Báo cáo Doanh thu</h3>
-</div>
-<div id="reports-content">Đang tải...</div>
-</div>
+ <div class="tab-content-section" id="section-reports">
+  <div class="content-card">
+    <div class="card-header-custom d-flex justify-content-between align-items-center">
+      <h3 class="card-title">
+        <i class="fas fa-chart-line"></i> Báo cáo Doanh thu
+      </h3>
+
+      <!-- Nút chọn thời gian -->
+      <div class="btn-group">
+        <button class="btn btn-outline-primary btn-sm" onclick="loadReports('day')">
+          Ngày
+        </button>
+        <button class="btn btn-outline-primary btn-sm" onclick="loadReports('week')">
+          Tuần
+        </button>
+        <button class="btn btn-outline-primary btn-sm active" onclick="loadReports('month')">
+          Tháng
+        </button>
+      </div>
+    </div>
+
+    <div id="reports-content">Đang tải...</div>
   </div>
+</div>
+
   <div class="tab-content-section" id="section-settings">
     <div class="content-card">
       <div class="card-header-custom">

@@ -79,59 +79,89 @@
 <!-- ===== CART ASIDE ===== -->
 <aside class="cart col-lg-4 mobile-cart">
   <div class="card shadow-sm sticky-top" style="top: 20px;">
-    <div class="card-body">
-      <h3 class="cart-title mb-4">🛒 Giỏ hàng</h3>
+    <div class="card-body d-flex flex-column" style="height: 100%;">
+      
+      <!-- SCROLLABLE SECTION -->
+      <div class="cart-scrollable">
+        <h3 class="cart-title mb-4">🛒 Giỏ hàng</h3>
 
-      <div id="cart-list" class="mb-4" style="min-height: 150px;">
-        <div class="empty text-muted text-center py-5">Giỏ hàng trống</div>
-      </div>
-
-      <div class="cart-summary">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="fw-bold">Tạm tính:</span>
-          <strong id="cart-subtotal" class="fs-5 text-danger">0 ₫</strong>
+        <div id="cart-list" class="mb-4" style="min-height: 150px;">
+          <div class="empty text-muted text-center py-5">Giỏ hàng trống</div>
         </div>
 
+        <div class="cart-summary">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="fw-bold">Tạm tính:</span>
+            <strong id="cart-subtotal" class="fs-5 text-danger">0 ₫</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- FIXED BUTTONS SECTION -->
+      <div class="cart-buttons mt-auto">
         <button id="btn-order" class="btn btn-success btn-lg w-100 mb-2" disabled>
           🍜 Gửi đơn hàng
         </button>
 
-        <button id="btn-call-staff" class="btn btn-warning btn-lg w-100">
+        <button id="btn-call-staff" class="btn btn-warning btn-lg w-100 mb-2">
           📢 Gọi nhân viên hỗ trợ
         </button>
+
+        <button id="btn-review" class="btn btn-outline-primary btn-lg w-100">
+          ⭐ Góp ý dịch vụ
+        </button>
       </div>
-      <button id="btn-review" class="btn btn-outline-primary btn-lg w-100 mt-2">
-  ⭐ Góp ý dịch vụ
-</button>
-<!-- ================= LỊCH SỬ ĐẶT MÓN (BUBBLE + MODAL) ================= -->
-<div id="history-bubble">🔔</div>
-<div id="history-modal" class="hidden">
-  <div class="modal-backdrop"></div>
-  <div class="history-panel">
-    <button id="close-history">✕</button>
-    <div id="history-list"></div>
-  </div>
-</div>
+
+      <!-- ================= LỊCH SỬ ĐẶT MÓN (BUBBLE + MODAL) ================= -->
+      <div id="history-bubble">🔔</div>
+      <div id="history-modal" class="hidden">
+        <div class="modal-backdrop"></div>
+        <div class="history-panel">
+          <button id="close-history">✕</button>
+          <div id="history-list"></div>
+        </div>
+      </div>
     </div>
   </div>
-  <!-- 🤖 AI FOOD CHAT -->
- <!-- <div id="food-chat-btn">🤖</div>
+</aside>
 
-<div id="food-chat-box" class="hidden">
-  <div class="chat-header">
-    🍜 Gợi ý món ăn
-    <span id="close-chat">✕</span>
-  </div>
-  <div id="chat-messages"></div>
-  <div class="chat-input">
-    <input id="chat-text" placeholder="Bạn muốn ăn gì? (cay, ngọt, rẻ...)" />
-    <button id="send-chat">➤</button>
+<!-- ===== MOBILE BOTTOM CART BAR ===== -->
+<div id="mobile-cart-bar" class="mobile-cart-bar hidden">
+  <div class="cart-bar-content">
+    <div class="cart-info" onclick="toggleMobileCart()">
+      <span class="cart-icon">🛒</span>
+      <div class="cart-details">
+        <span class="cart-count" id="mobile-cart-count">0</span>
+        <span class="cart-price" id="mobile-cart-price">0₫</span>
+      </div>
+      <span class="toggle-icon">⬆</span>
+    </div>
+    <button id="mobile-btn-order" class="btn-order-mobile" disabled>
+      Gửi đơn
+    </button>
   </div>
 </div>
-
-</aside>
 </div>
 </main>
+<!-- ================= FOOTER ================= -->
+<footer class="site-footer">
+  <div class="container footer-content">
+    <span> Phát triển bởi sinh viên: Lê Văn Hoàng</span>
+
+    <span class="divider">|</span>
+
+    <a  target="_blank">
+      Khoa Công nghệ Thông tin
+    </a>
+
+    <span class="divider">|</span>
+
+    <a  target="_blank">
+      Trường Đại học Nguyễn Trãi
+    </a>
+  </div>
+</footer>
+
 <!-- ================= MODAL CHỌN TÙY CHỌN MÓN ================= -->
 <div id="option-modal" class="modal hidden">
   <div class="modal-backdrop"></div>

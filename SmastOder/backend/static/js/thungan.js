@@ -250,7 +250,7 @@ function renderOrders() {
             <i class="fas fa-eye"></i> Xem
           </button>
           <button class="btn-action btn-send-kitchen" onclick="handleSendToKitchen(${order.IDDonHang})">
-            <i class="fas fa-fire"></i> Gửi bếp
+            <i class="fas fa-fire"></i> Xác nhận & gửi bếp
           </button>
           <button class="btn-action btn-payment" onclick="handlePayment(${order.IDDonHang})">
             <i class="fas fa-credit-card"></i> Thanh toán
@@ -351,7 +351,7 @@ function renderOrderDetail() {
       ${!isPaid ? `
         <div class="d-grid gap-2">
           <button class="btn-action btn-send-kitchen btn-lg" onclick="handleSendToKitchen(${order.IDDonHang})">
-            <i class="fas fa-fire"></i> Gửi đơn cho bếp
+            <i class="fas fa-fire"></i> Xác nhận & gửi bếp
           </button>
           <button class="btn-action btn-payment btn-lg" onclick="handlePayment(${order.IDDonHang})">
             <i class="fas fa-credit-card"></i> Thanh toán ngay
@@ -625,50 +625,111 @@ async function confirmPayment() {
 
 async function lookupTaxCode(taxCode) {
   try {
-    showToast('🔎 Đang tra cứu mã số thuế...', 'info');
+    // ✅ BƯỚC 1: KIỂM TRA INPUT
+    const trimmedCode = taxCode.trim();
+    console.log("🔍 [LOOKUP] Input MST:", trimmedCode, "Length:", trimmedCode.length);
 
-    const res = await fetch(`/api/tra-cuu-mst?mst=${encodeURIComponent(taxCode)}`);
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+    if (!trimmedCode) {
+      console.error('❌ [LOOKUP] MST rỗng!');
+      showToast('❌ Vui lòng nhập mã số thuế', 'warning');
+      return;
     }
 
+    // ✅ BƯỚC 2: KIỂM TRA DOM
+    const companyInput = document.getElementById('vat-company');
+    const addressInput = document.getElementById('vat-address');
+
+    if (!companyInput || !addressInput) {
+      console.error('❌ [LOOKUP] Không tìm thấy input:', {
+        company: !!companyInput,
+        address: !!addressInput
+      });
+      showToast('⚠️ Lỗi form VAT (thiếu input)', 'error');
+      return;
+    }
+
+    showToast('🔎 Đang tra cứu mã số thuế...', 'info');
+
+    // ✅ BƯỚC 3: GỌI API
+    const apiUrl = `/api/tra-cuu-mst?mst=${encodeURIComponent(trimmedCode)}`;
+    console.log("📡 [LOOKUP] Gọi API:", apiUrl);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    const res = await fetch(apiUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    console.log("📊 [LOOKUP] Status:", res.status, "Headers:", {
+      contentType: res.headers.get('content-type'),
+      contentLength: res.headers.get('content-length')
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`❌ [LOOKUP] HTTP ${res.status}:`, errorText);
+      throw new Error(`HTTP ${res.status}: ${errorText}`);
+    }
+
+    // ✅ BƯỚC 4: PARSE RESPONSE
     const text = await res.text();
-    console.log("📥 Raw API response:", text); // debug thô
+    console.log("📥 [LOOKUP] Raw response:", text);
 
     let json;
     try {
       json = JSON.parse(text);
     } catch (e) {
-      console.error('❌ API trả về không phải JSON:', text);
-      showToast('❌ API MST lỗi dữ liệu', 'error');
+      console.error('❌ [LOOKUP] JSON parse failed:', e.message);
+      console.error('📦 Response text:', text);
+      showToast('❌ API MST trả về dữ liệu lỗi (không phải JSON)', 'error');
       return;
     }
 
-    console.log("📥 Parsed MST JSON:", json); // debug JSON
+    console.log("✅ [LOOKUP] Parsed JSON:", json);
 
-    if (!json.success || !json.data) {
-      showToast('❌ Không tìm thấy mã số thuế', 'warning');
+    // ✅ BƯỚC 5: KIỂM TRA SUCCESS
+    if (!json.success) {
+      const errorMsg = json.message || 'Không tìm thấy';
+      console.warn(`⚠️ [LOOKUP] API success=false: ${errorMsg}`);
+      showToast(`❌ ${errorMsg}`, 'warning');
       return;
     }
 
-    const companyInput = document.getElementById('vat-company');
-    const addressInput = document.getElementById('vat-address');
-
-    if (!companyInput || !addressInput) {
-      console.error('❌ Không tìm thấy input VAT trong DOM');
-      showToast('⚠️ Lỗi form VAT (thiếu input)', 'error');
+    if (!json.data) {
+      console.warn('⚠️ [LOOKUP] API success=true nhưng data trống');
+      showToast('❌ API không trả về dữ liệu', 'warning');
       return;
     }
 
-    companyInput.value = json.data.ten_cong_ty || '';
-    addressInput.value = json.data.dia_chi || '';
+    // ✅ BƯỚC 6: TRÍCH XUẤT DỮ LIỆU
+    const { ten_cong_ty, dia_chi } = json.data;
+    console.log("📦 [LOOKUP] Data:", { ten_cong_ty, dia_chi });
+
+    if (!ten_cong_ty) {
+      console.warn('⚠️ [LOOKUP] Tên công ty rỗng');
+      showToast('⚠️ Dữ liệu không hoàn chỉnh: thiếu tên công ty', 'warning');
+      return;
+    }
+
+    // ✅ BƯỚC 7: CẬP NHẬT FORM
+    companyInput.value = ten_cong_ty;
+    addressInput.value = dia_chi || '';
+
+    console.log("✅ [LOOKUP] Form updated:", {
+      company: companyInput.value,
+      address: addressInput.value
+    });
 
     showToast('✅ Đã lấy thông tin doanh nghiệp', 'success');
 
   } catch (err) {
-    console.error('❌ Tax lookup error:', err);
-    showToast('❌ Lỗi tra cứu mã số thuế', 'error');
+    if (err.name === 'AbortError') {
+      console.error('❌ [LOOKUP] Timeout (>10s)');
+      showToast('❌ Timeout: VietQR không phản hồi', 'error');
+    } else {
+      console.error('❌ [LOOKUP] Exception:', err.message);
+      showToast(`❌ Lỗi: ${err.message}`, 'error');
+    }
   }
 }
 

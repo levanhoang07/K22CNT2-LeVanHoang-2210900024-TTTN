@@ -1702,15 +1702,35 @@ function editStaff(id) {
 // REPORTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-async function loadReports() {
+async function loadReports(type = 'month') {
   try {
     showLoading(true);
     
-    // Get date range (last 30 days)
-    const denNgay = new Date().toISOString().split('T')[0];
-    const tuNgay = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const today = new Date();
+    let tuNgay, denNgay;
+
+    denNgay = today.toISOString().split('T')[0];
+
+    if (type === 'day') {
+      // Báo cáo theo ngày (hôm nay)
+      tuNgay = denNgay;
+    } 
+    else if (type === 'week') {
+      // 7 ngày gần nhất
+      const weekAgo = new Date(today);
+      weekAgo.setDate(today.getDate() - 6);
+      tuNgay = weekAgo.toISOString().split('T')[0];
+    } 
+    else {
+      // Mặc định: tháng (30 ngày)
+      const monthAgo = new Date(today);
+      monthAgo.setDate(today.getDate() - 29);
+      tuNgay = monthAgo.toISOString().split('T')[0];
+    }
     
-    const response = await fetch(`${API_BASE}/admin/baocao/doanhthu?tu_ngay=${tuNgay}&den_ngay=${denNgay}`);
+    const response = await fetch(
+      `${API_BASE}/admin/baocao/doanhthu?tu_ngay=${tuNgay}&den_ngay=${denNgay}`
+    );
     const result = await response.json();
     
     if (result.success) {
@@ -1723,6 +1743,7 @@ async function loadReports() {
     showLoading(false);
   }
 }
+
 
 function renderReports(data) {
   const container = document.getElementById('reports-content');
@@ -1792,48 +1813,81 @@ function renderReports(data) {
   `;
   
   // Render chart
-  renderRevenueChart(data.chi_tiet);
-}
-
-function renderRevenueChart(data) {
+  function renderRevenueChart(data) {
   const ctx = document.getElementById('revenue-chart');
   if (!ctx) return;
-  
-  new Chart(ctx, {
-    type: 'line',
+
+  // Xoá chart cũ nếu có (tránh bug render chồng)
+  if (window.revenueChart) {
+    window.revenueChart.destroy();
+  }
+
+  window.revenueChart = new Chart(ctx, {
+    type: 'bar',
     data: {
       labels: data.map(item => formatDate(item.Ngay)),
-      datasets: [{
-        label: 'Doanh thu',
-        data: data.map(item => item.DoanhThu),
-        borderColor: '#667eea',
-        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-        tension: 0.4,
-        fill: true
-      }]
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Doanh thu',
+          data: data.map(item => item.DoanhThu),
+          backgroundColor: 'rgba(102, 126, 234, 0.7)',
+          borderRadius: 8,
+          barThickness: 22
+        },
+        {
+          type: 'line',
+          label: 'Xu hướng',
+          data: data.map(item => item.DoanhThu),
+          borderColor: '#ff7675',
+          backgroundColor: 'rgba(255, 118, 117, 0.15)',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 20
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              return `${ctx.dataset.label}: ${formatPrice(ctx.raw)}`;
+            }
+          }
         }
       },
       scales: {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: function(value) {
-              return formatPrice(value);
-            }
+            callback: value => formatPrice(value)
+          },
+          grid: {
+            color: 'rgba(0,0,0,0.05)'
+          }
+        },
+        x: {
+          grid: {
+            display: false
           }
         }
       }
     }
   });
 }
-
+  renderRevenueChart(data.chi_tiet);
+}
 // ═══════════════════════════════════════════════════════════════════════════
 // SOCKET.IO
 // ═══════════════════════════════════════════════════════════════════════════

@@ -229,22 +229,31 @@
       </div>
 
 
-      <label style="margin-top:10px;display:block;font-weight:600;">
-        <div class="vat-wrapper">
-          <label class="vat-checkbox">
-            <input type="checkbox" id="need-vat">
-            Xuất hóa đơn VAT
-          </label>
+      <!-- VAT INVOICE SECTION -->
+      <div class="form-group-custom" style="margin-top: 20px;">
+        <label class="vat-checkbox" style="font-weight: 600; cursor: pointer;">
+          <input type="checkbox" id="need-vat">
+          <i class="fas fa-file-invoice me-2"></i>Xuất hóa đơn VAT
+        </label>
 
-          <div id="vat-form" style="display:none;">
-            <input placeholder="Mã số thuế" id="vat-tax">
-            <input placeholder="Tên công ty" id="vat-company" readonly>
-            <input placeholder="Địa chỉ" id="vat-address" readonly>
-            <input placeholder="Email nhận hóa đơn" id="vat-email">
+        <div id="vat-form" style="display:none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+          <!-- MST Lookup -->
+          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" placeholder="Mã số thuế" id="vat-tax" class="form-control-custom" style="flex: 1;">
+            <button type="button" class="btn btn-sm btn-primary" onclick="lookupTaxCode(document.getElementById('vat-tax').value)">
+              <i class="fas fa-search me-1"></i>Tra cứu
+            </button>
           </div>
-        </div>
 
-      </label>
+          <!-- Company Info (Auto-filled) -->
+          <input type="text" placeholder="Tên công ty" id="vat-company" class="form-control-custom" readonly style="margin-bottom: 10px; background-color: #e9ecef;">
+          <input type="text" placeholder="Địa chỉ" id="vat-address" class="form-control-custom" readonly style="margin-bottom: 10px; background-color: #e9ecef;">
+          
+          <!-- Email -->
+          <input type="email" placeholder="Email nhận hóa đơn" id="vat-email" class="form-control-custom">
+          <small class="text-muted d-block mt-2">Hóa đơn sẽ được gửi đến email này</small>
+        </div>
+      </div>
       <!-- Buttons -->
       <div class="d-flex gap-3 mt-5">
         <button class="btn btn-success btn-lg flex-fill py-3" id="btn-confirm-payment">
