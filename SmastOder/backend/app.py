@@ -1,13 +1,4 @@
-"""
-═══════════════════════════════════════════════════════════════════════════════
-    MyCay_Oder - Hệ thống đặt món QR cho quán Mì Cay
-    Backend: Flask + SQL Server + SocketIO
-    Python: 3.11+
-    
-    CHẠY: python app.py
-    CÀI ĐẶT: pip install flask flask-socketio flask-cors pyodbc
-═══════════════════════════════════════════════════════════════════════════════
-"""
+
 import os
 from flask import Blueprint, Flask, redirect, request, jsonify
 from flask_socketio import SocketIO, emit
@@ -243,6 +234,18 @@ def bep_page():
 @app.route("/login")
 def login_page():
     return render_template("login.html")
+
+
+from flask_socketio import join_room
+
+@socketio.on('join_room_ban')
+def handle_join_room_ban(data):
+    id_ban = data.get('id_ban')
+    if id_ban:
+        room = f"ban_{id_ban}"
+        join_room(room)
+        print(f"✅ Client joined {room}")
+
 # ════════════════════════════════════════════════════════════════════════════
 # 👤 API KHÁCH HÀNG (QR)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -351,28 +354,53 @@ def add_order():
 def get_donhang_cua_ban(id_ban):
     try:
         cursor, conn = get_cursor()
+
+        # 1️⃣ LẤY ĐƠN HÀNG CHƯA THANH TOÁN
         cursor.execute("""
-            SELECT d.IDDonHang, d.IDBan, d.TongTien, d.GhiChu, d.NgayTao, b.TenBan
-            FROM DonHang d JOIN Ban b ON d.IDBan = b.IDBan
-            WHERE d.IDBan = ? AND d.TrangThaiThanhToan = 0 ORDER BY d.NgayTao DESC
+            SELECT d.IDDonHang, d.IDBan, d.TongTien, d.GhiChu, d.NgayTao,
+                   d.TrangThai, b.TenBan
+            FROM DonHang d
+            JOIN Ban b ON d.IDBan = b.IDBan
+            WHERE d.IDBan = ?
+              AND d.TrangThaiThanhToan = 0
+            ORDER BY d.NgayTao DESC
         """, (id_ban,))
         don_hang = cursor.fetchone()
+
         if not don_hang:
             conn.close()
             return jsonify_response(True, "Bàn chưa có đơn hàng", None)
-        
+
         don_hang_dict = row_to_dict(cursor, don_hang)
+        id_don_hang = don_hang_dict['IDDonHang']
+
+        # 2️⃣ CHI TIẾT MÓN
         cursor.execute("""
             SELECT ct.IDChiTiet, ct.IDMon, m.TenMon, m.HinhAnh,
-                   ct.SoLuong, ct.DonGia, ct.ThanhTien, ct.CapDoCay, ct.GhiChu
-            FROM ChiTietDonHang ct JOIN Menu m ON ct.IDMon = m.IDMon
-            WHERE ct.IDDonHang = ? ORDER BY ct.IDChiTiet
-        """, (don_hang_dict['IDDonHang'],))
+                   ct.SoLuong, ct.DonGia, ct.ThanhTien,
+                   ct.CapDoCay, ct.GhiChu
+            FROM ChiTietDonHang ct
+            JOIN Menu m ON ct.IDMon = m.IDMon
+            WHERE ct.IDDonHang = ?
+            ORDER BY ct.IDChiTiet
+        """, (id_don_hang,))
         don_hang_dict['chi_tiet'] = rows_to_dict_list(cursor, cursor.fetchall())
+
+        # 3️⃣ 🔥 LỊCH SỬ TRẠNG THÁI (CHAT SYSTEM)
+        cursor.execute("""
+            SELECT TrangThai, ThoiGian
+            FROM LichSuTrangThaiDonHang
+            WHERE IDDonHang = ?
+            ORDER BY ThoiGian ASC
+        """, (id_don_hang,))
+        don_hang_dict['lich_su'] = rows_to_dict_list(cursor, cursor.fetchall())
+
         conn.close()
         return jsonify_response(True, "Lấy đơn hàng thành công", don_hang_dict)
+
     except Exception as e:
         return handle_exception(e, "Lỗi lấy đơn hàng")
+
 
 @app.route('/api/ban/donhang/<int:id_don_hang>', methods=['GET'])
 def get_chi_tiet_don_hang(id_don_hang):
@@ -607,56 +635,83 @@ def thu_ngan_lay_don_hang():
         return jsonify_response(True, "Lấy danh sách đơn hàng thành công", {'don_hang': don_hang_list})
     except Exception as e:
         return handle_exception(e, "Lỗi lấy danh sách đơn hàng")
+
 @app.route('/api/thungan/donhang/<int:id_don_hang>/xacnhan', methods=['PUT'])
 def xac_nhan_don_gui_bep(id_don_hang):
+    conn = None
     try:
         cursor, conn = get_cursor()
-        cursor.execute("""
-            SELECT d.IDDonHang, d.IDBan, d.TongTien, b.TenBan
-            FROM DonHang d JOIN Ban b ON d.IDBan = b.IDBan
-            WHERE d.IDDonHang = ? AND d.TrangThaiThanhToan = 0
-        """, (id_don_hang,))
-        don_hang = cursor.fetchone()
-        if not don_hang:
-            conn.close()
-            return jsonify_response(False, "Đơn hàng không tồn tại hoặc đã thanh toán", None, 404)
-
-        don_hang_dict = row_to_dict(cursor, don_hang)
 
         cursor.execute("""
-            INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai)
-            VALUES (?, N'Đã xác nhận - Chờ bếp')
+            SELECT d.IDDonHang, d.IDBan, d.TongTien, d.TrangThai, b.TenBan
+            FROM DonHang d
+            JOIN Ban b ON d.IDBan = b.IDBan
+            WHERE d.IDDonHang = ?
+              AND d.TrangThaiThanhToan = 0
         """, (id_don_hang,))
-        conn.commit()
-        conn.close()
+        row = cursor.fetchone()
 
-        # ===== GỬI CHO BẾP (đang có) =====
-        socketio.emit('send_to_kitchen', {
-            'id_don_hang': id_don_hang,
-            'id_ban': don_hang_dict['IDBan'],
-            'ten_ban': don_hang_dict['TenBan'],
-            'tong_tien': don_hang_dict['TongTien']
-        }, namespace='/')
+        if not row:
+            return jsonify_response(
+                False,
+                "Đơn hàng không tồn tại hoặc đã thanh toán",
+                None,
+                404
+            )
 
-        # ===== GỬI CHO KHÁCH HÀNG (MỚI) =====
-        socketio.emit(
-            'order_confirmed_to_customer',
-            {
-                'id_don_hang': id_don_hang,
-                'message': 'Đơn hàng của bạn đã được xác nhận và gửi đến bếp. Vui lòng chờ ra món 🍜'
-            },
-            room=f"ban_{don_hang_dict['IDBan']}",
-            namespace='/'
-        )
+        don = row_to_dict(cursor, row)
 
-        return jsonify_response(True, "Đã xác nhận đơn hàng và gửi cho bếp")
+        # ✅ dùng enum hợp lệ
+        NEW_STATUS = "DANG_NAU"
+
+        if don["TrangThai"] != NEW_STATUS:
+
+            cursor.execute("""
+                UPDATE DonHang
+                SET TrangThai = ?
+                WHERE IDDonHang = ?
+            """, (NEW_STATUS, id_don_hang))
+
+            cursor.execute("""
+                INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai)
+                VALUES (?, ?)
+            """, (id_don_hang, NEW_STATUS))
+
+            conn.commit()
+
+            # gửi bếp
+            socketio.emit(
+                "send_to_kitchen",
+                {
+                    "id_don_hang": id_don_hang,
+                    "id_ban": don["IDBan"],
+                    "ten_ban": don["TenBan"],
+                    "tong_tien": don["TongTien"]
+                },
+                namespace='/'
+            )
+
+            # gửi khách
+            socketio.emit(
+                "order_status_update",
+                {
+                    "order_id": id_don_hang,
+                    "id_ban": don["IDBan"],
+                    "trang_thai": NEW_STATUS
+                },
+                room=f"ban_{don['IDBan']}",
+                namespace='/'
+            )
+
+        return jsonify_response(True, "Đã xác nhận đơn hàng và gửi bếp")
 
     except Exception as e:
-        if 'conn' in locals():
+        if conn:
             conn.rollback()
-            conn.close()
         return handle_exception(e, "Lỗi xác nhận đơn hàng")
-
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/thungan/thanhtoan/<int:id_don_hang>', methods=['POST'])
 def thanh_toan_don_hang(id_don_hang):
@@ -767,7 +822,6 @@ def thanh_toan_don_hang(id_don_hang):
         
         conn.commit()
         conn.close()
-        
         socketio.emit('order_paid', {
             'id_don_hang': id_don_hang, 'id_ban': id_ban,
             'tong_tien': tong_tien, 'so_tien_giam': so_tien_giam,
@@ -811,7 +865,7 @@ def thungan_lay_khuyen_mai():
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 🔥 API BẾP - VERSION 3.1 (Đã sửa lỗi hiển thị đơn đã thanh toán)
+# 🔥 API BẾP 
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route('/api/bep/donhang', methods=['GET'])
@@ -970,31 +1024,24 @@ def bep_lay_lich_su_hoan_thanh():
     except Exception as e:
         logger.exception("❌ Lỗi lấy lịch sử bếp")
         return jsonify_response(False, "Lỗi lấy lịch sử bếp", None, 500)
-
-
 @app.route('/api/bep/chitiet/<int:id_chi_tiet>/trangthai', methods=['PUT'])
 def cap_nhat_trang_thai_mon(id_chi_tiet):
-    """
-    🔥 MỚI: Cập nhật trạng thái của TỪNG MÓN trong đơn hàng
-    Body: { "trang_thai": "DANG_NAU" | "HOAN_THANH" }
-    """
+
+    conn = None
+
     try:
-        data = request.get_json()
-        trang_thai = data.get('trang_thai')
+        data = request.get_json(silent=True) or {}
+        trang_thai = data.get("trang_thai", "").strip().upper()
 
-        MAP_TRANG_THAI = {
-            'DANG_NAU': 'Đang nấu',
-            'HOAN_THANH': 'Hoàn thành'
-        }
+        VALID_STATUS = {"DANG_NAU", "HOAN_THANH"}
 
-        if trang_thai not in MAP_TRANG_THAI:
+        if trang_thai not in VALID_STATUS:
             return jsonify_response(False, "Trạng thái không hợp lệ", None, 400)
 
         cursor, conn = get_cursor()
 
-        # Kiểm tra món tồn tại
         cursor.execute("""
-            SELECT ct.IDChiTiet, ct.IDDonHang, m.TenMon, d.IDBan, b.TenBan
+            SELECT ct.IDDonHang, m.TenMon, d.IDBan, b.TenBan
             FROM ChiTietDonHang ct
             JOIN Menu m ON ct.IDMon = m.IDMon
             JOIN DonHang d ON ct.IDDonHang = d.IDDonHang
@@ -1002,140 +1049,124 @@ def cap_nhat_trang_thai_mon(id_chi_tiet):
             WHERE ct.IDChiTiet = ?
         """, (id_chi_tiet,))
 
-        mon = cursor.fetchone()
-        if not mon:
-            conn.close()
+        row = cursor.fetchone()
+
+        if not row:
             return jsonify_response(False, "Món không tồn tại", None, 404)
 
-        id_don_hang = mon[1]
-        ten_mon = mon[2]
-        ten_ban = mon[4]
+        id_don_hang, ten_mon, id_ban, ten_ban = row
 
-        # Cập nhật trạng thái món
+        # update món
         cursor.execute("""
             UPDATE ChiTietDonHang
             SET TrangThai = ?
             WHERE IDChiTiet = ?
-        """, (MAP_TRANG_THAI[trang_thai], id_chi_tiet))
+        """, (trang_thai, id_chi_tiet))
 
-        conn.commit()
-
-        # 🔥 TỰ ĐỘNG CÂP NHẬT TRẠNG THÁI ĐƠN HÀNG
-        # Nếu TẤT CẢ món đều hoàn thành → Đơn hàng hoàn thành
+        # check hoàn thành
         cursor.execute("""
-            SELECT COUNT(*) AS TongMon,
-                   SUM(CASE WHEN TrangThai = N'Hoàn thành' THEN 1 ELSE 0 END) AS MonHoanThanh
+            SELECT 
+                COUNT(*),
+                SUM(CASE WHEN TrangThai = 'HOAN_THANH' THEN 1 ELSE 0 END)
             FROM ChiTietDonHang
             WHERE IDDonHang = ?
         """, (id_don_hang,))
 
-        stats = cursor.fetchone()
-        tong_mon = stats[0]
-        mon_hoan_thanh = stats[1]
+        tong, done = cursor.fetchone()
+        done = done or 0
 
-        # Nếu tất cả món đã hoàn thành → Cập nhật trạng thái đơn
-        if tong_mon == mon_hoan_thanh:
+        if tong == done:
             cursor.execute("""
-                INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai, ThoiGian)
-                VALUES (?, N'Hoàn thành', GETDATE())
+                UPDATE DonHang SET TrangThai='HOAN_THANH'
+                WHERE IDDonHang=?
             """, (id_don_hang,))
-            conn.commit()
-        
-        conn.close()
 
-        # Phát sự kiện socket
-        socketio.emit('dish_status_update', {
-            'id_chi_tiet': id_chi_tiet,
-            'id_don_hang': id_don_hang,
-            'ten_mon': ten_mon,
-            'ten_ban': ten_ban,
-            'trang_thai': trang_thai,
-            'trang_thai_text': MAP_TRANG_THAI[trang_thai]
-        })
+            cursor.execute("""
+                INSERT INTO LichSuTrangThaiDonHang(IDDonHang, TrangThai, ThoiGian)
+                VALUES (?, 'HOAN_THANH', GETDATE())
+            """, (id_don_hang,))
 
-        return jsonify_response(True, f"Món '{ten_mon}' → {MAP_TRANG_THAI[trang_thai]}")
+        conn.commit()
+
+        socketio.emit("dish_status_update", {
+            "id_chi_tiet": id_chi_tiet,
+            "id_don_hang": id_don_hang,
+            "id_ban": id_ban,
+            "ten_mon": ten_mon,
+            "trang_thai": trang_thai
+        }, room=f"ban_{id_ban}")
+
+        return jsonify_response(True, f"{ten_mon} → {trang_thai}")
 
     except Exception as e:
-        if 'conn' in locals():
+        if conn:
             conn.rollback()
+        return handle_exception(e, "Lỗi cập nhật món")
+
+    finally:
+        if conn:
             conn.close()
-        return handle_exception(e, "Lỗi cập nhật trạng thái món")
-
-
 @app.route('/api/bep/donhang/<int:id_don_hang>/trangthai', methods=['PUT'])
 def cap_nhat_trang_thai_nau(id_don_hang):
-    """
-    Cập nhật trạng thái toàn bộ đơn hàng (cho tương thích ngược)
-    Body: { "trang_thai": "DANG_NAU" | "HOAN_THANH" }
-    """
-    try:
-        data = request.get_json()
-        trang_thai = data.get('trang_thai')
 
-        MAP_TRANG_THAI = {
-            'DANG_NAU': 'Đang nấu',
-            'HOAN_THANH': 'Hoàn thành'
+    conn = None
+
+    try:
+        data = request.get_json(silent=True) or {}
+        trang_thai = data.get("trang_thai", "").strip().upper()
+
+        VALID = {"DANG_NAU", "HOAN_THANH"}
+
+        TEXT = {
+            "DANG_NAU": "Đang nấu",
+            "HOAN_THANH": "Hoàn thành"
         }
 
-        if trang_thai not in MAP_TRANG_THAI:
+        if trang_thai not in VALID:
             return jsonify_response(False, "Trạng thái không hợp lệ", None, 400)
 
         cursor, conn = get_cursor()
 
-        # Kiểm tra đơn hàng tồn tại
         cursor.execute("""
-            SELECT IDDonHang, TrangThaiThanhToan FROM DonHang
-            WHERE IDDonHang = ?
+            SELECT IDBan FROM DonHang WHERE IDDonHang=?
         """, (id_don_hang,))
 
-        don_hang = cursor.fetchone()
-        if not don_hang:
-            conn.close()
+        row = cursor.fetchone()
+        if not row:
             return jsonify_response(False, "Đơn không tồn tại", None, 404)
 
-        # 🔥 CẬP NHẬT TẤT CẢ MÓN TRONG ĐƠN
-        cursor.execute("""
-            UPDATE ChiTietDonHang
-            SET TrangThai = ?
-            WHERE IDDonHang = ?
-        """, (MAP_TRANG_THAI[trang_thai], id_don_hang))
+        id_ban = row[0]
 
-        # Lưu lịch sử trạng thái đơn
+        cursor.execute("UPDATE DonHang SET TrangThai=? WHERE IDDonHang=?", (trang_thai, id_don_hang))
+        cursor.execute("UPDATE ChiTietDonHang SET TrangThai=? WHERE IDDonHang=?", (trang_thai, id_don_hang))
+
         cursor.execute("""
-            INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai, ThoiGian)
+            INSERT INTO LichSuTrangThaiDonHang(IDDonHang, TrangThai, ThoiGian)
             VALUES (?, ?, GETDATE())
-        """, (id_don_hang, MAP_TRANG_THAI[trang_thai]))
+        """, (id_don_hang, trang_thai))
 
         conn.commit()
-        
-        # Lấy thông tin bàn để gửi socket
-        cursor.execute("""
-            SELECT b.TenBan 
-            FROM DonHang d
-            JOIN Ban b ON d.IDBan = b.IDBan
-            WHERE d.IDDonHang = ?
-        """, (id_don_hang,))
-        
-        ban_info = cursor.fetchone()
-        ten_ban = ban_info[0] if ban_info else "Unknown"
-        
-        conn.close()
 
-        # Phát sự kiện socket
-        socketio.emit('order_status_update', {
-            'id_don_hang': id_don_hang,
-            'trang_thai': trang_thai,
-            'trang_thai_text': MAP_TRANG_THAI[trang_thai],
-            'ten_ban': ten_ban
-        })
+        payload = {
+            "id_don_hang": id_don_hang,
+            "id_ban": id_ban,
+            "trang_thai": trang_thai,
+            "trang_thai_text": TEXT[trang_thai]
+        }
 
-        return jsonify_response(True, f"Cập nhật: {MAP_TRANG_THAI[trang_thai]}")
+        socketio.emit("order_status_update", payload, room="bep")
+        socketio.emit("order_status_update", payload, room=f"ban_{id_ban}")
+
+        return jsonify_response(True, TEXT[trang_thai], payload)
 
     except Exception as e:
-        if 'conn' in locals():
+        if conn:
             conn.rollback()
+        return handle_exception(e, "Lỗi cập nhật đơn")
+
+    finally:
+        if conn:
             conn.close()
-        return handle_exception(e, "Lỗi cập nhật trạng thái bếp")
 
 
 @app.route('/api/bep/thongke', methods=['GET'])

@@ -56,7 +56,9 @@ async function initialize() {
     showLoading(false);
   }
 }
-
+function normalizeStatus(s) {
+  return (s || '').trim().toUpperCase();
+}
 // ═══════════════════════════════════════════════════════════════════════════
 // API CALLS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -195,22 +197,30 @@ async function updateOrderStatus(orderId, status) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function mapBackendStatus(backendStatus) {
+  const s = normalizeStatus(backendStatus);
+
   const statusMap = {
-    'CHỜ': 'WAITING',
-    'Đang nấu': 'DANG_NAU',
-    'Hoàn thành': 'HOAN_THANH'
+    CHO_XAC_NHAN: 'WAITING',
+    DANG_NAU: 'DANG_NAU',
+    HOAN_THANH: 'HOAN_THANH',
+    DA_THANH_TOAN: 'HOAN_THANH',
+    HUY: 'WAITING'
   };
-  return statusMap[backendStatus] || 'WAITING';
+
+  return statusMap[s] || 'WAITING';
+}
+function mapDishStatus(status) {
+  const s = normalizeStatus(status);
+
+  const statusMap = {
+    CHO_XAC_NHAN: 'WAITING',
+    DANG_NAU: 'DANG_NAU',
+    HOAN_THANH: 'HOAN_THANH'
+  };
+
+  return statusMap[s] || 'WAITING';
 }
 
-function mapDishStatus(dishStatus) {
-  const statusMap = {
-    'CHỜ': 'WAITING',
-    'Đang nấu': 'DANG_NAU',
-    'Hoàn thành': 'HOAN_THANH'
-  };
-  return statusMap[dishStatus] || 'WAITING';
-}
 
 function getOrderPriorityStatus(order) {
   const dishes = order.chi_tiet || [];

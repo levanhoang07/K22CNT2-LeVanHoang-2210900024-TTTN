@@ -1,884 +1,1589 @@
 /**
  * ════════════════════════════════════════════════════════════════════════════
- *  MyCay_Oder - Client Side JavaScript
- *  Chức năng: Đặt món QR cho khách hàng
+ *  MyCay_Oder - Client Side JavaScript (CHAT MESSENGER VERSION - IMPROVED UI)
+ *  Lịch sử đơn hàng theo dạng tin nhắn chat - Giao diện đẹp hơn
  * ════════════════════════════════════════════════════════════════════════════
  */
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CONFIGURATION & GLOBAL STATE
+// CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-const API_BASE = '/api';
-const socket = io();
+const CONFIG = {
+  API_BASE: '/api',
+  CHAT_HISTORY_KEY: 'chatHistory',
+  BUBBLE_POS_KEY: 'historyBubblePos',
+  NOTIFICATION_DURATION: 3000,
+  MAX_HISTORY_HEIGHT: 500
+};
 
-
-// State quản lý
-const state = {
-  idBan: null,
-  tenBan: '',
-  cart: [],
-  menu: [],
-  categories: [],
-  currentDish: null,
-  currentOrderId: null
+const ORDER_STATUS = {
+  CHO_XAC_NHAN: { text: '🕐 Đang chờ thu ngân xác nhận...', color: '#ffc107' },
+  DANG_NAU: { text: '👨‍🍳 Đơn hàng đang được chế biến...', color: '#17a2b8' },
+  HOAN_THANH: { text: '🍜 Món ăn đã sẵn sàng!', color: '#28a745' }
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// INITIALIZATION
+// STATE MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════
 
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🚀 MyCay_Oder Client Started');
+const AppState = {
+  // Table info
+  idBan: null,
+  tenBan: '',
   
-  // Lấy ID bàn từ URL (ví dụ: ?ban=1)
-  const urlParams = new URLSearchParams(window.location.search);
-  state.idBan = urlParams.get('ban') || 1; // Mặc định bàn 1 nếu không có
+  // Menu data
+  menu: [],
+  categories: [],
   
-  // Khởi tạo
-  await initializePage();
-  setupEventListeners();
-  setupSocketListeners();
+  // Cart
+  cart: [],
   
-  console.log('✅ Initialization complete');
-});
-
-async function initializePage() {
-  try {
-    // Load thông tin bàn
-    await loadTableInfo();
-    
-    // Load menu
-    await loadMenu();
-    
-    // Load giỏ hàng hiện tại (nếu có)
-    await loadCurrentOrder();
-    
-    showNotification('✅ Chào mừng bạn đến với Mì Cay One!', 'success');
-  } catch (error) {
-    console.error('❌ Initialization error:', error);
-    showNotification('Lỗi khi tải dữ liệu. Vui lòng thử lại!', 'error');
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// API CALLS
-// ═══════════════════════════════════════════════════════════════════════════
-async function loadTableInfo() {
-  try {
-    const response = await fetch(`${API_BASE}/ban/${state.idBan}`);
-    const result = await response.json();
-    
-    if (result.success) {
-      state.tenBan = result.data.TenBan;
-
-      // 🔥 GỌI QUA LANG-SWITCHER
-      setTableFromApi(state.tenBan);
-
-      console.log('✅ Table info loaded:', state.tenBan);
-    } else {
-      throw new Error(result.message);
-    }
-  } catch (error) {
-    console.error('❌ Load table error:', error);
-    document.getElementById('table-name').textContent = 'Lỗi';
-    throw error;
-  }
-}
-
-
-async function loadMenu() {
-  try {
-    const response = await fetch(`${API_BASE}/menu`);
-    const result = await response.json();
-    
-    if (result.success) {
-      state.categories = result.data.danh_muc;
-      
-      // Flatten menu
-      state.menu = [];
-      state.categories.forEach(cat => {
-        cat.mon_an.forEach(mon => {
-          state.menu.push({...mon, TenDanhMuc: cat.TenDanhMuc, IDDanhMuc: cat.IDDanhMuc});
-        });
-      });
-      
-      renderCategories();
-      renderMenu();
-      console.log('✅ Menu loaded:', state.menu.length, 'items');
-    } else {
-      throw new Error(result.message);
-    }
-  } catch (error) {
-    console.error('❌ Load menu error:', error);
-    throw error;
-  }
-}
-
-async function loadCurrentOrder() {
-  try {
-    const response = await fetch(`${API_BASE}/ban/${state.idBan}/donhang`);
-    const result = await response.json();
-
-    if (result.success && result.data) {
-      state.currentOrderId = result.data.IDDonHang;
-
-      // ✅ LƯU RIÊNG
-      state.currentOrder = result.data.chi_tiet;
-
-      console.log('✅ Current order loaded:', state.currentOrderId);
-    }
-  } catch (error) {
-    console.error('❌ Load current order error:', error);
-  }
-}
-
-
-async function addToOrder(item) {
-  try {
-    const response = await fetch(`${API_BASE}/order/add`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        id_ban: state.idBan,
-        id_mon: item.idMon,
-        so_luong: item.soLuong,
-        cap_do_cay: item.capDoCay,
-        ghi_chu: item.ghiChu
-      })
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      state.currentOrderId = result.data.id_don_hang;
-      showNotification('✅ Đã thêm món vào đơn hàng!', 'success');
-      return true;
-    } else {
-      throw new Error(result.message);
-    }
-  } catch (error) {
-    console.error('❌ Add to order error:', error);
-    showNotification('Lỗi khi thêm món. Vui lòng thử lại!', 'error');
-    return false;
-  }
-}
-
-async function callStaff(message) {
-  try {
-    const response = await fetch(`${API_BASE}/ban/${state.idBan}/call`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({noi_dung: message})
-    });
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      showNotification('✅ Đã gọi nhân viên! Vui lòng chờ trong giây lát.', 'success');
-      return true;
-    } else {
-      throw new Error(result.message);
-    }
-  } catch (error) {
-    console.error('❌ Call staff error:', error);
-    showNotification('Lỗi khi gọi nhân viên. Vui lòng thử lại!', 'error');
-    return false;
-  }
-}
-async function submitReview(data) {
-  try {
-    if (!data.noiDung || !data.noiDung.trim()) {
-      showNotification('Vui lòng nhập nội dung đánh giá!', 'warning');
-      return false;
-    }
-    
-/// đámh giá
-    const response = await fetch(`${API_BASE}/danhgia`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        id_ban: state.idBan,
-        noi_dung: data.noiDung,
-        ten_khach: data.tenKhach || null
-      })
-    });
-
-    const result = await response.json();
-
-    if (response.ok && result.status === 'ok') {
-      showNotification('✅ Cảm ơn bạn đã đánh giá!', 'success');
-      return true;
-    } else {
-      throw new Error(result.message || 'Gửi đánh giá thất bại');
-    }
-
-  } catch (error) {
-    console.error('❌ Submit review error:', error);
-    showNotification('❌ Lỗi khi gửi đánh giá!', 'error');
-    return false;
-  }
-}
-document.addEventListener("DOMContentLoaded", () => {
-
-  const btnReview = document.getElementById("btn-review");
-  const reviewModal = document.getElementById("review-modal");
-  const closeReviewModal = document.getElementById("close-review-modal");
-  const sendReview = document.getElementById("send-review");
-
-  if (!btnReview || !reviewModal || !sendReview) {
-    console.error("❌ Thiếu nút hoặc modal đánh giá");
-    return;
-  }
-
-
+  // Current dish in modal
+  currentDish: null,
   
-  // ===== MỞ MODAL =====
-  btnReview.addEventListener("click", () => {
-    reviewModal.classList.remove("hidden");
-  });
-
-  // ===== ĐÓNG MODAL =====
-  closeReviewModal.addEventListener("click", () => {
-    reviewModal.classList.add("hidden");
-  });
-
-  // ===== GỬI ĐÁNH GIÁ =====
-  sendReview.addEventListener("click", async () => {
-    const noiDung = document.getElementById("review-content").value.trim();
-    const tenKhach = document.getElementById("review-name").value.trim();
-
-    if (!noiDung) {
-      showNotification("Vui lòng nhập nội dung đánh giá!", "warning");
-      return;
-    }
-
+  // Current order
+  currentOrderId: null,
+  currentOrder: null,
+  currentOrderTrangThai: null,
+  
+  // Chat history
+  chatHistory: [],
+  
+  // Initialize state
+  init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    this.idBan = urlParams.get('ban') || 1;
+    this.chatHistory = this.loadChatHistory();
+  },
+  
+  // LocalStorage helpers
+  loadChatHistory() {
     try {
-      const response = await fetch(`${API_BASE}/danhgia`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+      const stored = localStorage.getItem(CONFIG.CHAT_HISTORY_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('❌ Error loading chat history:', error);
+      return [];
+    }
+  },
+  
+  saveChatHistory() {
+    try {
+      localStorage.setItem(CONFIG.CHAT_HISTORY_KEY, JSON.stringify(this.chatHistory));
+    } catch (error) {
+      console.error('❌ Error saving chat history:', error);
+    }
+  },
+  
+  clearChatHistory() {
+    this.chatHistory = [];
+    localStorage.removeItem(CONFIG.CHAT_HISTORY_KEY);
+  },
+  
+  addChatMessage(html) {
+    if (!this.chatHistory.includes(html)) {
+      this.chatHistory.push(html);
+      this.saveChatHistory();
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SOCKET.IO CONNECTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+const socket = io();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// API SERVICE
+// ═══════════════════════════════════════════════════════════════════════════
+
+const ApiService = {
+  /**
+   * Load table information
+   */
+  async loadTableInfo(idBan) {
+    try {
+      const response = await fetch(`${CONFIG.API_BASE}/ban/${idBan}`);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to load table info');
+      }
+      
+      return result.data;
+    } catch (error) {
+      console.error('❌ Load table error:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Load menu with categories
+   */
+  async loadMenu() {
+    try {
+      const response = await fetch(`${CONFIG.API_BASE}/menu`);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to load menu');
+      }
+      
+      return result.data;
+    } catch (error) {
+      console.error('❌ Load menu error:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Load current order for table
+   */
+  async loadCurrentOrder(idBan) {
+    try {
+      const response = await fetch(`${CONFIG.API_BASE}/ban/${idBan}/donhang`);
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        return {
+          id: result.data.IDDonHang,
+          items: result.data.chi_tiet || [],
+          status: result.data.TrangThai
+        };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('❌ Load current order error:', error);
+      return null;
+    }
+  },
+  
+  /**
+   * Add item to order
+   */
+  async addToOrder(idBan, item) {
+    try {
+      const response = await fetch(`${CONFIG.API_BASE}/order/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id_ban: state.idBan,
-          noi_dung: noiDung,
-          ten_khach: tenKhach || null
+          id_ban: idBan,
+          id_mon: item.idMon,
+          so_luong: item.soLuong,
+          cap_do_cay: item.capDoCay,
+          ghi_chu: item.ghiChu
         })
       });
-
+      
       const result = await response.json();
-
-      if (response.ok && result.success === true) {
-        showNotification("✅ Cảm ơn bạn đã đánh giá!", "success");
-
-        // Reset form + đóng modal
-        document.getElementById("review-content").value = "";
-        document.getElementById("review-name").value = "";
-        reviewModal.classList.add("hidden");
-
-      } else {
-        showNotification(result.message || "Gửi đánh giá thất bại", "error");
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to add to order');
       }
-
+      
+      return result.data;
     } catch (error) {
-      console.error("❌ Submit review error:", error);
-      showNotification("❌ Lỗi khi gửi đánh giá!", "error");
+      console.error('❌ Add to order error:', error);
+      throw error;
     }
-  });
-
-});
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// RENDER FUNCTIONS
-// ═══════════════════════════════════════════════════════════════════════════
-
-function renderCategories() {
-  const categoryBar = document.querySelector('.category-bar');
-  categoryBar.innerHTML = `
-    <button class="btn btn-outline-primary category-btn active" data-category="all">
-      Tất cả
-    </button>
-    ${state.categories.map(cat => `
-      <button class="btn btn-outline-primary category-btn" data-category="${cat.IDDanhMuc}">
-        ${cat.TenDanhMuc}
-      </button>
-    `).join('')}
-  `;
+  },
   
-  // Event listeners cho category buttons
-  document.querySelectorAll('.category-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
+  /**
+   * Call staff
+   */
+  async callStaff(idBan, message) {
+    try {
+      const response = await fetch(`${CONFIG.API_BASE}/ban/${idBan}/call`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noi_dung: message })
+      });
       
-      const category = e.target.dataset.category;
-      renderMenu(category === 'all' ? null : parseInt(category));
-    });
-  });
-}
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to call staff');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Call staff error:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Submit review
+   */
+  async submitReview(idBan, noiDung, tenKhach = null) {
+    try {
+      const response = await fetch(`${CONFIG.API_BASE}/danhgia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_ban: idBan,
+          noi_dung: noiDung,
+          ten_khach: tenKhach
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to submit review');
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Submit review error:', error);
+      throw error;
+    }
+  }
+};
 
-function renderMenu(categoryFilter = null) {
-  const container = document.getElementById('menu-container');
+// ═══════════════════════════════════════════════════════════════════════════
+// UI RENDERER
+// ═══════════════════════════════════════════════════════════════════════════
+
+const UIRenderer = {
+  /**
+   * Update table name in UI
+   */
+  updateTableName(tenBan) {
+    const tableNameEl = document.getElementById('table-name');
+    if (tableNameEl) {
+      tableNameEl.textContent = tenBan;
+    }
+    
+    // Support for legacy setTableFromApi function
+    if (typeof setTableFromApi === 'function') {
+      setTableFromApi(tenBan);
+    }
+  },
   
-  let filteredMenu = state.menu;
+  /**
+   * Render category buttons
+   */
+  renderCategories(categories) {
+    const categoryBar = document.querySelector('.category-bar');
+    if (!categoryBar) return;
+    
+    const buttons = [
+      `<button class="btn btn-outline-primary category-btn active" data-category="all">
+        Tất cả
+      </button>`,
+      ...categories.map(cat => 
+        `<button class="btn btn-outline-primary category-btn" data-category="${cat.IDDanhMuc}">
+          ${cat.TenDanhMuc}
+        </button>`
+      )
+    ];
+    
+    categoryBar.innerHTML = buttons.join('');
+    
+    // Attach event listeners
+    categoryBar.querySelectorAll('.category-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        categoryBar.querySelectorAll('.category-btn').forEach(b => 
+          b.classList.remove('active')
+        );
+        e.target.classList.add('active');
+        
+        const category = e.target.dataset.category;
+        const categoryId = category === 'all' ? null : parseInt(category);
+        UIRenderer.renderMenu(AppState.menu, categoryId);
+      });
+    });
+  },
   
-  // Filter by category
-  if (categoryFilter) {
-    filteredMenu = filteredMenu.filter(item => item.IDDanhMuc === categoryFilter);
-  }
-  
-  // Filter by search
-  const searchTerm = document.getElementById('search').value.toLowerCase();
-  if (searchTerm) {
-    filteredMenu = filteredMenu.filter(item => 
-      item.TenMon.toLowerCase().includes(searchTerm) ||
-      item.MoTa.toLowerCase().includes(searchTerm)
-    );
-  }
-  
-  if (filteredMenu.length === 0) {
-    container.innerHTML = '<div class="col-12 text-center py-5 text-muted">Không tìm thấy món ăn phù hợp</div>';
-    return;
-  }
-  
-  container.innerHTML = filteredMenu.map(item => `
-    <div class="col">
-      <div class="card dish-card h-100 shadow-sm" data-id="${item.IDMon}">
-        <div class="dish-image-wrapper">
-          <img src="/static/images/${item.HinhAnh}" 
-               class="card-img-top dish-image" 
-               alt="${item.TenMon}"
-               onerror="this.src='/static/images/no-image.jpg'">
-        </div>
-        <div class="card-body d-flex flex-column">
-          <h6 class="card-title fw-bold">${item.TenMon}</h6>
-          <p class="card-text text-muted small flex-grow-1">${item.MoTa}</p>
-          <div class="d-flex justify-content-between align-items-center mt-2">
-            <span class="text-danger fw-bold fs-5">${formatPrice(item.Gia)}</span>
-            <button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${item.IDMon}">
-              <span class="btn-text">+ Thêm</span>
-            </button>
+  /**
+   * Render menu items
+   */
+  renderMenu(menuItems, categoryFilter = null) {
+    const container = document.getElementById('menu-container');
+    if (!container) return;
+    
+    let filteredMenu = menuItems;
+    
+    // Filter by category
+    if (categoryFilter) {
+      filteredMenu = filteredMenu.filter(item => item.IDDanhMuc === categoryFilter);
+    }
+    
+    // Filter by search term
+    const searchEl = document.getElementById('search');
+    const searchTerm = searchEl ? searchEl.value.toLowerCase() : '';
+    if (searchTerm) {
+      filteredMenu = filteredMenu.filter(item => 
+        item.TenMon.toLowerCase().includes(searchTerm) ||
+        item.MoTa.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Render empty state
+    if (filteredMenu.length === 0) {
+      container.innerHTML = 
+        '<div class="col-12 text-center py-5 text-muted">Không tìm thấy món ăn phù hợp</div>';
+      return;
+    }
+    
+    // Render menu items
+    container.innerHTML = filteredMenu.map(item => `
+      <div class="col">
+        <div class="card dish-card h-100 shadow-sm" data-id="${item.IDMon}">
+          <div class="dish-image-wrapper">
+            <img src="/static/images/${item.HinhAnh}" 
+                 class="card-img-top dish-image" 
+                 alt="${item.TenMon}"
+                 onerror="this.src='/static/images/no-image.jpg'">
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h6 class="card-title fw-bold">${item.TenMon}</h6>
+            <p class="card-text text-muted small flex-grow-1">${item.MoTa}</p>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="text-danger fw-bold fs-5">${Utils.formatPrice(item.Gia)}</span>
+              <button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${item.IDMon}">
+                <span class="btn-text">+ Thêm</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `).join('');
-  
-  // Event listeners cho add to cart buttons
-  document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const dishId = parseInt(btn.dataset.id);
-      openDishModal(dishId);
+    `).join('');
+    
+    // Attach event listeners
+    container.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dishId = parseInt(btn.dataset.id);
+        ModalController.openDishModal(dishId);
+      });
     });
-  });
-}
-
-function renderCart() {
-  const cartList = document.getElementById('cart-list');
-  const btnOrder = document.getElementById('btn-order');
+  },
   
-  if (state.cart.length === 0) {
-    cartList.innerHTML = '<div class="empty text-muted text-center py-5">Giỏ hàng trống</div>';
-    btnOrder.disabled = true;
-    updateCartTotal();
-    return;
+  /**
+   * Render cart
+   */
+  renderCart(cart) {
+    const cartList = document.getElementById('cart-list');
+    const btnOrder = document.getElementById('btn-order');
+    const mobileBtnOrder = document.getElementById('mobile-btn-order');
+    
+    if (!cartList) return;
+    
+    // Empty cart
+    if (cart.length === 0) {
+      cartList.innerHTML = '<div class="empty text-muted text-center py-5">Giỏ hàng trống</div>';
+      if (btnOrder) btnOrder.disabled = true;
+      if (mobileBtnOrder) mobileBtnOrder.disabled = true;
+      this.updateCartTotal(cart);
+      this.updateMobileCart(cart);
+      return;
+    }
+    
+    // Render cart items
+    cartList.innerHTML = cart.map((item, index) => `
+      <div class="cart-item mb-3 p-3 border rounded">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="flex-grow-1">
+            <h6 class="mb-1">${item.tenMon}</h6>
+            ${item.capDoCay ? `<small class="text-info">🌶️ ${item.capDoCay}</small>` : ''}
+            ${item.ghiChu ? `<br><small class="text-muted">📝 ${item.ghiChu}</small>` : ''}
+          </div>
+          <button class="btn btn-sm btn-danger remove-item" data-index="${index}">
+            <span style="font-size: 18px;">×</span>
+          </button>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="quantity-control d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-secondary decrease-qty" data-index="${index}">−</button>
+            <span class="fw-bold">${item.soLuong}</span>
+            <button class="btn btn-sm btn-outline-secondary increase-qty" data-index="${index}">+</button>
+          </div>
+          <span class="fw-bold text-danger">${Utils.formatPrice(item.donGia * item.soLuong)}</span>
+        </div>
+      </div>
+    `).join('');
+    
+    if (btnOrder) btnOrder.disabled = false;
+    if (mobileBtnOrder) mobileBtnOrder.disabled = false;
+    
+    this.updateCartTotal(cart);
+    this.updateMobileCart(cart);
+    
+    // Attach event listeners
+    this.attachCartEventListeners();
+  },
+  
+  /**
+   * Attach cart event listeners
+   */
+  attachCartEventListeners() {
+    // Remove item
+    document.querySelectorAll('.remove-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index);
+        CartController.removeItem(index);
+      });
+    });
+    
+    // Increase quantity
+    document.querySelectorAll('.increase-qty').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index);
+        CartController.increaseQuantity(index);
+      });
+    });
+    
+    // Decrease quantity
+    document.querySelectorAll('.decrease-qty').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index);
+        CartController.decreaseQuantity(index);
+      });
+    });
+  },
+  
+  /**
+   * Update cart total
+   */
+  updateCartTotal(cart) {
+    const total = cart.reduce((sum, item) => sum + (item.donGia * item.soLuong), 0);
+    const subtotalEl = document.getElementById('cart-subtotal');
+    if (subtotalEl) {
+      subtotalEl.textContent = Utils.formatPrice(total);
+    }
+  },
+  
+  /**
+   * Update mobile cart bar
+   */
+  updateMobileCart(cart) {
+    const mobileCartBar = document.getElementById('mobile-cart-bar');
+    const mobileCartCount = document.getElementById('mobile-cart-count');
+    const mobileCartPrice = document.getElementById('mobile-cart-price');
+    
+    if (!mobileCartBar || !mobileCartCount || !mobileCartPrice) return;
+    
+    const totalItems = cart.reduce((sum, item) => sum + item.soLuong, 0);
+    const totalPrice = cart.reduce((sum, item) => sum + (item.donGia * item.soLuong), 0);
+    
+    if (totalItems > 0) {
+      mobileCartBar.classList.remove('hidden');
+      mobileCartCount.textContent = totalItems;
+      mobileCartPrice.textContent = Utils.formatPrice(totalPrice);
+    } else {
+      mobileCartBar.classList.add('hidden');
+    }
   }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHAT HISTORY RENDERER (IMPROVED UI)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const ChatRenderer = {
+  /**
+   * Render saved chat history
+   */
+  renderSavedHistory() {
+    const historyList = document.getElementById('history-list');
+    if (!historyList) return;
+    
+    historyList.innerHTML = AppState.chatHistory.join('');
+    this.scrollToBottom();
+  },
   
-  cartList.innerHTML = state.cart.map((item, index) => `
-    <div class="cart-item mb-3 p-3 border rounded">
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <div class="flex-grow-1">
-          <h6 class="mb-1">${item.tenMon}</h6>
+  /**
+   * Add message to chat
+   */
+  addMessage(html) {
+    const historyList = document.getElementById('history-list');
+    if (!historyList) return;
+    
+    AppState.addChatMessage(html);
+    historyList.insertAdjacentHTML('beforeend', html);
+    this.scrollToBottom();
+  },
+  
+  /**
+   * Render order message (IMPROVED - No prices, cleaner layout)
+   */
+  renderOrderMessage(items) {
+    const normalized = items.map(item => ({
+      ten: item.TenMon ?? item.tenMon ?? '',
+      qty: item.SoLuong ?? item.soLuong ?? 1,
+      capDoCay: item.CapDoCay ?? item.capDoCay ?? '',
+      ghiChu: item.GhiChu ?? item.ghiChu ?? '',
+      price: item.ThanhTien ?? ((item.Gia ?? item.donGia ?? 0) * (item.SoLuong ?? item.soLuong ?? 1))
+    }));
+    
+    const total = normalized.reduce((sum, item) => sum + item.price, 0);
+    
+    const html = `
+      <div class="chat-message customer-message">
+        <div class="message-bubble customer-bubble">
+          <div class="order-header">
+            <div class="order-header-info">
+              <span class="order-table-name">🏠 ${AppState.tenBan}</span>
+              <span class="order-total-amount">${Utils.formatPrice(total)}</span>
+            </div>
+            <div class="order-timestamp">${Utils.formatTime(new Date())}</div>
+          </div>
           
-          ${item.ghiChu ? `<br><small class="text-muted">📝 ${item.ghiChu}</small>` : ''}
-        </div>
-        <button class="btn btn-sm btn-danger remove-item" data-index="${index}">
-          <span style="font-size: 18px;">×</span>
-        </button>
-      </div>
-      
-      <div class="d-flex justify-content-between align-items-center">
-        <div class="quantity-control d-flex align-items-center gap-2">
-          <button class="btn btn-sm btn-outline-secondary decrease-qty" data-index="${index}">−</button>
-          <span class="fw-bold">${item.soLuong}</span>
-          <button class="btn btn-sm btn-outline-secondary increase-qty" data-index="${index}">+</button>
-        </div>
-        <span class="fw-bold text-danger">${formatPrice(item.donGia * item.soLuong)}</span>
-      </div>
-    </div>
-  `).join('');
-  
-  btnOrder.disabled = false;
-  updateCartTotal();
-  
-  // Event listeners
-  document.querySelectorAll('.remove-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const index = parseInt(btn.dataset.index);
-      state.cart.splice(index, 1);
-      renderCart();
-    });
-  });
-  
-  document.querySelectorAll('.increase-qty').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const index = parseInt(btn.dataset.index);
-      state.cart[index].soLuong++;
-      renderCart();
-    });
-  });
-  
-  document.querySelectorAll('.decrease-qty').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const index = parseInt(btn.dataset.index);
-      if (state.cart[index].soLuong > 1) {
-        state.cart[index].soLuong--;
-      } else {
-        state.cart.splice(index, 1);
-      }
-        renderCart();
-
-    });
-  });
-}
-
-function updateCartTotal() {
-  const total = state.cart.reduce((sum, item) => sum + (item.donGia * item.soLuong), 0);
-  document.getElementById('cart-subtotal').textContent = formatPrice(total);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// MODAL HANDLERS
-// ═══════════════════════════════════════════════════════════════════════════
-
-function openDishModal(dishId) {
-  const dish = state.menu.find(d => d.IDMon === dishId);
-  if (!dish) return;
-  
-  state.currentDish = dish;
-  
-  const modal = document.getElementById('option-modal');
-  const spicyBlock = document.getElementById('spicy-block');
-  
-  // Chỉ hiện cấp độ cay cho món mì cay
-  if (dish.TenDanhMuc === 'Mì cay') {
-    spicyBlock.style.display = 'block';
-  } else {
-    spicyBlock.style.display = 'none';
-  }
-  
-  // Reset form
-  document.getElementById('level-select').value = '3';
-  document.getElementById('note-input').value = '';
-  
-  modal.classList.remove('hidden');
-}
-
-function closeDishModal() {
-  document.getElementById('option-modal').classList.add('hidden');
-  state.currentDish = null;
-}
-
-function confirmDishModal() {
-  if (!state.currentDish) return;
-  
-  const spicyLevel = document.getElementById('level-select').value;
-  const note = document.getElementById('note-input').value.trim();
-  
-  const cartItem = {
-    idMon: state.currentDish.IDMon,
-    tenMon: state.currentDish.TenMon,
-    hinhAnh: state.currentDish.HinhAnh,
-    donGia: state.currentDish.Gia,
-    soLuong: 1,
-    capDoCay: state.currentDish.TenDanhMuc === 'Mì cay' ? `Cấp ${spicyLevel}` : '',
-    ghiChu: note
-  };
-  
-  // Kiểm tra món trùng
-  const existingIndex = state.cart.findIndex(item => 
-    item.idMon === cartItem.idMon && 
-    item.capDoCay === cartItem.capDoCay && 
-    item.ghiChu === cartItem.ghiChu
-  );
-  
-  if (existingIndex >= 0) {
-    state.cart[existingIndex].soLuong++;
-  } else {
-    state.cart.push(cartItem);
-  }
-  
-  renderCart();
-  closeDishModal();
-  showNotification(`✅ Đã thêm "${cartItem.tenMon}" vào giỏ hàng!`, 'success');
-}
-
-function openStaffModal() {
-  document.getElementById('staff-modal').classList.remove('hidden');
-  document.getElementById('staff-message').value = '';
-}
-
-function closeStaffModal() {
-  document.getElementById('staff-modal').classList.add('hidden');
-}
-
-async function sendStaffRequest() {
-  const message = document.getElementById('staff-message').value.trim();
-  
-  if (!message) {
-    showNotification('Vui lòng nhập nội dung yêu cầu!', 'warning');
-    return;
-  }
-  
-  const success = await callStaff(message);
-  if (success) {
-    closeStaffModal();
-  }
-}
-// ================= LỊCH SỬ ĐẶT MÓN =================
-
-// MỞ MODAL
-function openHistoryModal() {
-  const modal = document.getElementById('history-modal');
-  if (!modal) {
-    console.error('❌ Không tìm thấy history-modal');
-    return;
-  }
-
-  modal.classList.remove('hidden');
-  loadOrderHistory();
-}
-
-// ĐÓNG MODAL
-function closeHistoryModal() {
-  const modal = document.getElementById('history-modal');
-  if (modal) modal.classList.add('hidden');
-}
-
-// ================= LOAD LỊCH SỬ ĐƠN HÀNG (CHUẨN API THẬT) =================
-async function loadOrderHistory() {
-  const historyList = document.getElementById('history-list');
-  if (!historyList) {
-    console.error('❌ Không tìm thấy history-list');
-    return;
-  }
-
-  // Loading UI
-  historyList.innerHTML = `
-    <div class="text-center py-5">
-      <div class="spinner-border"></div>
-      <div class="mt-2">Đang tải lịch sử...</div>
-    </div>
-  `;
-
-  try {
-    if (!state.idBan) {
-      historyList.innerHTML = `
-        <p class="text-muted text-center py-5">
-          ⚠️ Chưa xác định được bàn
-        </p>
-      `;
-      return;
-    }
-
-    const res = await fetch(`${API_BASE}/ban/${state.idBan}/donhang`);
-    const json = await res.json();
-
-    // ===== VALIDATE RESPONSE =====
-    if (!json || json.success !== true || !json.data) {
-      historyList.innerHTML = `
-        <p class="text-muted text-center py-5">
-          📭 Chưa có lịch sử đơn hàng
-        </p>
-      `;
-      return;
-    }
-
-    // ===== LUÔN CHUẨN HÓA DATA VỀ ARRAY =====
-    const orders = Array.isArray(json.data)
-      ? json.data
-      : [json.data];
-
-    if (orders.length === 0) {
-      historyList.innerHTML = `
-        <p class="text-muted text-center py-5">
-          📭 Chưa có lịch sử đơn hàng
-        </p>
-      `;
-      return;
-    }
-
-    // ===== RENDER =====
-    historyList.innerHTML = orders.map(order => {
-      const chiTiet = Array.isArray(order.chi_tiet) ? order.chi_tiet : [];
-
-      return `
-        <div class="order-history-item p-3 border rounded shadow-sm mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <strong>🧾 Đơn #${order.IDDonHang ?? '-'}</strong>
-            <small class="text-muted">
-              ${order.NgayTao ? formatDate(order.NgayTao) : ''}
-            </small>
-          </div>
-
-          ${
-            chiTiet.length
-              ? chiTiet.map(item => `
-                  <div class="d-flex justify-content-between mb-1">
-                    <span>${item.TenMon ?? 'Món'} × ${item.SoLuong ?? 0}</span>
-                    <span class="text-danger">
-                      ${formatPrice(item.ThanhTien ?? 0)}
-                    </span>
+          <div class="order-items-list">
+            ${normalized.map(item => `
+              <div class="order-item-row">
+                <div class="item-info">
+                  <span class="item-name">${item.ten}</span>
+                  <span class="item-quantity">×${item.qty}</span>
+                </div>
+                ${item.capDoCay || item.ghiChu ? `
+                  <div class="item-details">
+                    ${item.capDoCay ? `<span class="item-spicy">🌶️ ${item.capDoCay}</span>` : ''}
+                    ${item.ghiChu ? `<span class="item-note">📝 ${item.ghiChu}</span>` : ''}
                   </div>
-                `).join('')
-              : `<div class="text-muted small">Không có chi tiết món</div>`
-          }
-
-          <hr>
-
-          <div class="d-flex justify-content-between fw-bold text-danger">
-            <span>Tổng cộng</span>
-            <span>${formatPrice(order.TongTien ?? 0)}</span>
+                ` : ''}
+              </div>
+            `).join('')}
           </div>
         </div>
-      `;
-    }).join('');
-
-  } catch (err) {
-    console.error('❌ Load history error:', err);
-    historyList.innerHTML = `
-      <p class="text-danger text-center py-5">
-        ❌ Lỗi khi tải lịch sử đơn hàng
-      </p>
+      </div>
     `;
+    
+    this.addMessage(html);
+  },
+  
+  /**
+   * Append status message
+   */
+  appendStatusMessage(status) {
+    const statusInfo = ORDER_STATUS[status];
+    if (!statusInfo) return;
+    
+    const html = `
+      <div class="chat-message system-message">
+        <div class="message-bubble system-bubble">
+          <div class="status-content" style="color: ${statusInfo.color};">
+            ${statusInfo.text}
+          </div>
+          <div class="status-time">${Utils.formatTime(new Date())}</div>
+        </div>
+      </div>
+    `;
+    
+    this.addMessage(html);
+  },
+  
+  /**
+   * Clear chat history
+   */
+  clearHistory() {
+    const historyList = document.getElementById('history-list');
+    if (!historyList) return;
+    
+    AppState.clearChatHistory();
+    historyList.innerHTML = '';
+  },
+  
+  /**
+   * Scroll to bottom
+   */
+  scrollToBottom() {
+    const historyList = document.getElementById('history-list');
+    if (!historyList) return;
+    
+    historyList.scrollTop = historyList.scrollHeight;
   }
-}
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
-// EVENT LISTENERS
+// CART CONTROLLER
 // ═══════════════════════════════════════════════════════════════════════════
 
-function setupEventListeners() {
-  // Search
-  document.getElementById('search').addEventListener('input', () => {
-    renderMenu();
-  });
+const CartController = {
+  /**
+   * Add item to cart
+   */
+  addItem(dish, options = {}) {
+    const cartItem = {
+      idMon: dish.IDMon,
+      tenMon: dish.TenMon,
+      hinhAnh: dish.HinhAnh,
+      donGia: dish.Gia,
+      soLuong: 1,
+      capDoCay: options.capDoCay || '',
+      ghiChu: options.ghiChu || ''
+    };
+    
+    // Find existing item with same options
+    const existingIndex = AppState.cart.findIndex(item => 
+      item.idMon === cartItem.idMon && 
+      item.capDoCay === cartItem.capDoCay && 
+      item.ghiChu === cartItem.ghiChu
+    );
+    
+    if (existingIndex >= 0) {
+      AppState.cart[existingIndex].soLuong++;
+    } else {
+      AppState.cart.push(cartItem);
+    }
+    
+    UIRenderer.renderCart(AppState.cart);
+    Utils.showNotification(`✅ Đã thêm "${cartItem.tenMon}" vào giỏ hàng!`, 'success');
+  },
   
-  // Cart buttons
-  document.getElementById('btn-order').addEventListener('click', submitOrder);
-  document.getElementById('btn-call-staff').addEventListener('click', openStaffModal);
+  /**
+   * Remove item from cart
+   */
+  removeItem(index) {
+    AppState.cart.splice(index, 1);
+    UIRenderer.renderCart(AppState.cart);
+  },
   
-  // Dish modal
-  document.getElementById('confirm-modal').addEventListener('click', confirmDishModal);
-  document.getElementById('cancel-modal').addEventListener('click', closeDishModal);
-  document.querySelector('#option-modal .modal-backdrop').addEventListener('click', closeDishModal);
+  /**
+   * Increase quantity
+   */
+  increaseQuantity(index) {
+    if (AppState.cart[index]) {
+      AppState.cart[index].soLuong++;
+      UIRenderer.renderCart(AppState.cart);
+    }
+  },
   
-  // Staff modal
-  document.getElementById('send-staff').addEventListener('click', sendStaffRequest);
-  document.getElementById('close-staff-modal').addEventListener('click', closeStaffModal);
-  document.querySelector('#staff-modal .modal-backdrop').addEventListener('click', closeStaffModal);
+  /**
+   * Decrease quantity
+   */
+  decreaseQuantity(index) {
+    if (AppState.cart[index]) {
+      if (AppState.cart[index].soLuong > 1) {
+        AppState.cart[index].soLuong--;
+      } else {
+        this.removeItem(index);
+      }
+      UIRenderer.renderCart(AppState.cart);
+    }
+  },
   
-  // History
-  document.getElementById('history-bubble').addEventListener('click', openHistoryModal);
-  document.getElementById('close-history').addEventListener('click', closeHistoryModal);
-  document.querySelector('#history-modal .modal-backdrop').addEventListener('click', closeHistoryModal);
-}
+  /**
+   * Clear cart
+   */
+  clearCart() {
+    AppState.cart = [];
+    UIRenderer.renderCart(AppState.cart);
+  }
+};
 
-async function submitOrder() {
-  if (state.cart.length === 0) return;
+// ═══════════════════════════════════════════════════════════════════════════
+// MODAL CONTROLLER
+// ═══════════════════════════════════════════════════════════════════════════
+
+const ModalController = {
+  /**
+   * Open dish modal
+   */
+  openDishModal(dishId) {
+    const dish = AppState.menu.find(d => d.IDMon === dishId);
+    if (!dish) return;
+    
+    AppState.currentDish = dish;
+    
+    const modal = document.getElementById('option-modal');
+    const spicyBlock = document.getElementById('spicy-block');
+    
+    if (!modal) return;
+    
+    // Show/hide spicy level selector
+    if (spicyBlock) {
+      spicyBlock.style.display = dish.TenDanhMuc === 'Mì cay' ? 'block' : 'none';
+    }
+    
+    // Reset form
+    const levelSelect = document.getElementById('level-select');
+    const noteInput = document.getElementById('note-input');
+    
+    if (levelSelect) levelSelect.value = '3';
+    if (noteInput) noteInput.value = '';
+    
+    modal.classList.remove('hidden');
+  },
   
-  const btnOrder = document.getElementById('btn-order');
-  btnOrder.disabled = true;
-  btnOrder.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang gửi...';
+  /**
+   * Close dish modal
+   */
+  closeDishModal() {
+    const modal = document.getElementById('option-modal');
+    if (modal) modal.classList.add('hidden');
+    AppState.currentDish = null;
+  },
   
-  try {
-    // Gửi từng món trong giỏ hàng
-    for (const item of state.cart) {
-      const success = await addToOrder(item);
-      if (!success) {
-        throw new Error('Không thể thêm món');
+  /**
+   * Confirm dish modal
+   */
+  confirmDishModal() {
+    if (!AppState.currentDish) return;
+    
+    const spicyLevel = document.getElementById('level-select')?.value || '3';
+    const note = document.getElementById('note-input')?.value.trim() || '';
+    
+    const options = {
+      capDoCay: AppState.currentDish.TenDanhMuc === 'Mì cay' ? `Cấp ${spicyLevel}` : '',
+      ghiChu: note
+    };
+    
+    CartController.addItem(AppState.currentDish, options);
+    this.closeDishModal();
+  },
+  
+  /**
+   * Open staff modal
+   */
+  openStaffModal() {
+    const modal = document.getElementById('staff-modal');
+    const messageInput = document.getElementById('staff-message');
+    
+    if (modal) modal.classList.remove('hidden');
+    if (messageInput) messageInput.value = '';
+  },
+  
+  /**
+   * Close staff modal
+   */
+  closeStaffModal() {
+    const modal = document.getElementById('staff-modal');
+    if (modal) modal.classList.add('hidden');
+  },
+  
+  /**
+   * Send staff request
+   */
+  async sendStaffRequest() {
+    const messageInput = document.getElementById('staff-message');
+    const message = messageInput ? messageInput.value.trim() : '';
+    
+    if (!message) {
+      Utils.showNotification('Vui lòng nhập nội dung yêu cầu!', 'warning');
+      return;
+    }
+    
+    try {
+      await ApiService.callStaff(AppState.idBan, message);
+      Utils.showNotification('✅ Đã gọi nhân viên! Vui lòng chờ trong giây lát.', 'success');
+      this.closeStaffModal();
+    } catch (error) {
+      Utils.showNotification('Lỗi khi gọi nhân viên. Vui lòng thử lại!', 'error');
+    }
+  },
+  
+  /**
+   * Open history modal
+   */
+  openHistoryModal() {
+    const modal = document.getElementById('history-modal');
+    if (modal) modal.classList.remove('hidden');
+  },
+  
+  /**
+   * Close history modal
+   */
+  closeHistoryModal() {
+    const modal = document.getElementById('history-modal');
+    if (modal) modal.classList.add('hidden');
+  },
+  
+  /**
+   * Open review modal
+   */
+  openReviewModal() {
+    const modal = document.getElementById('review-modal');
+    if (modal) modal.classList.remove('hidden');
+  },
+  
+  /**
+   * Close review modal
+   */
+  closeReviewModal() {
+    const modal = document.getElementById('review-modal');
+    if (modal) modal.classList.add('hidden');
+  },
+  
+  /**
+   * Send review
+   */
+  async sendReview() {
+    const noiDungEl = document.getElementById('review-content');
+    const tenKhachEl = document.getElementById('review-name');
+    
+    const noiDung = noiDungEl ? noiDungEl.value.trim() : '';
+    const tenKhach = tenKhachEl ? tenKhachEl.value.trim() : '';
+    
+    if (!noiDung) {
+      Utils.showNotification('Vui lòng nhập nội dung đánh giá!', 'warning');
+      return;
+    }
+    
+    try {
+      await ApiService.submitReview(AppState.idBan, noiDung, tenKhach || null);
+      Utils.showNotification('✅ Cảm ơn bạn đã đánh giá!', 'success');
+      
+      if (noiDungEl) noiDungEl.value = '';
+      if (tenKhachEl) tenKhachEl.value = '';
+      
+      this.closeReviewModal();
+    } catch (error) {
+      Utils.showNotification('❌ Lỗi khi gửi đánh giá!', 'error');
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ORDER CONTROLLER
+// ═══════════════════════════════════════════════════════════════════════════
+
+const OrderController = {
+  /**
+   * Submit order
+   */
+  async submitOrder() {
+    if (AppState.cart.length === 0) return;
+    
+    const btnOrder = document.getElementById('btn-order');
+    const mobileBtnOrder = document.getElementById('mobile-btn-order');
+    
+    // Disable buttons and show loading
+    if (btnOrder) {
+      btnOrder.disabled = true;
+      btnOrder.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang gửi...';
+    }
+    if (mobileBtnOrder) {
+      mobileBtnOrder.disabled = true;
+    }
+    
+    try {
+      // Keep copy of items being sent
+      const itemsToSend = [...AppState.cart];
+      
+      // Send each item to server
+      for (const item of itemsToSend) {
+        const result = await ApiService.addToOrder(AppState.idBan, item);
+        AppState.currentOrderId = result.id_don_hang;
+      }
+      
+      // Clear cart
+      CartController.clearCart();
+      
+      // Add to chat history
+      ChatRenderer.renderOrderMessage(itemsToSend);
+      ChatRenderer.appendStatusMessage('CHO_XAC_NHAN');
+      
+      Utils.showNotification('🎉 Đơn hàng đã được gửi! Vui lòng chờ xác nhận.', 'success');
+      
+      // Reload current order state (without rendering)
+      const currentOrder = await ApiService.loadCurrentOrder(AppState.idBan);
+      if (currentOrder) {
+        AppState.currentOrderId = currentOrder.id;
+        AppState.currentOrder = currentOrder.items;
+        AppState.currentOrderTrangThai = currentOrder.status;
+      }
+      
+    } catch (error) {
+      Utils.showNotification('Lỗi khi gửi đơn hàng. Vui lòng thử lại!', 'error');
+    } finally {
+      // Reset buttons
+      if (btnOrder) {
+        btnOrder.disabled = false;
+        btnOrder.innerHTML = '🍜 Gửi đơn hàng';
+      }
+      if (mobileBtnOrder) {
+        mobileBtnOrder.disabled = false;
       }
     }
-    
-    // Clear cart sau khi gửi thành công
-    state.cart.length = 0; 
-    renderCart();
-    
-    showNotification('🎉 Đơn hàng đã được gửi! Vui lòng chờ xác nhận.', 'success');
-    
-    // Reload đơn hàng hiện tại
-    await loadCurrentOrder();
-    
-  } catch (error) {
-    console.error('❌ Submit order error:', error);
-    showNotification('Lỗi khi gửi đơn hàng. Vui lòng thử lại!', 'error');
-  } finally {
-    btnOrder.disabled = false;
-    btnOrder.innerHTML = '🍜 Gửi đơn hàng';
   }
-}
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SOCKET.IO LISTENERS
+// SOCKET EVENT HANDLERS
 // ═══════════════════════════════════════════════════════════════════════════
 
-function setupSocketListeners() {
-  socket.on('connect', () => {
-    console.log('✅ Socket connected');
-  });
+const SocketHandlers = {
+  /**
+   * Setup socket listeners
+   */
+  setup() {
+    socket.on('connect', this.onConnect);
+    socket.on('disconnect', this.onDisconnect);
+    socket.on('order_status_update', this.onOrderStatusUpdate);
+    socket.on('order_paid', this.onOrderPaid);
+  },
   
-  socket.on('disconnect', () => {
+  /**
+   * On socket connect
+   */
+  onConnect() {
+    console.log('✅ Socket connected:', socket.id);
+    
+    if (AppState.idBan) {
+      socket.emit('join_room_ban', { id_ban: AppState.idBan });
+      console.log('📥 Joined room ban_' + AppState.idBan);
+    }
+  },
+  
+  /**
+   * On socket disconnect
+   */
+  onDisconnect() {
     console.log('❌ Socket disconnected');
-  });
+  },
   
-  socket.on('order_status_update', (data) => {
-    if (data.id_ban === state.idBan) {
-      console.log('📦 Order status updated:', data.trang_thai);
-      showNotification(`📦 ${data.trang_thai_text}`, 'info');
-    }
-  });
+  /**
+   * On order status update
+   */
+  onOrderStatusUpdate(data) {
+    console.log('📩 order_status_update:', data);
+    
+    if (data.id_ban != AppState.idBan) return;
+    
+    // Append status message to chat
+    ChatRenderer.appendStatusMessage(data.trang_thai);
+    
+    // Update state
+    AppState.currentOrderTrangThai = data.trang_thai;
+  },
   
-  socket.on('order_paid', (data) => {
-    if (data.id_ban === state.idBan) {
-      console.log('💰 Order paid');
-      showNotification('💰 Đơn hàng đã được thanh toán. Cảm ơn quý khách!', 'success');
-      
-      // Reset state
-      state.cart = [];
-      state.currentOrderId = null;
-      renderCart();
+  /**
+   * On order paid
+   */
+  onOrderPaid(data) {
+    if (data.id_ban != AppState.idBan) return;
+    
+    console.log('💰 Đơn đã thanh toán → clear history');
+    
+    // Clear state
+    AppState.currentOrderId = null;
+    AppState.currentOrder = null;
+    AppState.currentOrderTrangThai = null;
+    
+    // Clear chat history
+    ChatRenderer.clearHistory();
+    
+    // Re-render UI
+    UIRenderer.renderCart(AppState.cart);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EVENT LISTENERS SETUP
+// ═══════════════════════════════════════════════════════════════════════════
+
+const EventListeners = {
+  /**
+   * Setup all event listeners
+   */
+  setup() {
+    this.setupSearch();
+    this.setupOrderButtons();
+    this.setupDishModal();
+    this.setupStaffModal();
+    this.setupHistoryModal();
+    this.setupReviewModal();
+  },
+  
+  /**
+   * Setup search
+   */
+  setupSearch() {
+    const searchEl = document.getElementById('search');
+    if (searchEl) {
+      searchEl.addEventListener('input', () => {
+        UIRenderer.renderMenu(AppState.menu);
+      });
     }
-  });
-}
+  },
+  
+  /**
+   * Setup order buttons
+   */
+  setupOrderButtons() {
+    const btnOrder = document.getElementById('btn-order');
+    if (btnOrder) {
+      btnOrder.addEventListener('click', () => OrderController.submitOrder());
+    }
+    
+    const mobileBtnOrder = document.getElementById('mobile-btn-order');
+    if (mobileBtnOrder) {
+      mobileBtnOrder.addEventListener('click', () => OrderController.submitOrder());
+    }
+    
+    const btnCallStaff = document.getElementById('btn-call-staff');
+    if (btnCallStaff) {
+      btnCallStaff.addEventListener('click', () => ModalController.openStaffModal());
+    }
+  },
+  
+  /**
+   * Setup dish modal
+   */
+  setupDishModal() {
+    const confirmModal = document.getElementById('confirm-modal');
+    if (confirmModal) {
+      confirmModal.addEventListener('click', () => ModalController.confirmDishModal());
+    }
+    
+    const cancelModal = document.getElementById('cancel-modal');
+    if (cancelModal) {
+      cancelModal.addEventListener('click', () => ModalController.closeDishModal());
+    }
+    
+    const optionBackdrop = document.querySelector('#option-modal .modal-backdrop');
+    if (optionBackdrop) {
+      optionBackdrop.addEventListener('click', () => ModalController.closeDishModal());
+    }
+  },
+  
+  /**
+   * Setup staff modal
+   */
+  setupStaffModal() {
+    const sendStaff = document.getElementById('send-staff');
+    if (sendStaff) {
+      sendStaff.addEventListener('click', () => ModalController.sendStaffRequest());
+    }
+    
+    const closeStaffModalBtn = document.getElementById('close-staff-modal');
+    if (closeStaffModalBtn) {
+      closeStaffModalBtn.addEventListener('click', () => ModalController.closeStaffModal());
+    }
+    
+    const staffBackdrop = document.querySelector('#staff-modal .modal-backdrop');
+    if (staffBackdrop) {
+      staffBackdrop.addEventListener('click', () => ModalController.closeStaffModal());
+    }
+  },
+  
+  /**
+   * Setup history modal
+   */
+  setupHistoryModal() {
+    const historyBubble = document.getElementById('history-bubble');
+    if (historyBubble) {
+      historyBubble.addEventListener('click', () => ModalController.openHistoryModal());
+      console.log('✅ History bubble event attached');
+    }
+    
+    const closeHistory = document.getElementById('close-history');
+    if (closeHistory) {
+      closeHistory.addEventListener('click', () => ModalController.closeHistoryModal());
+    }
+    
+    const historyBackdrop = document.querySelector('#history-modal .modal-backdrop');
+    if (historyBackdrop) {
+      historyBackdrop.addEventListener('click', () => ModalController.closeHistoryModal());
+    }
+  },
+  
+  /**
+   * Setup review modal
+   */
+  setupReviewModal() {
+    const btnReview = document.getElementById('btn-review');
+    if (btnReview) {
+      btnReview.addEventListener('click', () => ModalController.openReviewModal());
+    }
+    
+    const closeReviewModal = document.getElementById('close-review-modal');
+    if (closeReviewModal) {
+      closeReviewModal.addEventListener('click', () => ModalController.closeReviewModal());
+    }
+    
+    const sendReview = document.getElementById('send-review');
+    if (sendReview) {
+      sendReview.addEventListener('click', () => ModalController.sendReview());
+    }
+  }
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // UTILITY FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
-function formatPrice(price) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(price);
-}
-
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleString('vi-VN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function showNotification(message, type = 'info') {
-  // Tạo notification element
-  const notification = document.createElement('div');
-  notification.className = `alert alert-${type === 'error' ? 'danger' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'info'} notification-toast`;
-  notification.textContent = message;
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    min-width: 300px;
-    animation: slideIn 0.3s ease-out;
-  `;
+const Utils = {
+  /**
+   * Format price
+   */
+  formatPrice(price) {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(price);
+  },
   
-  document.body.appendChild(notification);
+  /**
+   * Format date
+   */
+  formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  },
   
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease-in';
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
+  /**
+   * Format time
+   */
+  formatTime(date) {
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
+    
+    const now = new Date();
+    const diff = now - date;
+    
+    // If today
+    if (diff < 86400000) {
+      return date.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    // If different day
+    return date.toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  },
+  
+  /**
+   * Show notification
+   */
+  showNotification(message, type = 'info') {
+    const typeMap = {
+      error: 'danger',
+      warning: 'warning',
+      success: 'success',
+      info: 'info'
+    };
+    
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${typeMap[type]} notification-toast`;
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      min-width: 300px;
+      animation: slideIn 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease-in';
+      setTimeout(() => notification.remove(), 300);
+    }, CONFIG.NOTIFICATION_DURATION);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DRAG HISTORY BUBBLE
+// ═══════════════════════════════════════════════════════════════════════════
+
+const DragBubble = {
+  /**
+   * Initialize draggable history bubble
+   */
+  init() {
+    const bubble = document.getElementById('history-bubble');
+    if (!bubble) return;
+    
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+    
+    // Load saved position
+    const savedPos = localStorage.getItem(CONFIG.BUBBLE_POS_KEY);
+    if (savedPos) {
+      try {
+        const { x, y } = JSON.parse(savedPos);
+        bubble.style.right = 'auto';
+        bubble.style.bottom = 'auto';
+        bubble.style.left = x + 'px';
+        bubble.style.top = y + 'px';
+      } catch (error) {
+        console.error('Error loading bubble position:', error);
+      }
+    }
+    
+    // Mouse down
+    bubble.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      
+      const rect = bubble.getBoundingClientRect();
+      initialX = rect.left;
+      initialY = rect.top;
+      
+      bubble.style.transition = 'none';
+    });
+    
+    // Mouse move
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      
+      const newX = initialX + dx;
+      const newY = initialY + dy;
+      
+      bubble.style.left = newX + 'px';
+      bubble.style.top = newY + 'px';
+      bubble.style.right = 'auto';
+      bubble.style.bottom = 'auto';
+    });
+    
+    // Mouse up
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      const rect = bubble.getBoundingClientRect();
+      localStorage.setItem(
+        CONFIG.BUBBLE_POS_KEY,
+        JSON.stringify({ x: rect.left, y: rect.top })
+      );
+      
+      bubble.style.transition = 'all 0.25s ease';
+    });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOBILE CART TOGGLE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function toggleMobileCart() {
+  const mobileCart = document.querySelector('.mobile-cart');
+  if (mobileCart) {
+    mobileCart.classList.toggle('open');
+  }
 }
 
-// CSS Animation
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(400px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+// ═══════════════════════════════════════════════════════════════════════════
+// APPLICATION INITIALIZATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+const App = {
+  /**
+   * Initialize application
+   */
+  async init() {
+    console.log('🚀 MyCay_Oder Client Started');
+    
+    try {
+      // Initialize state
+      AppState.init();
+      
+      // Load data
+      await this.loadData();
+      
+      // Setup event listeners
+      EventListeners.setup();
+      
+      // Setup socket listeners
+      SocketHandlers.setup();
+      
+      // Initialize drag bubble
+      DragBubble.init();
+      
+      // Inject styles
+      this.injectStyles();
+      
+      console.log('✅ Initialization complete');
+      
+      Utils.showNotification('✅ Chào mừng bạn đến với Mì Cay HOANGCHEF', 'success');
+      
+    } catch (error) {
+      console.error('❌ Initialization error:', error);
+      Utils.showNotification('Lỗi khi tải dữ liệu. Vui lòng thử lại!', 'error');
+    }
+  },
+  
+  /**
+   * Load all required data
+   */
+  async loadData() {
+    // Load table info
+    const tableInfo = await ApiService.loadTableInfo(AppState.idBan);
+    AppState.tenBan = tableInfo.TenBan;
+    UIRenderer.updateTableName(AppState.tenBan);
+    console.log('✅ Table info loaded:', AppState.tenBan);
+    
+    // Load menu
+    const menuData = await ApiService.loadMenu();
+    AppState.categories = menuData.danh_muc;
+    
+    // Flatten menu items
+    AppState.menu = [];
+    AppState.categories.forEach(cat => {
+      cat.mon_an.forEach(mon => {
+        AppState.menu.push({
+          ...mon,
+          TenDanhMuc: cat.TenDanhMuc,
+          IDDanhMuc: cat.IDDanhMuc
+        });
+      });
+    });
+    
+    UIRenderer.renderCategories(AppState.categories);
+    UIRenderer.renderMenu(AppState.menu);
+    console.log('✅ Menu loaded:', AppState.menu.length, 'items');
+    
+    // Render saved chat history
+    ChatRenderer.renderSavedHistory();
+    
+    // Load current order (sync state only, no rendering)
+    const currentOrder = await ApiService.loadCurrentOrder(AppState.idBan);
+    if (currentOrder) {
+      AppState.currentOrderId = currentOrder.id;
+      AppState.currentOrder = currentOrder.items;
+      AppState.currentOrderTrangThai = currentOrder.status;
+      
+      // Append status if exists
+      if (currentOrder.status) {
+        ChatRenderer.appendStatusMessage(currentOrder.status);
+      }
+    }
+  },
+  
+  /**
+   * Inject CSS styles (IMPROVED)
+   */
+  injectStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+      /* Animations */
+      @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+      }
+      
+      /* Chat Container */
+      #history-list {
+        max-height: ${CONFIG.MAX_HISTORY_HEIGHT}px;
+        overflow-y: auto;
+        padding: 15px;
+        background: #f8f9fa;
+      }
+      
+      /* Chat Messages */
+      .chat-message {
+        margin-bottom: 16px;
+        display: flex;
+        animation: fadeInUp 0.3s ease-out;
+      }
+      
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .customer-message {
+        justify-content: flex-end;
+      }
+      
+      .system-message {
+        justify-content: flex-start;
+      }
+      
+      /* Message Bubbles */
+      .message-bubble {
+        max-width: 80%;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+      
+      .customer-bubble {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      
+      .system-bubble {
+        background: white;
+        color: #333;
+        border: 1px solid #e9ecef;
+      }
+      
+      /* Order Header */
+      .order-header {
+        background: rgba(255,255,255,0.15);
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+      }
+      
+      .order-header-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+      
+      .order-table-name {
+        font-size: 0.95em;
+        font-weight: 600;
+        opacity: 0.95;
+      }
+      
+      .order-total-amount {
+        font-size: 1.1em;
+        font-weight: 700;
+        background: rgba(255,255,255,0.2);
+        padding: 4px 12px;
+        border-radius: 12px;
+      }
+      
+      .order-timestamp {
+        font-size: 0.75em;
+        opacity: 0.8;
+      }
+      
+      /* Order Items List */
+      .order-items-list {
+        padding: 12px 16px;
+      }
+      
+      .order-item-row {
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+      
+      .order-item-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      
+      .item-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      
+      .item-name {
+        font-size: 0.95em;
+        font-weight: 500;
+        flex: 1;
+      }
+      
+      .item-quantity {
+        font-size: 0.9em;
+        font-weight: 600;
+        background: rgba(255,255,255,0.2);
+        padding: 2px 10px;
+        border-radius: 10px;
+        margin-left: 8px;
+      }
+      
+      .item-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+      }
+      
+      .item-spicy,
+      .item-note {
+        font-size: 0.8em;
+        opacity: 0.9;
+        background: rgba(255,255,255,0.15);
+        padding: 3px 10px;
+        border-radius: 8px;
+      }
+      
+      /* Status Messages */
+      .status-content {
+        padding: 12px 16px;
+        font-weight: 500;
+        font-size: 0.95em;
+        text-align: center;
+      }
+      
+      .status-time {
+        padding: 0 16px 12px;
+        font-size: 0.75em;
+        opacity: 0.6;
+        text-align: center;
+      }
+      
+      /* Scrollbar */
+      #history-list::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      #history-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+      
+      #history-list::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 10px;
+      }
+      
+      #history-list::-webkit-scrollbar-thumb:hover {
+        background: #a0aec0;
+      }
+      
+      /* Mobile Responsive */
+      @media (max-width: 768px) {
+        .message-bubble {
+          max-width: 90%;
+        }
+        
+        .order-header-info {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+        }
+        
+        .order-total-amount {
+          font-size: 1em;
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
-  @keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(400px); opacity: 0; }
-  }
-`;
+};
 
-// ================= DRAG HISTORY BUBBLE =================
-(function () {
-  const bubble = document.getElementById('history-bubble');
-  if (!bubble) return;
+// ═══════════════════════════════════════════════════════════════════════════
+// START APPLICATION
+// ═══════════════════════════════════════════════════════════════════════════
 
-  let isDragging = false;
-  let startX, startY, initialX, initialY;
-
-  // Load vị trí đã lưu
-  const savedPos = localStorage.getItem('historyBubblePos');
-  if (savedPos) {
-    const { x, y } = JSON.parse(savedPos);
-    bubble.style.right = 'auto';
-    bubble.style.bottom = 'auto';
-    bubble.style.left = x + 'px';
-    bubble.style.top = y + 'px';
-  }
-
-  bubble.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-
-    const rect = bubble.getBoundingClientRect();
-    initialX = rect.left;
-    initialY = rect.top;
-
-    bubble.style.transition = 'none';
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-
-    const newX = initialX + dx;
-    const newY = initialY + dy;
-
-    bubble.style.left = newX + 'px';
-    bubble.style.top = newY + 'px';
-    bubble.style.right = 'auto';
-    bubble.style.bottom = 'auto';
-  });
-
-  document.addEventListener('mouseup', () => {
-    if (!isDragging) return;
-    isDragging = false;
-
-    // Lưu vị trí
-    const rect = bubble.getBoundingClientRect();
-    localStorage.setItem(
-      'historyBubblePos',
-      JSON.stringify({ x: rect.left, y: rect.top })
-    );
-
-    bubble.style.transition = 'all 0.25s ease';
-  });
-})();
-
-const cartEl = document.querySelector('.cart');
-
-cartEl.addEventListener('click', () => {
-  cartEl.classList.toggle('open');
+document.addEventListener('DOMContentLoaded', () => {
+  App.init();
 });
 
-
-document.head.appendChild(style);
-
-console.log('📱 MyCay_Oder Client Loaded');
+console.log('📱 MyCay_Oder Client Loaded (IMPROVED UI VERSION)');

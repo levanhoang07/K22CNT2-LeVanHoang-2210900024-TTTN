@@ -250,7 +250,7 @@ function renderOrders() {
             <i class="fas fa-eye"></i> Xem
           </button>
           <button class="btn-action btn-send-kitchen" onclick="handleSendToKitchen(${order.IDDonHang})">
-            <i class="fas fa-fire"></i> Xác nhận & gửi bếp
+            <i class="fas fa-fire"></i> Gửi bếp
           </button>
           <button class="btn-action btn-payment" onclick="handlePayment(${order.IDDonHang})">
             <i class="fas fa-credit-card"></i> Thanh toán
@@ -351,7 +351,7 @@ function renderOrderDetail() {
       ${!isPaid ? `
         <div class="d-grid gap-2">
           <button class="btn-action btn-send-kitchen btn-lg" onclick="handleSendToKitchen(${order.IDDonHang})">
-            <i class="fas fa-fire"></i> Xác nhận & gửi bếp
+            <i class="fas fa-fire"></i> Gửi đơn cho bếp
           </button>
           <button class="btn-action btn-payment btn-lg" onclick="handlePayment(${order.IDDonHang})">
             <i class="fas fa-credit-card"></i> Thanh toán ngay
