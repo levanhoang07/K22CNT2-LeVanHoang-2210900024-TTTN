@@ -235,6 +235,9 @@ def bep_page():
 def login_page():
     return render_template("login.html")
 
+@app.route("/test")
+def test_page():
+    return render_template("test.html")
 
 from flask_socketio import join_room
 

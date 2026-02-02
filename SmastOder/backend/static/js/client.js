@@ -18,9 +18,9 @@ const CONFIG = {
 };
 
 const ORDER_STATUS = {
-  CHO_XAC_NHAN: { text: '🕐 Đang chờ thu ngân xác nhận...', color: '#ffc107' },
-  DANG_NAU: { text: '👨‍🍳 Đơn hàng đang được chế biến...', color: '#17a2b8' },
-  HOAN_THANH: { text: '🍜 Món ăn đã sẵn sàng!', color: '#28a745' }
+  CHO_XAC_NHAN: { text: 'Đơn hàng đã được gửi tới hệ thống, vui lòng chờ xử lý trong giây lát.', color: '#ffc107' },
+  DANG_NAU: { text: 'Đơn hàng của quý khách đang được chế biến.', color: '#17a2b8' },
+  HOAN_THANH: { text: 'Món ăn đã sẵn sàng phục vụ.', color: '#28a745' }
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -785,6 +785,7 @@ const ModalController = {
   openHistoryModal() {
     const modal = document.getElementById('history-modal');
     if (modal) modal.classList.remove('hidden');
+    ChatRenderer.renderSavedHistory();
   },
   
   /**
@@ -1372,209 +1373,253 @@ const App = {
    */
   injectStyles() {
     const style = document.createElement('style');
-    style.textContent = `
-      /* Animations */
-      @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      
-      @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-      }
-      
-      /* Chat Container */
-      #history-list {
-        max-height: ${CONFIG.MAX_HISTORY_HEIGHT}px;
-        overflow-y: auto;
-        padding: 15px;
-        background: #f8f9fa;
-      }
-      
-      /* Chat Messages */
-      .chat-message {
-        margin-bottom: 16px;
-        display: flex;
-        animation: fadeInUp 0.3s ease-out;
-      }
-      
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      
-      .customer-message {
-        justify-content: flex-end;
-      }
-      
-      .system-message {
-        justify-content: flex-start;
-      }
-      
-      /* Message Bubbles */
-      .message-bubble {
-        max-width: 80%;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        overflow: hidden;
-      }
-      
-      .customer-bubble {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-      }
-      
-      .system-bubble {
-        background: white;
-        color: #333;
-        border: 1px solid #e9ecef;
-      }
-      
-      /* Order Header */
-      .order-header {
-        background: rgba(255,255,255,0.15);
-        padding: 12px 16px;
-        border-bottom: 1px solid rgba(255,255,255,0.2);
-      }
-      
-      .order-header-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-      }
-      
-      .order-table-name {
-        font-size: 0.95em;
-        font-weight: 600;
-        opacity: 0.95;
-      }
-      
-      .order-total-amount {
-        font-size: 1.1em;
-        font-weight: 700;
-        background: rgba(255,255,255,0.2);
-        padding: 4px 12px;
-        border-radius: 12px;
-      }
-      
-      .order-timestamp {
-        font-size: 0.75em;
-        opacity: 0.8;
-      }
-      
-      /* Order Items List */
-      .order-items-list {
-        padding: 12px 16px;
-      }
-      
-      .order-item-row {
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-      }
-      
-      .order-item-row:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
-      
-      .item-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 4px;
-      }
-      
-      .item-name {
-        font-size: 0.95em;
-        font-weight: 500;
-        flex: 1;
-      }
-      
-      .item-quantity {
-        font-size: 0.9em;
-        font-weight: 600;
-        background: rgba(255,255,255,0.2);
-        padding: 2px 10px;
-        border-radius: 10px;
-        margin-left: 8px;
-      }
-      
-      .item-details {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 4px;
-      }
-      
-      .item-spicy,
-      .item-note {
-        font-size: 0.8em;
-        opacity: 0.9;
-        background: rgba(255,255,255,0.15);
-        padding: 3px 10px;
-        border-radius: 8px;
-      }
-      
-      /* Status Messages */
-      .status-content {
-        padding: 12px 16px;
-        font-weight: 500;
-        font-size: 0.95em;
-        text-align: center;
-      }
-      
-      .status-time {
-        padding: 0 16px 12px;
-        font-size: 0.75em;
-        opacity: 0.6;
-        text-align: center;
-      }
-      
-      /* Scrollbar */
-      #history-list::-webkit-scrollbar {
-        width: 6px;
-      }
-      
-      #history-list::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-      }
-      
-      #history-list::-webkit-scrollbar-thumb {
-        background: #cbd5e0;
-        border-radius: 10px;
-      }
-      
-      #history-list::-webkit-scrollbar-thumb:hover {
-        background: #a0aec0;
-      }
-      
-      /* Mobile Responsive */
-      @media (max-width: 768px) {
-        .message-bubble {
-          max-width: 90%;
-        }
-        
-        .order-header-info {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 6px;
-        }
-        
-        .order-total-amount {
-          font-size: 1em;
-        }
-      }
-    `;
-    document.head.appendChild(style);
+style.textContent = `
+/* ============================= */
+/* ANIMATIONS */
+/* ============================= */
+@keyframes slideIn {
+  from { transform: translateX(400px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(400px); opacity: 0; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ============================= */
+/* HISTORY LIST CONTAINER */
+/* ============================= */
+#history-list {
+  max-height: ${CONFIG.MAX_HISTORY_HEIGHT}px;
+  overflow-y: auto;
+  padding: 12px;
+  background: #f6f7fb;
+
+  /* mượt mobile */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+
+/* EMPTY STATE */
+#history-list:empty::before {
+  content: "💭 Bạn chưa có đơn hàng nào";
+  display: block;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 40px 10px;
+}
+
+
+/* ============================= */
+/* CHAT MESSAGE */
+/* ============================= */
+.chat-message {
+  margin-bottom: 12px;
+  display: flex;
+  animation: fadeInUp 0.25s ease;
+}
+
+.customer-message {
+  justify-content: flex-end;
+}
+
+.system-message {
+  justify-content: flex-start;
+}
+
+
+/* ============================= */
+/* MESSAGE BUBBLE */
+/* ============================= */
+.message-bubble {
+  max-width: 75%;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Khách */
+.customer-bubble {
+  background: linear-gradient(135deg, #ff6b35, #ff9f43);
+  color: white;
+}
+
+/* Hệ thống */
+.system-bubble {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #eee;
+}
+
+
+/* ============================= */
+/* ORDER HEADER */
+/* ============================= */
+.order-header {
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.12);
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.order-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.order-table-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.order-total-amount {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.25);
+}
+
+.order-timestamp {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+
+/* ============================= */
+/* ITEMS */
+/* ============================= */
+.order-items-list {
+  padding: 10px 14px;
+}
+
+.order-item-row {
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.15);
+}
+
+.order-item-row:last-child {
+  border-bottom: none;
+}
+
+.item-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.item-quantity {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.25);
+}
+
+.item-details {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.item-spicy,
+.item-note {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.18);
+}
+
+
+/* ============================= */
+/* STATUS */
+/* ============================= */
+.status-content {
+  padding: 10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-time {
+  font-size: 11px;
+  opacity: 0.6;
+  padding-bottom: 8px;
+  text-align: center;
+}
+
+
+/* ============================= */
+/* SCROLLBAR */
+/* ============================= */
+#history-list::-webkit-scrollbar {
+  width: 5px;
+}
+#history-list::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 10px;
+}
+
+
+/* ============================= */
+/* MOBILE TỐI ƯU CHUẨN APP */
+/* ============================= */
+@media (max-width: 768px) {
+
+  #history-list {
+    padding: 8px;
+  }
+
+  .message-bubble {
+    max-width: 88%;
+    font-size: 13px;
+    border-radius: 16px;
+  }
+
+  .order-header-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .order-total-amount {
+    font-size: 13px;
+  }
+
+  .item-name {
+    font-size: 12px;
+  }
+
+  .chat-message {
+    margin-bottom: 10px;
+  }
+}
+`;
+document.head.appendChild(style);
+
   }
 };
 
