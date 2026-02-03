@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
   <title>Mì Cay HoangChef – Đặt món qua QR</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,218 +10,257 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
+
 <!-- ================= HEADER ================= -->
-<header class="site-header py-3 shadow-sm">
+<header class="site-header py-2 py-md-3 shadow-sm">
   <div class="container header-container d-flex flex-column flex-md-row align-items-center justify-content-between text-center text-md-start">
-<div class="brand d-flex align-items-center mb-3 mb-md-0">
-  <img src="/static/image/logo.jpg" alt="Logo" class="logo me-3">
-  <div class="brand-info">
-    <h1 class="mb-0">🌶️ Mì Cay HoangChef</h1>
-    <p class="mb-0 text-muted">Nâng tầm hương vị Việt</p>
-  </div>
-</div>
+    
+    <!-- Brand Section -->
+    <div class="brand d-flex align-items-center mb-2 mb-md-0">
+      <img src="/static/image/logo.jpg" alt="Logo" class="logo me-2 me-md-3">
+      <div class="brand-info">
+        <h1 class="mb-0">Mì Cay HoangChef</h1>
+        <p class="mb-0 text-muted d-none d-sm-block">Nâng tầm hương vị Việt</p>
+      </div>
+    </div>
 
-<div class="address-bar mb-3 mb-md-0">
-  <p class="mb-0">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phú Thọ</p>
-</div>
+    <!-- Address Bar -->
+    <div class="address-bar mb-2 mb-md-0 d-none d-md-block">
+      <p class="mb-0">📍 88 Hoàng Hoa Thám, Xuân Hòa, Phú Thọ</p>
+    </div>
 
-<div class="header-info d-flex flex-column flex-sm-row align-items-center gap-3">
-  <div class="info-item">⏰ 9:00 - 22:00</div>
-  <div class="info-item">📞 0982 121 680</div>
-  <div class="table-box">
-    <strong></strong><span id="table-name" class="fw-bold">Đang tải...</span>
-  </div>
-  <div class="dropdown lang-dropdown">
-  <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2"
-        data-bs-toggle="dropdown">
-  <span id="current-lang-flag">🇻🇳</span>
-  <span id="current-lang">Tiếng Việt</span>
-</button>
-
-<ul class="dropdown-menu dropdown-menu-end">
-  <li>
-    <a class="dropdown-item lang-item" data-lang="vi">🇻🇳 Tiếng Việt</a>
-  </li>
-  <li>
-    <a class="dropdown-item lang-item" data-lang="en">🇺🇸 English</a>
-  </li>
-  <li>
-    <a class="dropdown-item lang-item" data-lang="kr">🇰🇷 한국어</a>
-  </li>
-</ul>
-</div>
-</div>
-</div>
-</header>
-<!-- ================= MAIN ================= -->
-<main class="layout container my-4">
-  <div class="row g-4">
-    <!-- ===== MENU SECTION ===== -->
-    <section class="menu col-lg-8">
-      <h2 class="menu-title text-center mb-4">🍜 Thực Đơn</h2>
-      <!-- Tìm kiếm món -->
-  <div class="mb-4">
-    <input 
-      id="search" 
-      type="text" 
-      class="form-control search-input" 
-      placeholder="🔍 Tìm món ăn (ví dụ: mì cay, trà sữa...)">
-  </div>
-
-  <!-- Thanh danh mục -->
-  <div class="category-bar d-flex overflow-auto pb-2 mb-4 gap-2"></div>
-
-  <!-- Grid món ăn -->
-  <div id="menu-container" class="menu-grid row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3"></div>
-</section>
-
-<!-- ===== CART ASIDE ===== -->
-<aside class="cart col-lg-4 mobile-cart">
-  <div class="card shadow-sm sticky-top" style="top: 20px;">
-    <div class="card-body d-flex flex-column" style="height: 100%;">
+    <!-- Header Info -->
+    <div class="header-info d-flex flex-wrap align-items-center justify-content-center gap-2">
+      <div class="info-item d-none d-sm-flex">⏰ 9:00 - 22:00</div>
+      <div class="info-item d-none d-sm-flex">📞 0982 121 680</div>
+      <div class="table-box">
+        <span id="table-name" class="fw-bold">Đang tải...</span>
+      </div>
       
-      <!-- SCROLLABLE SECTION -->
-      <div class="cart-scrollable">
-        <h3 class="cart-title mb-4">🛒 Giỏ hàng</h3>
-
-        <div id="cart-list" class="mb-4" style="min-height: 150px;">
-          <div class="empty text-muted text-center py-5">Giỏ hàng trống</div>
-        </div>
-
-        <div class="cart-summary">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="fw-bold">Tạm tính:</span>
-            <strong id="cart-subtotal" class="fs-5 text-danger">0 ₫</strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- FIXED BUTTONS SECTION -->
-      <div class="cart-buttons mt-auto">
-        <button id="btn-order" class="btn btn-success btn-lg w-100 mb-2" disabled>
-          🍜 Gửi đơn hàng
+      <!-- Language Dropdown -->
+      <div class="dropdown lang-dropdown">
+        <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+          <span id="current-lang-flag">🇻🇳</span>
+          <span id="current-lang" class="d-none d-sm-inline">Tiếng Việt</span>
         </button>
-
-        <button id="btn-call-staff" class="btn btn-warning btn-lg w-100 mb-2">
-          📢 Gọi nhân viên hỗ trợ
-        </button>
-
-        <button id="btn-review" class="btn btn-outline-primary btn-lg w-100">
-          ⭐ Góp ý dịch vụ
-        </button>
-      </div>
-
-      <!-- ================= LỊCH SỬ ĐẶT MÓN (BUBBLE + MODAL) ================= -->
-      <div id="history-bubble">🔔</div>
-      <div id="history-modal" class="hidden">
-        <div class="modal-backdrop"></div>
-        <div class="history-panel">
-          <button id="close-history">✕</button>
-          <div id="history-list"></div>
-        </div>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item lang-item" href="#" data-lang="vi">🇻🇳 Tiếng Việt</a></li>
+          <li><a class="dropdown-item lang-item" href="#" data-lang="en">🇺🇸 English</a></li>
+          <li><a class="dropdown-item lang-item" href="#" data-lang="kr">🇰🇷 한국어</a></li>
+        </ul>
       </div>
     </div>
   </div>
-</aside>
+</header>
 
-<!-- ===== MOBILE BOTTOM CART BAR ===== -->
-<div id="mobile-cart-bar" class="mobile-cart-bar hidden">
-  <div class="cart-bar-content">
-    <div class="cart-info" onclick="toggleMobileCart()">
-      <span class="cart-icon">🛒</span>
-      <div class="cart-details">
-        <span class="cart-count" id="mobile-cart-count">0</span>
-        <span class="cart-price" id="mobile-cart-price">0₫</span>
+<!-- ================= MAIN ================= -->
+<main class="layout container my-3 my-md-4">
+  <div class="row g-3 g-md-4">
+    
+    <!-- ===== MENU SECTION ===== -->
+    <section class="menu col-12 col-lg-8">
+      <h2 class="menu-title text-center mb-3 mb-md-4">Thực Đơn</h2>
+      
+      <!-- Search Input -->
+      <div class="mb-3 mb-md-4">
+        <input 
+          id="search" 
+          type="text" 
+          class="form-control search-input" 
+          placeholder="🔍 Tìm món ăn (ví dụ: mì cay, trà sữa...)">
       </div>
-      <span class="toggle-icon">⬆</span>
+
+      <!-- Category Bar -->
+      <div class="category-bar d-flex overflow-auto pb-2 mb-3 mb-md-4 gap-2"></div>
+
+      <!-- Menu Grid -->
+      <div id="menu-container" class="menu-grid"></div>
+    </section>
+
+    <!-- ===== CART ASIDE (Desktop Only) ===== -->
+    <aside class="cart mobile-cart col-lg-4">
+      <div class="card shadow-sm" style="border: none;">
+        <div class="card-body">
+          
+          <!-- Cart Header & Content (Scrollable) -->
+          <div class="cart-scrollable">
+            <h3 class="cart-title mb-3 mb-md-4">🛒 Giỏ hàng</h3>
+
+            <div id="cart-list" class="mb-3 mb-md-4">
+              <div class="empty text-muted text-center py-4 py-md-5">Giỏ hàng trống</div>
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="cart-summary">
+              <div class="d-flex justify-content-between align-items-center mb-2 mb-md-3">
+                <span class="fw-bold">Tạm tính:</span>
+                <strong id="cart-subtotal" class="fs-5 text-danger">0 ₫</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cart Action Buttons (Fixed at bottom) -->
+          <div class="cart-buttons">
+            <button id="btn-order" class="btn btn-success btn-lg w-100" disabled>
+              🍽️ Gửi đơn hàng
+            </button>
+
+            <button id="btn-call-staff" class="btn btn-warning btn-lg w-100">
+              📢 Gọi nhân viên hỗ trợ
+            </button>
+
+            <button id="btn-review" class="btn btn-outline-primary btn-lg w-100">
+              ⭐ Góp ý dịch vụ
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<!-- ================= MOBILE BOTTOM CART SHEET ================= -->
+<!-- Cart Backdrop (overlay khi mở cart) -->
+<div id="cart-backdrop" class="cart-backdrop"></div>
+
+<!-- Mobile Cart Sheet -->
+<div id="mobile-cart-sheet" class="mobile-cart-sheet collapsed">
+  
+  <!-- Cart Sheet Header - Click để toggle -->
+  <div class="cart-sheet-header" id="cart-sheet-toggle">
+    <div class="cart-sheet-summary">
+      <div class="cart-sheet-info">
+        <span class="cart-icon">🛒</span>
+        <div class="cart-details">
+          <div class="cart-count" id="mobile-cart-count">0 món</div>
+          <div class="cart-price" id="mobile-cart-price">0₫</div>
+        </div>
+      </div>
+      <span class="toggle-icon">▼</span>
     </div>
-    <button id="mobile-btn-order" class="btn-order-mobile" disabled>
-      Gửi đơn
+  </div>
+
+  <!-- Cart Sheet Content (hiện khi expanded) -->
+  <div class="cart-sheet-content">
+    <div id="mobile-cart-list">
+      <div class="empty text-muted text-center py-4">Giỏ hàng trống</div>
+    </div>
+  </div>
+
+  <!-- Cart Sheet Buttons (hiện khi expanded) -->
+  <div class="cart-sheet-buttons">
+    <button id="mobile-btn-order" class="btn btn-success" disabled>
+      🍽️ Gửi đơn hàng
+    </button>
+    <button id="mobile-btn-call-staff" class="btn btn-warning">
+      📢 Gọi nhân viên hỗ trợ
+    </button>
+    <button id="mobile-btn-review" class="btn btn-outline-primary">
+      ⭐ Góp ý dịch vụ
     </button>
   </div>
+
 </div>
+
+<!-- ================= HISTORY BUBBLE & MODAL ================= -->
+<div id="history-bubble" title="Xem lịch sử đơn hàng">🔔</div>
+
+<div id="history-modal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="history-panel">
+    <button id="close-history" title="Đóng">✕</button>
+    <h4 class="mb-3 text-center" style="color: #667eea; font-weight: 800;">📜 Lịch sử đơn hàng</h4>
+    <div id="history-list"></div>
+  </div>
 </div>
-</main>
+
 <!-- ================= FOOTER ================= -->
 <footer class="site-footer">
   <div class="container footer-content">
-    <span> Phát triển bởi sinh viên: Lê Văn Hoàng</span>
-
+    <span>Phát triển bởi sinh viên: Lê Văn Hoàng</span>
     <span class="divider">|</span>
-
-    <a  target="_blank">
-      Khoa Công nghệ Thông tin
-    </a>
-
+    <a href="#" target="_blank">Khoa Công nghệ Thông tin</a>
     <span class="divider">|</span>
-
-    <a  target="_blank">
-      Trường Đại học Nguyễn Trãi
-    </a>
+    <a href="#" target="_blank">Trường Đại học Nguyễn Trãi</a>
   </div>
 </footer>
 
-<!-- ================= MODAL CHỌN TÙY CHỌN MÓN ================= -->
+<!-- ================= MODAL: DISH OPTIONS ================= -->
 <div id="option-modal" class="modal hidden">
   <div class="modal-backdrop"></div>
-  <div class="modal-content p-4 rounded shadow">
-    <h4 class="mb-4 text-center">Tùy chọn món</h4>
-<div id="spicy-block" class="mb-3">
-  <label class="form-label fw-bold">🌶️ Cấp độ cay</label>
-  <select id="level-select" class="form-select">
-    <option value="1" selected>Cấp 1 - Nhẹ nhàng</option>
-    <option value="2">Cấp 2 - Vừa phải</option>
-    <option value="3" >Cấp 3 - Cay vừa</option>
-    <option value="4">Cấp 4 - Cay khá</option>
-    <option value="5">Cấp 5 - Cay mạnh</option>
-    <option value="6">Cấp 6 - Siêu cay</option>
-    <option value="7">Cấp 7 - Thách thức</option>
-  </select>
+  <div class="modal-content p-3 p-md-4 rounded shadow">
+    <h4 class="mb-3 mb-md-4 text-center">Tùy chọn món</h4>
+    
+    <!-- Spicy Level -->
+    <div id="spicy-block" class="mb-3">
+      <label class="form-label fw-bold">🌶️ Cấp độ cay</label>
+      <select id="level-select" class="form-select">
+        <option value="1" selected>Cấp 1 - Nhẹ nhàng</option>
+        <option value="2">Cấp 2 - Vừa phải</option>
+        <option value="3">Cấp 3 - Cay vừa</option>
+        <option value="4">Cấp 4 - Cay khá</option>
+        <option value="5">Cấp 5 - Cay mạnh</option>
+        <option value="6">Cấp 6 - Siêu cay</option>
+        <option value="7">Cấp 7 - Thách thức</option>
+      </select>
+    </div>
+
+    <!-- Additional Notes -->
+    <div class="mb-3 mb-md-4">
+      <label class="form-label fw-bold">📝 Ghi chú thêm (tùy chọn)</label>
+      <textarea id="note-input" class="form-control" rows="3" 
+                placeholder="Ví dụ: ít đá, không hành, thêm ớt..."></textarea>
+    </div>
+
+    <!-- Actions -->
+    <div class="modal-actions d-flex gap-2">
+      <button id="confirm-modal" class="btn btn-primary flex-fill">✅ Thêm vào giỏ</button>
+      <button id="cancel-modal" class="btn btn-secondary flex-fill">❌ Hủy</button>
+    </div>
+  </div>
 </div>
 
-<div class="mb-4">
-  <label class="form-label fw-bold">📝 Ghi chú thêm (tùy chọn)</label>
-  <textarea id="note-input" class="form-control" rows="3" placeholder="Ví dụ: ít đá, không hành, thêm ớt..."></textarea>
-</div>
-
-<div class="modal-actions d-flex gap-2">
-  <button id="confirm-modal" class="btn btn-primary flex-fill">✅ Thêm vào giỏ</button>
-  <button id="cancel-modal" class="btn btn-secondary flex-fill">❌ Hủy</button>
-</div>
-</div>
-</div>
-<!-- ================= MODAL GỌI NHÂN VIÊN ================= -->
+<!-- ================= MODAL: CALL STAFF ================= -->
 <div id="staff-modal" class="modal hidden">
   <div class="modal-backdrop"></div>
-  <div class="modal-content p-4 rounded shadow">
-    <h4 class="mb-4 text-center">📢 Gọi nhân viên hỗ trợ</h4>
+  <div class="modal-content p-3 p-md-4 rounded shadow">
+    <h4 class="mb-3 mb-md-4 text-center">📢 Gọi nhân viên hỗ trợ</h4>
 
-<div class="mb-4">
-  <textarea 
-    id="staff-message" 
-    class="form-control" 
-    rows="4" 
-    placeholder="Mô tả vấn đề bạn cần hỗ trợ (ví dụ: cần thêm nước, hóa đơn, dọn bàn...)"></textarea>
+    <div class="mb-3 mb-md-4">
+      <textarea 
+        id="staff-message" 
+        class="form-control" 
+        rows="4" 
+        placeholder="Mô tả vấn đề bạn cần hỗ trợ (ví dụ: cần thêm nước, hóa đơn, dọn bàn...)"></textarea>
+    </div>
+
+    <div class="modal-actions d-flex gap-2">
+      <button id="send-staff" class="btn btn-success flex-fill">📤 Gửi</button>
+      <button id="close-staff-modal" class="btn btn-secondary flex-fill">❌ Hủy</button>
+    </div>
+  </div>
 </div>
 
-<div class="modal-actions d-flex gap-2">
-  <button id="send-staff" class="btn btn-success flex-fill">📤 Gửi</button>
-  <button id="close-staff-modal" class="btn btn-secondary flex-fill">❌ Hủy</button>
-</div>
-</div>
-</div>
-<!-- ================= MODAL ĐÁNH GIÁ KHÁCH HÀNG ================= -->
+<!-- ================= MODAL: CUSTOMER REVIEW ================= -->
 <div id="review-modal" class="modal hidden">
   <div class="modal-backdrop"></div>
-  <div class="modal-content p-4 rounded shadow" style="max-width: 420px;">
+  <div class="modal-content p-3 p-md-4 rounded shadow" style="max-width: 450px;">
     <h4 class="mb-3 text-center">⭐ Góp ý dịch vụ</h4>
 
-    <!-- Tên khách (không bắt buộc) -->
+    <!-- Customer Name (Optional) -->
     <div class="mb-3">
       <label class="form-label">Tên quý khách (không bắt buộc)</label>
-      <input id="review-name" type="text" class="form-control" placeholder="Nhập tên hoặc để trống">
-    <!-- Nội dung đánh giá -->
-    <div class="mb-4">
+      <input id="review-name" type="text" class="form-control" 
+             placeholder="Nhập tên hoặc để trống">
+    </div>
+
+    <!-- Review Content -->
+    <div class="mb-3 mb-md-4">
       <label class="form-label fw-bold">📝 Nội dung góp ý</label>
       <textarea 
         id="review-content" 
@@ -239,13 +277,59 @@
   </div>
 </div>
 
-
-
 <!-- ================= SCRIPTS ================= -->
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/client.js"></script>
 <script src="/static/js/lang-switcher.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Close modals functions
+function closeOptionModal() {
+  const modal = document.getElementById('option-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function closeStaffModal() {
+  const modal = document.getElementById('staff-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function closeReviewModal() {
+  const modal = document.getElementById('review-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function closeHistoryModal() {
+  const modal = document.getElementById('history-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// Show history modal
+const historyBubble = document.getElementById('history-bubble');
+if (historyBubble) {
+  historyBubble.addEventListener('click', function() {
+    const modal = document.getElementById('history-modal');
+    if (modal) modal.classList.remove('hidden');
+  });
+}
+
+// Close modals when clicking backdrop
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal-backdrop')) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => modal.classList.add('hidden'));
+  }
+});
+
+// Close modals with Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const modals = document.querySelectorAll('.modal:not(.hidden)');
+    modals.forEach(modal => modal.classList.add('hidden'));
+  }
+});
+</script>
 
 </body>
 </html>

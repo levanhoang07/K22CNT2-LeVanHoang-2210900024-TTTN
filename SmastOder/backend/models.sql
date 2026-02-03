@@ -5,6 +5,14 @@ CREATE DATABASE MyCay_Oder;
 GO
 USE MyCay_Oder;
 GO
+CREATE USER flaskuser FOR LOGIN flaskuser;
+GO
+
+SELECT name, is_disabled
+FROM sys.server_principals
+WHERE name = 'flaskuser';
+USE MyCay_Oder;
+ALTER ROLE db_owner ADD MEMBER flaskuser;
 
 /* =====================================================
    2. NGƯỜI DÙNG
@@ -37,6 +45,9 @@ CREATE TABLE DanhMuc (
     IDDanhMuc INT IDENTITY PRIMARY KEY,
     TenDanhMuc NVARCHAR(50) NOT NULL UNIQUE
 );
+ALTER TABLE DanhMuc
+ADD MoTa NVARCHAR(255),
+    TrangThai NVARCHAR(50) DEFAULT N'Hoạt động';
 
 /* =====================================================
    5. MENU
@@ -68,6 +79,8 @@ CREATE TABLE DonHang (
     FOREIGN KEY (IDBan) REFERENCES Ban(IDBan),
     FOREIGN KEY (IDNguoiDung) REFERENCES NguoiDung(IDNguoiDung)
 );
+ALTER TABLE DonHang
+ADD TrangThai NVARCHAR(30) NOT NULL DEFAULT 'MOI_TAO';
 
 /* =====================================================
    7. CHI TIẾT ĐƠN HÀNG
@@ -84,7 +97,8 @@ CREATE TABLE ChiTietDonHang (
     FOREIGN KEY (IDDonHang) REFERENCES DonHang(IDDonHang) ON DELETE CASCADE,
     FOREIGN KEY (IDMon) REFERENCES Menu(IDMon)
 );
-
+ALTER TABLE ChiTietDonHang 
+ADD TrangThai NVARCHAR(50) DEFAULT N'CHỜ';
 /* =====================================================
    8. TRIGGER CẬP NHẬT TỔNG TIỀN
 ===================================================== */
@@ -121,6 +135,8 @@ CREATE TABLE LichSuTrangThaiDonHang (
     FOREIGN KEY (IDDonHang) REFERENCES DonHang(IDDonHang) ON DELETE CASCADE
 );
 
+
+
 /* =====================================================
    10. PHƯƠNG THỨC THANH TOÁN
 ===================================================== */
@@ -152,6 +168,9 @@ CREATE TABLE KhachHang (
     SoDienThoai NVARCHAR(15) UNIQUE,
     DiemTichLuy INT DEFAULT 0
 );
+ALTER TABLE KhachHang
+ADD Email NVARCHAR(100),
+    TrangThai NVARCHAR(50) DEFAULT N'Hoạt động';
 
 /* =====================================================
    13. LỊCH SỬ TÍCH ĐIỂM
@@ -252,6 +271,13 @@ VALUES
 (N'Cơm trộn'),
 (N'Đồ uống'),
 (N'Topping');
+
+INSERT INTO PhuongThucThanhToan (TenPhuongThuc)
+VALUES
+(N'Tiền mặt'),
+(N'Chuyển khoản'),
+(N'Crypto');
+
 
 INSERT INTO Menu (TenMon, MoTa, Gia, HinhAnh, IDDanhMuc)
 VALUES
@@ -358,3 +384,28 @@ SET HinhAnh = REPLACE(HinhAnh, '/static/images/', '')
 WHERE HinhAnh LIKE '%static/images%';
 SELECT IDMon, HinhAnh FROM Menu;
 SELECT * FROM DonHang
+
+INSERT INTO LichSuTrangThaiDonHang (IDDonHang, TrangThai, ThoiGian)
+SELECT d.IDDonHang, N'Hoàn thành', GETDATE()
+FROM DonHang d
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM LichSuTrangThaiDonHang ls
+    WHERE ls.IDDonHang = d.IDDonHang
+      AND ls.TrangThai = N'Hoàn thành'
+);
+
+SELECT d.IDDonHang, b.TenBan, ls.TrangThai, ls.ThoiGian
+FROM DonHang d
+JOIN Ban b ON d.IDBan = b.IDBan
+OUTER APPLY (
+    SELECT TOP 1 TrangThai, ThoiGian
+    FROM LichSuTrangThaiDonHang
+    WHERE IDDonHang = d.IDDonHang
+    ORDER BY ThoiGian DESC
+) ls
+ORDER BY d.IDDonHang DESC;
+
+SELECT DISTINCT TrangThai
+FROM DonHang
+ORDER BY TrangThai;

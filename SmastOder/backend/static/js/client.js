@@ -1,7 +1,6 @@
 /**
  * ════════════════════════════════════════════════════════════════════════════
- *  MyCay_Oder - Client Side JavaScript (CHAT MESSENGER VERSION - IMPROVED UI)
- *  Lịch sử đơn hàng theo dạng tin nhắn chat - Giao diện đẹp hơn
+ *  MyCay_Oder - Client Side JavaScript (FIXED with Mobile Cart Toggle)
  * ════════════════════════════════════════════════════════════════════════════
  */
 
@@ -49,6 +48,9 @@ const AppState = {
   
   // Chat history
   chatHistory: [],
+  
+  // Mobile cart state
+  mobileCartExpanded: false,
   
   // Initialize state
   init() {
@@ -245,6 +247,71 @@ const ApiService = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// MOBILE CART CONTROLLER
+// ═══════════════════════════════════════════════════════════════════════════
+
+const MobileCartController = {
+  /**
+   * Toggle mobile cart sheet
+   */
+  toggleCart() {
+    const cartSheet = document.getElementById('mobile-cart-sheet');
+    const backdrop = document.getElementById('cart-backdrop');
+    
+    if (!cartSheet || !backdrop) return;
+    
+    AppState.mobileCartExpanded = !AppState.mobileCartExpanded;
+    
+    if (AppState.mobileCartExpanded) {
+      cartSheet.classList.remove('collapsed');
+      cartSheet.classList.add('expanded');
+      backdrop.classList.add('show');
+    } else {
+      cartSheet.classList.remove('expanded');
+      cartSheet.classList.add('collapsed');
+      backdrop.classList.remove('show');
+    }
+  },
+  
+  /**
+   * Collapse mobile cart
+   */
+  collapseCart() {
+    const cartSheet = document.getElementById('mobile-cart-sheet');
+    const backdrop = document.getElementById('cart-backdrop');
+    
+    if (!cartSheet || !backdrop) return;
+    
+    AppState.mobileCartExpanded = false;
+    cartSheet.classList.remove('expanded');
+    cartSheet.classList.add('collapsed');
+    backdrop.classList.remove('show');
+  },
+  
+  /**
+   * Show mobile cart (when items added)
+   */
+  showCart() {
+    const cartSheet = document.getElementById('mobile-cart-sheet');
+    if (!cartSheet) return;
+    
+    // Remove any hidden class
+    cartSheet.style.display = 'block';
+  },
+  
+  /**
+   * Hide mobile cart (when empty)
+   */
+  hideCart() {
+    const cartSheet = document.getElementById('mobile-cart-sheet');
+    if (!cartSheet) return;
+    
+    this.collapseCart();
+    cartSheet.style.display = 'none';
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // UI RENDERER
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -332,24 +399,20 @@ const UIRenderer = {
     
     // Render menu items
     container.innerHTML = filteredMenu.map(item => `
-      <div class="col">
-        <div class="card dish-card h-100 shadow-sm" data-id="${item.IDMon}">
-          <div class="dish-image-wrapper">
-            <img src="/static/images/${item.HinhAnh}" 
-                 class="card-img-top dish-image" 
-                 alt="${item.TenMon}"
-                 onerror="this.src='/static/images/no-image.jpg'">
-          </div>
-          <div class="card-body d-flex flex-column">
-            <h6 class="card-title fw-bold">${item.TenMon}</h6>
-            <p class="card-text text-muted small flex-grow-1">${item.MoTa}</p>
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <span class="text-danger fw-bold fs-5">${Utils.formatPrice(item.Gia)}</span>
-              <button class="btn btn-primary btn-sm add-to-cart-btn" data-id="${item.IDMon}">
-                <span class="btn-text">+ Thêm</span>
-              </button>
-            </div>
-          </div>
+      <div class="dish-card" data-id="${item.IDMon}">
+        <div class="dish-image-wrapper">
+          <img src="/static/images/${item.HinhAnh}" 
+               class="dish-image" 
+               alt="${item.TenMon}"
+               onerror="this.src='/static/images/no-image.jpg'">
+          <div class="price-badge">${Utils.formatPrice(item.Gia)}</div>
+        </div>
+        <div class="card-body">
+          <h6 class="card-title">${item.TenMon}</h6>
+          <p class="card-text">${item.MoTa}</p>
+          <button class="btn btn-primary add-to-cart-btn" data-id="${item.IDMon}">
+            + Thêm
+          </button>
         </div>
       </div>
     `).join('');
@@ -365,12 +428,25 @@ const UIRenderer = {
   },
   
   /**
-   * Render cart
+   * Render cart (desktop and mobile)
    */
   renderCart(cart) {
+    // Render desktop cart
+    this.renderDesktopCart(cart);
+    
+    // Render mobile cart
+    this.renderMobileCart(cart);
+    
+    // Update totals
+    this.updateCartTotal(cart);
+  },
+  
+  /**
+   * Render desktop cart
+   */
+  renderDesktopCart(cart) {
     const cartList = document.getElementById('cart-list');
     const btnOrder = document.getElementById('btn-order');
-    const mobileBtnOrder = document.getElementById('mobile-btn-order');
     
     if (!cartList) return;
     
@@ -378,9 +454,6 @@ const UIRenderer = {
     if (cart.length === 0) {
       cartList.innerHTML = '<div class="empty text-muted text-center py-5">Giỏ hàng trống</div>';
       if (btnOrder) btnOrder.disabled = true;
-      if (mobileBtnOrder) mobileBtnOrder.disabled = true;
-      this.updateCartTotal(cart);
-      this.updateMobileCart(cart);
       return;
     }
     
@@ -399,7 +472,7 @@ const UIRenderer = {
         </div>
         
         <div class="d-flex justify-content-between align-items-center">
-          <div class="quantity-control d-flex align-items-center gap-2">
+          <div class="quantity-control">
             <button class="btn btn-sm btn-outline-secondary decrease-qty" data-index="${index}">−</button>
             <span class="fw-bold">${item.soLuong}</span>
             <button class="btn btn-sm btn-outline-secondary increase-qty" data-index="${index}">+</button>
@@ -410,17 +483,78 @@ const UIRenderer = {
     `).join('');
     
     if (btnOrder) btnOrder.disabled = false;
-    if (mobileBtnOrder) mobileBtnOrder.disabled = false;
-    
-    this.updateCartTotal(cart);
-    this.updateMobileCart(cart);
     
     // Attach event listeners
     this.attachCartEventListeners();
   },
   
   /**
-   * Attach cart event listeners
+   * Render mobile cart
+   */
+  renderMobileCart(cart) {
+    const mobileCartList = document.getElementById('mobile-cart-list');
+    const mobileBtnOrder = document.getElementById('mobile-btn-order');
+    const mobileCartCount = document.getElementById('mobile-cart-count');
+    const mobileCartPrice = document.getElementById('mobile-cart-price');
+    
+    if (!mobileCartList) return;
+    
+    // Calculate totals
+    const totalItems = cart.reduce((sum, item) => sum + item.soLuong, 0);
+    const totalPrice = cart.reduce((sum, item) => sum + (item.donGia * item.soLuong), 0);
+    
+    // Update header
+    if (mobileCartCount) {
+      mobileCartCount.textContent = totalItems > 0 ? `${totalItems} món` : '0 món';
+    }
+    if (mobileCartPrice) {
+      mobileCartPrice.textContent = Utils.formatPrice(totalPrice);
+    }
+    
+    // Empty cart
+    if (cart.length === 0) {
+      mobileCartList.innerHTML = '<div class="empty text-muted text-center py-4">Giỏ hàng trống</div>';
+      if (mobileBtnOrder) mobileBtnOrder.disabled = true;
+      MobileCartController.hideCart();
+      return;
+    }
+    
+    // Show cart
+    MobileCartController.showCart();
+    
+    // Render cart items
+    mobileCartList.innerHTML = cart.map((item, index) => `
+      <div class="cart-item mb-3 p-3 border rounded">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="flex-grow-1">
+            <h6 class="mb-1">${item.tenMon}</h6>
+            ${item.capDoCay ? `<small class="text-info">🌶️ ${item.capDoCay}</small>` : ''}
+            ${item.ghiChu ? `<br><small class="text-muted">📝 ${item.ghiChu}</small>` : ''}
+          </div>
+          <button class="btn btn-sm btn-danger remove-item-mobile" data-index="${index}">
+            <span style="font-size: 18px;">×</span>
+          </button>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="quantity-control">
+            <button class="btn btn-sm btn-outline-secondary decrease-qty-mobile" data-index="${index}">−</button>
+            <span class="fw-bold">${item.soLuong}</span>
+            <button class="btn btn-sm btn-outline-secondary increase-qty-mobile" data-index="${index}">+</button>
+          </div>
+          <span class="fw-bold text-danger">${Utils.formatPrice(item.donGia * item.soLuong)}</span>
+        </div>
+      </div>
+    `).join('');
+    
+    if (mobileBtnOrder) mobileBtnOrder.disabled = false;
+    
+    // Attach event listeners for mobile
+    this.attachMobileCartEventListeners();
+  },
+  
+  /**
+   * Attach desktop cart event listeners
    */
   attachCartEventListeners() {
     // Remove item
@@ -449,6 +583,35 @@ const UIRenderer = {
   },
   
   /**
+   * Attach mobile cart event listeners
+   */
+  attachMobileCartEventListeners() {
+    // Remove item
+    document.querySelectorAll('.remove-item-mobile').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index);
+        CartController.removeItem(index);
+      });
+    });
+    
+    // Increase quantity
+    document.querySelectorAll('.increase-qty-mobile').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index);
+        CartController.increaseQuantity(index);
+      });
+    });
+    
+    // Decrease quantity
+    document.querySelectorAll('.decrease-qty-mobile').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index);
+        CartController.decreaseQuantity(index);
+      });
+    });
+  },
+  
+  /**
    * Update cart total
    */
   updateCartTotal(cart) {
@@ -457,33 +620,11 @@ const UIRenderer = {
     if (subtotalEl) {
       subtotalEl.textContent = Utils.formatPrice(total);
     }
-  },
-  
-  /**
-   * Update mobile cart bar
-   */
-  updateMobileCart(cart) {
-    const mobileCartBar = document.getElementById('mobile-cart-bar');
-    const mobileCartCount = document.getElementById('mobile-cart-count');
-    const mobileCartPrice = document.getElementById('mobile-cart-price');
-    
-    if (!mobileCartBar || !mobileCartCount || !mobileCartPrice) return;
-    
-    const totalItems = cart.reduce((sum, item) => sum + item.soLuong, 0);
-    const totalPrice = cart.reduce((sum, item) => sum + (item.donGia * item.soLuong), 0);
-    
-    if (totalItems > 0) {
-      mobileCartBar.classList.remove('hidden');
-      mobileCartCount.textContent = totalItems;
-      mobileCartPrice.textContent = Utils.formatPrice(totalPrice);
-    } else {
-      mobileCartBar.classList.add('hidden');
-    }
   }
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// CHAT HISTORY RENDERER (IMPROVED UI)
+// CHAT HISTORY RENDERER
 // ═══════════════════════════════════════════════════════════════════════════
 
 const ChatRenderer = {
@@ -511,7 +652,7 @@ const ChatRenderer = {
   },
   
   /**
-   * Render order message (IMPROVED - No prices, cleaner layout)
+   * Render order message
    */
   renderOrderMessage(items) {
     const normalized = items.map(item => ({
@@ -862,6 +1003,7 @@ const OrderController = {
     }
     if (mobileBtnOrder) {
       mobileBtnOrder.disabled = true;
+      mobileBtnOrder.textContent = 'Đang gửi...';
     }
     
     try {
@@ -883,7 +1025,10 @@ const OrderController = {
       
       Utils.showNotification('🎉 Đơn hàng đã được gửi! Vui lòng chờ xác nhận.', 'success');
       
-      // Reload current order state (without rendering)
+      // Collapse mobile cart after order
+      MobileCartController.collapseCart();
+      
+      // Reload current order state
       const currentOrder = await ApiService.loadCurrentOrder(AppState.idBan);
       if (currentOrder) {
         AppState.currentOrderId = currentOrder.id;
@@ -901,6 +1046,7 @@ const OrderController = {
       }
       if (mobileBtnOrder) {
         mobileBtnOrder.disabled = false;
+        mobileBtnOrder.textContent = 'Gửi đơn';
       }
     }
   }
@@ -991,6 +1137,7 @@ const EventListeners = {
     this.setupStaffModal();
     this.setupHistoryModal();
     this.setupReviewModal();
+    this.setupMobileCart();
   },
   
   /**
@@ -1009,19 +1156,46 @@ const EventListeners = {
    * Setup order buttons
    */
   setupOrderButtons() {
+    // Desktop order button
     const btnOrder = document.getElementById('btn-order');
     if (btnOrder) {
       btnOrder.addEventListener('click', () => OrderController.submitOrder());
     }
     
+    // Mobile order button
     const mobileBtnOrder = document.getElementById('mobile-btn-order');
     if (mobileBtnOrder) {
       mobileBtnOrder.addEventListener('click', () => OrderController.submitOrder());
     }
     
+    // Desktop call staff button
     const btnCallStaff = document.getElementById('btn-call-staff');
     if (btnCallStaff) {
       btnCallStaff.addEventListener('click', () => ModalController.openStaffModal());
+    }
+    
+    // Mobile call staff button
+    const mobileBtnCallStaff = document.getElementById('mobile-btn-call-staff');
+    if (mobileBtnCallStaff) {
+      mobileBtnCallStaff.addEventListener('click', () => {
+        MobileCartController.collapseCart();
+        ModalController.openStaffModal();
+      });
+    }
+    
+    // Desktop review button
+    const btnReview = document.getElementById('btn-review');
+    if (btnReview) {
+      btnReview.addEventListener('click', () => ModalController.openReviewModal());
+    }
+    
+    // Mobile review button
+    const mobileBtnReview = document.getElementById('mobile-btn-review');
+    if (mobileBtnReview) {
+      mobileBtnReview.addEventListener('click', () => {
+        MobileCartController.collapseCart();
+        ModalController.openReviewModal();
+      });
     }
   },
   
@@ -1038,11 +1212,6 @@ const EventListeners = {
     if (cancelModal) {
       cancelModal.addEventListener('click', () => ModalController.closeDishModal());
     }
-    
-    const optionBackdrop = document.querySelector('#option-modal .modal-backdrop');
-    if (optionBackdrop) {
-      optionBackdrop.addEventListener('click', () => ModalController.closeDishModal());
-    }
   },
   
   /**
@@ -1058,11 +1227,6 @@ const EventListeners = {
     if (closeStaffModalBtn) {
       closeStaffModalBtn.addEventListener('click', () => ModalController.closeStaffModal());
     }
-    
-    const staffBackdrop = document.querySelector('#staff-modal .modal-backdrop');
-    if (staffBackdrop) {
-      staffBackdrop.addEventListener('click', () => ModalController.closeStaffModal());
-    }
   },
   
   /**
@@ -1072,17 +1236,11 @@ const EventListeners = {
     const historyBubble = document.getElementById('history-bubble');
     if (historyBubble) {
       historyBubble.addEventListener('click', () => ModalController.openHistoryModal());
-      console.log('✅ History bubble event attached');
     }
     
     const closeHistory = document.getElementById('close-history');
     if (closeHistory) {
       closeHistory.addEventListener('click', () => ModalController.closeHistoryModal());
-    }
-    
-    const historyBackdrop = document.querySelector('#history-modal .modal-backdrop');
-    if (historyBackdrop) {
-      historyBackdrop.addEventListener('click', () => ModalController.closeHistoryModal());
     }
   },
   
@@ -1090,11 +1248,6 @@ const EventListeners = {
    * Setup review modal
    */
   setupReviewModal() {
-    const btnReview = document.getElementById('btn-review');
-    if (btnReview) {
-      btnReview.addEventListener('click', () => ModalController.openReviewModal());
-    }
-    
     const closeReviewModal = document.getElementById('close-review-modal');
     if (closeReviewModal) {
       closeReviewModal.addEventListener('click', () => ModalController.closeReviewModal());
@@ -1103,6 +1256,27 @@ const EventListeners = {
     const sendReview = document.getElementById('send-review');
     if (sendReview) {
       sendReview.addEventListener('click', () => ModalController.sendReview());
+    }
+  },
+  
+  /**
+   * Setup mobile cart toggle
+   */
+  setupMobileCart() {
+    // Toggle cart when clicking header
+    const cartToggle = document.getElementById('cart-sheet-toggle');
+    if (cartToggle) {
+      cartToggle.addEventListener('click', () => {
+        MobileCartController.toggleCart();
+      });
+    }
+    
+    // Close cart when clicking backdrop
+    const backdrop = document.getElementById('cart-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        MobileCartController.collapseCart();
+      });
     }
   }
 };
@@ -1197,91 +1371,6 @@ const Utils = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DRAG HISTORY BUBBLE
-// ═══════════════════════════════════════════════════════════════════════════
-
-const DragBubble = {
-  /**
-   * Initialize draggable history bubble
-   */
-  init() {
-    const bubble = document.getElementById('history-bubble');
-    if (!bubble) return;
-    
-    let isDragging = false;
-    let startX, startY, initialX, initialY;
-    
-    // Load saved position
-    const savedPos = localStorage.getItem(CONFIG.BUBBLE_POS_KEY);
-    if (savedPos) {
-      try {
-        const { x, y } = JSON.parse(savedPos);
-        bubble.style.right = 'auto';
-        bubble.style.bottom = 'auto';
-        bubble.style.left = x + 'px';
-        bubble.style.top = y + 'px';
-      } catch (error) {
-        console.error('Error loading bubble position:', error);
-      }
-    }
-    
-    // Mouse down
-    bubble.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      
-      const rect = bubble.getBoundingClientRect();
-      initialX = rect.left;
-      initialY = rect.top;
-      
-      bubble.style.transition = 'none';
-    });
-    
-    // Mouse move
-    document.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      
-      const newX = initialX + dx;
-      const newY = initialY + dy;
-      
-      bubble.style.left = newX + 'px';
-      bubble.style.top = newY + 'px';
-      bubble.style.right = 'auto';
-      bubble.style.bottom = 'auto';
-    });
-    
-    // Mouse up
-    document.addEventListener('mouseup', () => {
-      if (!isDragging) return;
-      isDragging = false;
-      
-      const rect = bubble.getBoundingClientRect();
-      localStorage.setItem(
-        CONFIG.BUBBLE_POS_KEY,
-        JSON.stringify({ x: rect.left, y: rect.top })
-      );
-      
-      bubble.style.transition = 'all 0.25s ease';
-    });
-  }
-};
-
-// ═══════════════════════════════════════════════════════════════════════════
-// MOBILE CART TOGGLE
-// ═══════════════════════════════════════════════════════════════════════════
-
-function toggleMobileCart() {
-  const mobileCart = document.querySelector('.mobile-cart');
-  if (mobileCart) {
-    mobileCart.classList.toggle('open');
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 // APPLICATION INITIALIZATION
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1290,7 +1379,7 @@ const App = {
    * Initialize application
    */
   async init() {
-    console.log('🚀 MyCay_Oder Client Started');
+    console.log('🚀 MyCay_Oder Client Started (Fixed with Mobile Cart Toggle)');
     
     try {
       // Initialize state
@@ -1304,9 +1393,6 @@ const App = {
       
       // Setup socket listeners
       SocketHandlers.setup();
-      
-      // Initialize drag bubble
-      DragBubble.init();
       
       // Inject styles
       this.injectStyles();
@@ -1354,14 +1440,13 @@ const App = {
     // Render saved chat history
     ChatRenderer.renderSavedHistory();
     
-    // Load current order (sync state only, no rendering)
+    // Load current order
     const currentOrder = await ApiService.loadCurrentOrder(AppState.idBan);
     if (currentOrder) {
       AppState.currentOrderId = currentOrder.id;
       AppState.currentOrder = currentOrder.items;
       AppState.currentOrderTrangThai = currentOrder.status;
       
-      // Append status if exists
       if (currentOrder.status) {
         ChatRenderer.appendStatusMessage(currentOrder.status);
       }
@@ -1369,14 +1454,12 @@ const App = {
   },
   
   /**
-   * Inject CSS styles (IMPROVED)
+   * Inject CSS styles
    */
   injectStyles() {
     const style = document.createElement('style');
-style.textContent = `
-/* ============================= */
+    style.textContent = `
 /* ANIMATIONS */
-/* ============================= */
 @keyframes slideIn {
   from { transform: translateX(400px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
@@ -1398,23 +1481,16 @@ style.textContent = `
   }
 }
 
-
-/* ============================= */
-/* HISTORY LIST CONTAINER */
-/* ============================= */
+/* HISTORY LIST */
 #history-list {
   max-height: ${CONFIG.MAX_HISTORY_HEIGHT}px;
   overflow-y: auto;
   padding: 12px;
   background: #f6f7fb;
-
-  /* mượt mobile */
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
 
-
-/* EMPTY STATE */
 #history-list:empty::before {
   content: "💭 Bạn chưa có đơn hàng nào";
   display: block;
@@ -1424,10 +1500,7 @@ style.textContent = `
   padding: 40px 10px;
 }
 
-
-/* ============================= */
 /* CHAT MESSAGE */
-/* ============================= */
 .chat-message {
   margin-bottom: 12px;
   display: flex;
@@ -1442,10 +1515,6 @@ style.textContent = `
   justify-content: flex-start;
 }
 
-
-/* ============================= */
-/* MESSAGE BUBBLE */
-/* ============================= */
 .message-bubble {
   max-width: 75%;
   border-radius: 18px;
@@ -1455,23 +1524,17 @@ style.textContent = `
   line-height: 1.4;
 }
 
-/* Khách */
 .customer-bubble {
   background: linear-gradient(135deg, #ff6b35, #ff9f43);
   color: white;
 }
 
-/* Hệ thống */
 .system-bubble {
   background: #ffffff;
   color: #333;
   border: 1px solid #eee;
 }
 
-
-/* ============================= */
-/* ORDER HEADER */
-/* ============================= */
 .order-header {
   padding: 10px 14px;
   background: rgba(255,255,255,0.12);
@@ -1503,10 +1566,6 @@ style.textContent = `
   opacity: 0.7;
 }
 
-
-/* ============================= */
-/* ITEMS */
-/* ============================= */
 .order-items-list {
   padding: 10px 14px;
 }
@@ -1553,10 +1612,6 @@ style.textContent = `
   background: rgba(255,255,255,0.18);
 }
 
-
-/* ============================= */
-/* STATUS */
-/* ============================= */
 .status-content {
   padding: 10px;
   text-align: center;
@@ -1571,55 +1626,46 @@ style.textContent = `
   text-align: center;
 }
 
-
-/* ============================= */
-/* SCROLLBAR */
-/* ============================= */
 #history-list::-webkit-scrollbar {
   width: 5px;
 }
+
 #history-list::-webkit-scrollbar-thumb {
   background: #ddd;
   border-radius: 10px;
 }
 
-
-/* ============================= */
-/* MOBILE TỐI ƯU CHUẨN APP */
-/* ============================= */
 @media (max-width: 768px) {
-
   #history-list {
     padding: 8px;
   }
-
+  
   .message-bubble {
     max-width: 88%;
     font-size: 13px;
     border-radius: 16px;
   }
-
+  
   .order-header-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-
+  
   .order-total-amount {
     font-size: 13px;
   }
-
+  
   .item-name {
     font-size: 12px;
   }
-
+  
   .chat-message {
     margin-bottom: 10px;
   }
 }
 `;
-document.head.appendChild(style);
-
+    document.head.appendChild(style);
   }
 };
 
@@ -1631,4 +1677,4 @@ document.addEventListener('DOMContentLoaded', () => {
   App.init();
 });
 
-console.log('📱 MyCay_Oder Client Loaded (IMPROVED UI VERSION)');
+console.log('📱 MyCay_Oder Client Loaded (Fixed with Mobile Cart Toggle)');
