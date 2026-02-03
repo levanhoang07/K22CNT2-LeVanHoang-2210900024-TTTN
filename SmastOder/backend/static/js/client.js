@@ -1,12 +1,3 @@
-/**
- * ════════════════════════════════════════════════════════════════════════════
- *  MyCay_Oder - Client Side JavaScript (FIXED with Mobile Cart Toggle)
- * ════════════════════════════════════════════════════════════════════════════
- */
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════════════════════════════════
 
 const CONFIG = {
   API_BASE: '/api',
@@ -1677,4 +1668,4 @@ document.addEventListener('DOMContentLoaded', () => {
   App.init();
 });
 
-console.log('📱 MyCay_Oder Client Loaded (Fixed with Mobile Cart Toggle)');
+console.log('📱 MyCay_Oder Client Loaded');

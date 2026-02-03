@@ -17,7 +17,6 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-logo">
-      
       <img src="/static/image/logo.jpg" alt="Logo">
     
     <div class="admin-info">
@@ -47,7 +46,7 @@
     <li class="menu-item">
       <a class="menu-link" data-section="menu">
         <i class="menu-icon fas fa-utensils"></i>
-        <span>Quản lý Menu</span>
+        <span>Quản lý menu</span>
       </a>
     </li>
     <li class="menu-item">
@@ -59,7 +58,7 @@
     <li class="menu-item">
       <a class="menu-link" data-section="tables">
         <i class="menu-icon fas fa-table"></i>
-        <span>Quản lý Bàn</span>
+        <span>Quản lý bàn</span>
       </a>
     </li>
     <li class="menu-item">
@@ -86,7 +85,6 @@
         <span>Nhân viên</span>
       </a>
     </li>
-    <!-- Đã xóa dòng <li> của Báo cáo để menu gọn gàng -->
     <li class="menu-item">
       <a class="menu-link" data-section="settings">
         <i class="menu-icon fas fa-cog"></i>
@@ -143,7 +141,6 @@
             <i class="fas fa-shopping-cart"></i>
           </div>
         </div>
-        
       </div>
 
       <div class="stat-card customers">
@@ -156,7 +153,6 @@
             <i class="fas fa-users"></i>
           </div>
         </div>
-        
       </div>
 
       <div class="stat-card tables">
@@ -179,7 +175,7 @@
     <!-- Recent Orders -->
     <div class="content-card">
       <div class="card-header-custom">
-        <h3 class="card-title"><i class="fas fa-receipt"></i> Đơn hàng gần đây</h3>
+        <h3 class="card-title"><i class="fas fa-receipt"></i> Đơn hàng đang hoạt động</h3>
         <button class="btn-primary-custom btn-sm" onclick="switchSection('orders')">
           Xem tất cả
         </button>
@@ -205,17 +201,7 @@
       </div>
     </div>
 
-    <!-- Top Dishes -->
-    <div class="content-card">
-      <div class="card-header-custom">
-        <h3 class="card-title"><i class="fas fa-fire"></i> Món bán chạy</h3>
-      </div>
-      <div id="top-dishes-list">
-        Đang tải...
-      </div>
-    </div>
-
-    <!-- ────────────── Báo cáo được gộp vào đây ────────────── -->
+    <!-- ────────────── Báo cáo Doanh thu (Tích hợp) ────────────── -->
     <div class="content-card">
       <div class="card-header-custom d-flex justify-content-between align-items-center">
         <h3 class="card-title">
@@ -225,13 +211,13 @@
         <!-- Nút chọn thời gian -->
         <div class="btn-group">
           <button class="btn btn-outline-primary btn-sm" onclick="loadReports('day')">
-            Ngày
+            Hôm nay
           </button>
           <button class="btn btn-outline-primary btn-sm" onclick="loadReports('week')">
-            Tuần
+            7 ngày
           </button>
           <button class="btn btn-outline-primary btn-sm active" onclick="loadReports('month')">
-            Tháng
+            30 ngày
           </button>
         </div>
       </div>
@@ -242,7 +228,7 @@
 
   </div>
 
-  <!-- Other Sections (giữ nguyên) -->
+  <!-- Other Sections -->
   <div class="tab-content-section" id="section-orders">
     <div class="content-card">
       <div class="card-header-custom">
@@ -340,8 +326,6 @@
       <div id="staff-content">Đang tải...</div>
     </div>
   </div>
-
-  <!-- KHÔNG còn section-reports ở đây nữa -->
 
   <div class="tab-content-section" id="section-settings">
     <div class="content-card">

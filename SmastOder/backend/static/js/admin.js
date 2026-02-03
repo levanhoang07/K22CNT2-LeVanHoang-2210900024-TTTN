@@ -185,6 +185,7 @@ async function loadDashboard() {
       renderDashboardStats();
       await loadRecentOrders();
       await loadTopDishes();
+      await loadReports('month'); // Load báo cáo mặc định theo tháng
     }
   } catch (error) {
     console.error('❌ Load dashboard error:', error);
@@ -271,6 +272,286 @@ async function loadTopDishes() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// REPORTS (Tích hợp vào Dashboard)
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadReports(type = 'month') {
+  try {
+    showLoading(true);
+    
+    const today = new Date();
+    let tuNgay, denNgay;
+
+    denNgay = today.toISOString().split('T')[0];
+
+    if (type === 'day') {
+      // Báo cáo theo ngày (hôm nay)
+      tuNgay = denNgay;
+    } 
+    else if (type === 'week') {
+      // 7 ngày gần nhất
+      const weekAgo = new Date(today);
+      weekAgo.setDate(today.getDate() - 6);
+      tuNgay = weekAgo.toISOString().split('T')[0];
+    } 
+    else {
+      // Mặc định: tháng (30 ngày)
+      const monthAgo = new Date(today);
+      monthAgo.setDate(today.getDate() - 29);
+      tuNgay = monthAgo.toISOString().split('T')[0];
+    }
+    
+    // Load doanh thu theo thời gian
+    const revenueResponse = await fetch(
+      `${API_BASE}/admin/baocao/doanhthu?tu_ngay=${tuNgay}&den_ngay=${denNgay}`
+    );
+    const revenueResult = await revenueResponse.json();
+    
+    // Load doanh thu theo danh mục
+    const categoryResponse = await fetch(
+      `${API_BASE}/admin/baocao/danhmuc?tu_ngay=${tuNgay}&den_ngay=${denNgay}`
+    );
+    const categoryResult = await categoryResponse.json();
+    
+    if (revenueResult.success) {
+      renderReports(revenueResult.data, categoryResult.success ? categoryResult.data : null);
+    }
+  } catch (error) {
+    console.error('❌ Load reports error:', error);
+    showToast('Lỗi khi tải báo cáo', 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+function renderReports(data, categoryData) {
+  const container = document.getElementById('reports-content');
+  
+  container.innerHTML = `
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="content-card text-center" style="padding: 30px; background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+          <div style="font-size: 3rem; font-weight: 800; margin-bottom: 10px;">
+            ${formatPrice(data.tong_doanh_thu)}
+          </div>
+          <div style="font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            Tổng doanh thu
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="content-card text-center" style="padding: 30px; background: linear-gradient(135deg, #00b894, #55efc4); color: white;">
+          <div style="font-size: 3rem; font-weight: 800; margin-bottom: 10px;">
+            ${data.tong_don_hang}
+          </div>
+          <div style="font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            Tổng đơn hàng
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="content-card text-center" style="padding: 30px; background: linear-gradient(135deg, #fdcb6e, #e17055); color: white;">
+          <div style="font-size: 3rem; font-weight: 800; margin-bottom: 10px;">
+            ${formatPrice(data.tong_doanh_thu / data.tong_don_hang || 0)}
+          </div>
+          <div style="font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            Trung bình/đơn
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row g-3 mb-4">
+      <!-- Biểu đồ cột: Doanh thu theo ngày -->
+      <div class="col-md-8">
+        <div class="content-card">
+          <h5 class="mb-4"><i class="fas fa-chart-line"></i> Doanh thu theo ngày</h5>
+          <canvas id="revenue-chart" style="max-height: 400px;"></canvas>
+        </div>
+      </div>
+      
+      <!-- Biểu đồ tròn: Doanh thu theo danh mục -->
+      <div class="col-md-4">
+        <div class="content-card">
+          <h5 class="mb-4"><i class="fas fa-chart-pie"></i> Theo danh mục</h5>
+          <canvas id="category-chart" style="max-height: 400px;"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="content-card mt-4">
+      <h5 class="mb-3"><i class="fas fa-table"></i> Chi tiết theo ngày</h5>
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Ngày</th>
+              <th>Số đơn hàng</th>
+              <th>Doanh thu</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.chi_tiet.map(item => `
+              <tr>
+                <td>${formatDate(item.Ngay)}</td>
+                <td><strong>${item.SoDonHang}</strong></td>
+                <td><strong>${formatPrice(item.DoanhThu)}</strong></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  
+  // Render biểu đồ cột (doanh thu theo ngày)
+  renderRevenueChart(data.chi_tiet);
+  
+  // Render biểu đồ tròn (doanh thu theo danh mục)
+  if (categoryData && categoryData.danh_muc) {
+    renderCategoryChart(categoryData.danh_muc);
+  }
+}
+
+function renderRevenueChart(data) {
+  const ctx = document.getElementById('revenue-chart');
+  if (!ctx) return;
+
+  // Xoá chart cũ nếu có (tránh bug render chồng)
+  if (window.revenueChart) {
+    window.revenueChart.destroy();
+  }
+
+  window.revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(item => formatDate(item.Ngay)),
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Doanh thu',
+          data: data.map(item => item.DoanhThu),
+          backgroundColor: 'rgba(102, 126, 234, 0.7)',
+          borderRadius: 8,
+          barThickness: 22
+        },
+        {
+          type: 'line',
+          label: 'Xu hướng',
+          data: data.map(item => item.DoanhThu),
+          borderColor: '#ff7675',
+          backgroundColor: 'rgba(255, 118, 117, 0.15)',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 20
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              return `${ctx.dataset.label}: ${formatPrice(ctx.raw)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: value => formatPrice(value)
+          },
+          grid: {
+            color: 'rgba(0,0,0,0.05)'
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderCategoryChart(data) {
+  const ctx = document.getElementById('category-chart');
+  if (!ctx) return;
+
+  // Xoá chart cũ nếu có
+  if (window.categoryChart) {
+    window.categoryChart.destroy();
+  }
+
+  // Màu sắc đẹp cho biểu đồ tròn
+  const colors = [
+    '#667eea',
+    '#764ba2',
+    '#f093fb',
+    '#4facfe',
+    '#00f2fe',
+    '#43e97b',
+    '#38f9d7',
+    '#fa709a',
+    '#fee140',
+    '#30cfd0'
+  ];
+
+  window.categoryChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: data.map(item => item.TenDanhMuc),
+      datasets: [{
+        data: data.map(item => item.DoanhThu),
+        backgroundColor: colors.slice(0, data.length),
+        borderWidth: 3,
+        borderColor: '#fff',
+        hoverOffset: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            padding: 15,
+            font: {
+              size: 12
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = formatPrice(context.parsed);
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = ((context.parsed / total) * 100).toFixed(1);
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
 // ═══════════════════════════════════════════════════════════════════════════
 // ORDERS MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════
@@ -475,11 +756,12 @@ document.querySelectorAll('.menu-link').forEach(link => {
   });
 });
 
-
-
 // ═══════════════════════════════════════════════════════════════════════════
-// MENU MANAGEMENT
+// MENU MANAGEMENT - WITH ADVANCED SEARCH ✨
+// Features: Debounce, Null-safe, Regex escape, Beautiful UI
 // ═══════════════════════════════════════════════════════════════════════════
+
+let menuSearchTimeout = null;
 
 async function loadMenu() {
   try {
@@ -499,52 +781,226 @@ async function loadMenu() {
   }
 }
 
-function renderMenu() {
+function renderMenu(searchTerm = '') {
   const container = document.getElementById('menu-content');
   
-  if (state.menu.length === 0) {
-    container.innerHTML = '<p class="text-center py-5">Chưa có món ăn nào</p>';
+  // Null-safe: Ensure menu exists
+  if (!state.menu || state.menu.length === 0) {
+    container.innerHTML = `
+      <div class="text-center py-5">
+        <i class="fas fa-utensils" style="font-size: 4rem; color: #cbd5e1; margin-bottom: 20px;"></i>
+        <p style="font-size: 1.2rem; color: #64748b; font-weight: 600;">Chưa có món ăn nào</p>
+      </div>
+    `;
     return;
   }
   
-  container.innerHTML = `
-    <div class="table-responsive">
+  // Filter menu with null-safe checks
+  let filteredMenu = state.menu;
+  if (searchTerm && searchTerm.trim()) {
+    const term = searchTerm.toLowerCase().trim();
+    filteredMenu = state.menu.filter(item => {
+      const tenMon = (item.TenMon || '').toLowerCase();
+      const tenDanhMuc = (item.TenDanhMuc || '').toLowerCase();
+      const moTa = (item.MoTa || '').toLowerCase();
+      
+      return tenMon.includes(term) || 
+             tenDanhMuc.includes(term) || 
+             moTa.includes(term);
+    });
+  }
+  
+  // Search bar HTML with beautiful design
+  const searchBarHTML = `
+    <div class="row mb-4 align-items-center">
+      <div class="col-md-7">
+        <div style="position: relative;">
+          <div style="position: absolute; left: 18px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 8px; pointer-events: none;">
+            <i class="fas fa-search" style="color: #667eea; font-size: 1.1rem;"></i>
+          </div>
+          <input 
+            type="text" 
+            id="menu-search-input" 
+            class="form-control-custom" 
+            placeholder="Tìm kiếm món ăn theo tên, danh mục hoặc mô tả..."
+            style="
+              padding-left: 50px; 
+              padding-right: 50px;
+              border: 2px solid #e2e8f0;
+              transition: all 0.3s ease;
+            "
+            value="${escapeHtml(searchTerm)}"
+            autocomplete="off">
+          ${searchTerm ? `
+            <button 
+              onclick="clearMenuSearch()" 
+              style="
+                position: absolute; 
+                right: 12px; 
+                top: 50%; 
+                transform: translateY(-50%);
+                background: #f1f5f9;
+                border: none;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                color: #64748b;
+              "
+              onmouseover="this.style.background='#e2e8f0'; this.style.color='#475569'"
+              onmouseout="this.style.background='#f1f5f9'; this.style.color='#64748b'">
+              <i class="fas fa-times"></i>
+            </button>
+          ` : ''}
+        </div>
+        <div style="margin-top: 8px; font-size: 0.85rem; color: #94a3b8;">
+          <i class="fas fa-lightbulb" style="color: #fbbf24; margin-right: 5px;"></i>
+          Nhập từ khóa để lọc danh sách món ăn
+        </div>
+      </div>
+      <div class="col-md-5 text-end">
+        <div style="display: inline-flex; align-items: center; gap: 15px;">
+          <div class="badge-custom" style="
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            color: white;
+            font-size: 0.95rem; 
+            padding: 12px 20px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          ">
+            <i class="fas fa-list-ul" style="margin-right: 8px;"></i>
+            <strong>${filteredMenu.length}</strong> / ${state.menu.length} món
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // No results state
+  if (filteredMenu.length === 0) {
+    container.innerHTML = searchBarHTML + `
+      <div class="text-center py-5" style="animation: fadeIn 0.3s ease;">
+        <div style="
+          width: 120px; 
+          height: 120px; 
+          margin: 0 auto 25px; 
+          background: linear-gradient(135deg, #f1f5f9, #e2e8f0); 
+          border-radius: 50%; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center;
+        ">
+          <i class="fas fa-search" style="font-size: 3rem; color: #cbd5e1;"></i>
+        </div>
+        <p style="font-size: 1.3rem; color: #475569; font-weight: 700; margin-bottom: 10px;">
+          Không tìm thấy món ăn nào
+        </p>
+        <p style="color: #94a3b8; font-size: 1rem;">
+          Thử tìm kiếm với từ khóa khác hoặc 
+          <a href="#" onclick="clearMenuSearch(); return false;" style="color: #667eea; text-decoration: underline;">
+            xóa bộ lọc
+          </a>
+        </p>
+      </div>
+    `;
+    setupMenuSearch();
+    return;
+  }
+  
+  // Render table with results
+  container.innerHTML = searchBarHTML + `
+    <div class="table-responsive" style="animation: fadeIn 0.3s ease;">
       <table class="table-custom">
         <thead>
           <tr>
-            <th>Hình ảnh</th>
+            <th style="width: 80px;">Hình ảnh</th>
             <th>Tên món</th>
             <th>Danh mục</th>
-            <th>Giá</th>
-            <th>Mô tả</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
+            <th style="width: 120px;">Giá</th>
+            <th style="width: 250px;">Mô tả</th>
+            <th style="width: 120px;">Trạng thái</th>
+            <th style="width: 140px;">Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          ${state.menu.map(item => `
-            <tr>
+          ${filteredMenu.map(item => `
+            <tr style="transition: all 0.2s ease;">
               <td>
-                <img src="/static/images/${item.HinhAnh}" 
-                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"
-                     onerror="this.src='/static/images/no-image.jpg'">
+                <div style="
+                  width: 60px; 
+                  height: 60px; 
+                  border-radius: 12px; 
+                  overflow: hidden; 
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                  transition: transform 0.2s ease;
+                "
+                onmouseover="this.style.transform='scale(1.1)'"
+                onmouseout="this.style.transform='scale(1)'">
+                  <img src="/static/images/${item.HinhAnh || 'no-image.jpg'}" 
+                       style="width: 100%; height: 100%; object-fit: cover;"
+                       onerror="this.src='/static/images/no-image.jpg'">
+                </div>
               </td>
-              <td><strong>${item.TenMon}</strong></td>
-              <td>${item.TenDanhMuc}</td>
-              <td><strong>${formatPrice(item.Gia)}</strong></td>
-              <td style="max-width: 200px;">${item.MoTa}</td>
               <td>
-                <span class="badge-custom ${item.TrangThai ? 'badge-active' : 'badge-inactive'}">
+                <strong style="font-size: 1.05rem; color: #1e293b;">
+                  ${highlightText(item.TenMon || '', searchTerm)}
+                </strong>
+              </td>
+              <td>
+                <span style="
+                  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+                  color: #667eea;
+                  padding: 6px 12px;
+                  border-radius: 8px;
+                  font-weight: 600;
+                  font-size: 0.9rem;
+                ">
+                  ${highlightText(item.TenDanhMuc || '', searchTerm)}
+                </span>
+              </td>
+              <td>
+                <strong style="font-size: 1.1rem; color: #10b981;">
+                  ${formatPrice(item.Gia || 0)}
+                </strong>
+              </td>
+              <td>
+                <div style="
+                  max-width: 250px; 
+                  overflow: hidden; 
+                  text-overflow: ellipsis; 
+                  white-space: nowrap;
+                  color: #64748b;
+                " title="${escapeHtml(item.MoTa || '')}">
+                  ${highlightText(item.MoTa || 'Chưa có mô tả', searchTerm)}
+                </div>
+              </td>
+              <td>
+                <span class="badge-custom ${item.TrangThai ? 'badge-active' : 'badge-inactive'}" style="
+                  font-size: 0.85rem;
+                  padding: 8px 14px;
+                ">
+                  <i class="fas fa-${item.TrangThai ? 'check-circle' : 'times-circle'}" style="margin-right: 5px;"></i>
                   ${item.TrangThai ? 'Đang bán' : 'Ngừng bán'}
                 </span>
               </td>
               <td>
-                <button class="btn-warning-custom btn-sm" onclick="editMenu(${item.IDMon})">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-danger-custom btn-sm" onclick="deleteMenu(${item.IDMon})">
-                  <i class="fas fa-trash"></i>
-                </button>
+                <div style="display: flex; gap: 8px;">
+                  <button 
+                    class="btn-warning-custom btn-sm" 
+                    onclick="editMenu(${item.IDMon})"
+                    style="flex: 1;">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button 
+                    class="btn-danger-custom btn-sm" 
+                    onclick="deleteMenu(${item.IDMon})"
+                    style="flex: 1;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
               </td>
             </tr>
           `).join('')}
@@ -552,6 +1008,84 @@ function renderMenu() {
       </table>
     </div>
   `;
+  
+  setupMenuSearch();
+}
+
+// Setup debounced search
+function setupMenuSearch() {
+  const searchInput = document.getElementById('menu-search-input');
+  if (!searchInput) return;
+  
+  // Add focus/blur effects
+  searchInput.addEventListener('focus', function() {
+    this.style.borderColor = '#667eea';
+    this.style.boxShadow = '0 0 0 4px rgba(102, 126, 234, 0.1)';
+  });
+  
+  searchInput.addEventListener('blur', function() {
+    this.style.borderColor = '#e2e8f0';
+    this.style.boxShadow = 'none';
+  });
+  
+  // Debounced search (300ms delay)
+  searchInput.addEventListener('input', function(e) {
+    const searchTerm = e.target.value;
+    
+    // Clear previous timeout
+    if (menuSearchTimeout) {
+      clearTimeout(menuSearchTimeout);
+    }
+    
+    // Set new timeout
+    menuSearchTimeout = setTimeout(() => {
+      renderMenu(searchTerm);
+    }, 300);
+  });
+}
+
+// Clear search function
+function clearMenuSearch() {
+  renderMenu('');
+  const searchInput = document.getElementById('menu-search-input');
+  if (searchInput) {
+    searchInput.focus();
+  }
+}
+
+// Enhanced highlight function with regex escape
+function highlightText(text, searchTerm) {
+  if (!text) return '';
+  if (!searchTerm || !searchTerm.trim()) return escapeHtml(text);
+  
+  // Escape special regex characters
+  const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  
+  try {
+    const regex = new RegExp(`(${escapedTerm})`, 'gi');
+    const escapedText = escapeHtml(text);
+    
+    return escapedText.replace(regex, 
+      '<mark style="' +
+        'background: linear-gradient(135deg, #fef08a, #fde047);' +
+        'color: #854d0e;' +
+        'padding: 3px 6px;' +
+        'border-radius: 4px;' +
+        'font-weight: 700;' +
+        'box-shadow: 0 2px 4px rgba(251, 191, 36, 0.2);' +
+      '">$1</mark>'
+    );
+  } catch (e) {
+    return escapeHtml(text);
+  }
+}
+
+// HTML escape helper
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 async function openMenuModal(id = null) {
@@ -569,45 +1103,74 @@ async function openMenuModal(id = null) {
   const modalBody = `
     <form id="menu-form">
       <div class="form-group-custom">
-        <label class="form-label-custom">Tên món</label>
+        <label class="form-label-custom">
+          <i class="fas fa-utensils" style="color: #667eea; margin-right: 8px;"></i>
+          Tên món
+        </label>
         <input type="text" class="form-control-custom" name="ten_mon" 
-               value="${item?.TenMon || ''}" required>
+               value="${escapeHtml(item?.TenMon || '')}" 
+               placeholder="VD: Mì cay Hàn Quốc"
+               required>
       </div>
       
       <div class="form-group-custom">
-        <label class="form-label-custom">Danh mục</label>
+        <label class="form-label-custom">
+          <i class="fas fa-list" style="color: #667eea; margin-right: 8px;"></i>
+          Danh mục
+        </label>
         <select class="form-control-custom" name="id_danh_muc" required>
+          <option value="">-- Chọn danh mục --</option>
           ${state.categories.map(cat => `
             <option value="${cat.IDDanhMuc}" ${item?.IDDanhMuc === cat.IDDanhMuc ? 'selected' : ''}>
-              ${cat.TenDanhMuc}
+              ${escapeHtml(cat.TenDanhMuc)}
             </option>
           `).join('')}
         </select>
       </div>
       
       <div class="form-group-custom">
-        <label class="form-label-custom">Giá (VNĐ)</label>
+        <label class="form-label-custom">
+          <i class="fas fa-tag" style="color: #667eea; margin-right: 8px;"></i>
+          Giá (VNĐ)
+        </label>
         <input type="number" class="form-control-custom" name="gia" 
-               value="${item?.Gia || ''}" required>
+               value="${item?.Gia || ''}" 
+               placeholder="VD: 50000"
+               min="0"
+               step="1000"
+               required>
       </div>
       
       <div class="form-group-custom">
-        <label class="form-label-custom">Mô tả</label>
-        <textarea class="form-control-custom" name="mo_ta" rows="3">${item?.MoTa || ''}</textarea>
+        <label class="form-label-custom">
+          <i class="fas fa-align-left" style="color: #667eea; margin-right: 8px;"></i>
+          Mô tả
+        </label>
+        <textarea class="form-control-custom" name="mo_ta" rows="3" 
+                  placeholder="Mô tả ngắn về món ăn...">${escapeHtml(item?.MoTa || '')}</textarea>
       </div>
       
       <div class="form-group-custom">
-        <label class="form-label-custom">Hình ảnh (tên file)</label>
+        <label class="form-label-custom">
+          <i class="fas fa-image" style="color: #667eea; margin-right: 8px;"></i>
+          Hình ảnh (tên file)
+        </label>
         <input type="text" class="form-control-custom" name="hinh_anh" 
-               value="${item?.HinhAnh || ''}" 
-               placeholder="vd: miga.jpg">
+               value="${escapeHtml(item?.HinhAnh || '')}" 
+               placeholder="VD: miga.jpg">
+        <small style="color: #94a3b8; margin-top: 5px; display: block;">
+          <i class="fas fa-info-circle"></i> Tên file hình ảnh trong thư mục /static/images/
+        </small>
       </div>
       
       <div class="form-group-custom">
-        <label class="form-label-custom">Trạng thái</label>
+        <label class="form-label-custom">
+          <i class="fas fa-toggle-on" style="color: #667eea; margin-right: 8px;"></i>
+          Trạng thái
+        </label>
         <select class="form-control-custom" name="trang_thai">
-          <option value="1" ${item?.TrangThai === 1 ? 'selected' : ''}>Đang bán</option>
-          <option value="0" ${item?.TrangThai === 0 ? 'selected' : ''}>Ngừng bán</option>
+          <option value="1" ${item?.TrangThai === 1 ? 'selected' : ''}>✅ Đang bán</option>
+          <option value="0" ${item?.TrangThai === 0 ? 'selected' : ''}>⛔ Ngừng bán</option>
         </select>
       </div>
       
@@ -628,7 +1191,6 @@ async function openMenuModal(id = null) {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
-
     
     const success = isEdit ? await updateMenu(id, data) : await createMenu(data);
     if (success) {
@@ -710,6 +1272,18 @@ function editMenu(id) {
   openMenuModal(id);
 }
 
+// Add fadeIn animation to CSS if not exists
+if (!document.getElementById('menu-animations')) {
+  const style = document.createElement('style');
+  style.id = 'menu-animations';
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  `;
+  document.head.appendChild(style);
+}
 // ═══════════════════════════════════════════════════════════════════════════
 // CATEGORIES MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════
@@ -867,9 +1441,8 @@ async function deleteCategory(id) {
 function editCategory(id) {
   openCategoryModal(id);
 }
-
 // ═══════════════════════════════════════════════════════════════════════════
-// TABLES MANAGEMENT
+// TABLES MANAGEMENT - FIXED VERSION ✅
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function loadTables() {
@@ -889,6 +1462,7 @@ async function loadTables() {
     showLoading(false);
   }
 }
+
 function renderTables() {
   const container = document.getElementById('tables-content');
   
@@ -920,10 +1494,6 @@ function renderTables() {
                 <i class="fas fa-qrcode"></i> Mã QR
               </div>
               <div id="qrcode-${table.IDBan}" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
-              <div style="font-size: 0.8rem; color: #636e72; word-break: break-all;">
-              
-              </div>
-              
             </div>
             
             <!-- Link truy cập -->
@@ -954,7 +1524,29 @@ function renderTables() {
     </div>
   `;
   
+  // Generate QR codes after rendering
+  state.tables.forEach(table => {
+    generateQRCode(table.IDBan);
+  });
+}
 
+function generateQRCode(idBan) {
+  const el = document.getElementById(`qrcode-${idBan}`);
+  if (!el) return;
+
+  el.innerHTML = '';
+
+  const orderUrl = `https://unglamorous-lahoma-insolvable.ngrok-free.dev/qr?ban=${idBan}`;
+
+  new QRCode(el, {
+    text: orderUrl,
+    width: 140,
+    height: 140,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
 
 async function openTableModal(id = null) {
   const isEdit = id !== null;
@@ -1077,30 +1669,9 @@ async function deleteTable(id) {
   }
 }
 
-
-  // Generate QR codes after rendering
-  state.tables.forEach(table => {
-    generateQRCode(table.IDBan);
-  });
+function editTable(id) {
+  openTableModal(id);
 }
-function generateQRCode(idBan) {
-  const el = document.getElementById(`qrcode-${idBan}`);
-  if (!el) return;
-
-  el.innerHTML = '';
-
-  const orderUrl = `https://unglamorous-lahoma-insolvable.ngrok-free.dev/qr?ban=${idBan}`;
-
-  new QRCode(el, {
-    text: orderUrl,
-    width: 140,
-    height: 140,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.H
-  });
-}
-
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PROMOTIONS MANAGEMENT
@@ -1698,196 +2269,6 @@ function editStaff(id) {
   openStaffModal(id);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// REPORTS
-// ═══════════════════════════════════════════════════════════════════════════
-
-async function loadReports(type = 'month') {
-  try {
-    showLoading(true);
-    
-    const today = new Date();
-    let tuNgay, denNgay;
-
-    denNgay = today.toISOString().split('T')[0];
-
-    if (type === 'day') {
-      // Báo cáo theo ngày (hôm nay)
-      tuNgay = denNgay;
-    } 
-    else if (type === 'week') {
-      // 7 ngày gần nhất
-      const weekAgo = new Date(today);
-      weekAgo.setDate(today.getDate() - 6);
-      tuNgay = weekAgo.toISOString().split('T')[0];
-    } 
-    else {
-      // Mặc định: tháng (30 ngày)
-      const monthAgo = new Date(today);
-      monthAgo.setDate(today.getDate() - 29);
-      tuNgay = monthAgo.toISOString().split('T')[0];
-    }
-    
-    const response = await fetch(
-      `${API_BASE}/admin/baocao/doanhthu?tu_ngay=${tuNgay}&den_ngay=${denNgay}`
-    );
-    const result = await response.json();
-    
-    if (result.success) {
-      renderReports(result.data);
-    }
-  } catch (error) {
-    console.error('❌ Load reports error:', error);
-    showToast('Lỗi khi tải báo cáo', 'error');
-  } finally {
-    showLoading(false);
-  }
-}
-
-
-function renderReports(data) {
-  const container = document.getElementById('reports-content');
-  
-  container.innerHTML = `
-    <div class="row g-3 mb-4">
-      <div class="col-md-4">
-        <div class="content-card text-center" style="padding: 30px; background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
-          <div style="font-size: 3rem; font-weight: 800; margin-bottom: 10px;">
-            ${formatPrice(data.tong_doanh_thu)}
-          </div>
-          <div style="font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            Tổng doanh thu
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="content-card text-center" style="padding: 30px; background: linear-gradient(135deg, #00b894, #55efc4); color: white;">
-          <div style="font-size: 3rem; font-weight: 800; margin-bottom: 10px;">
-            ${data.tong_don_hang}
-          </div>
-          <div style="font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            Tổng đơn hàng
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="content-card text-center" style="padding: 30px; background: linear-gradient(135deg, #fdcb6e, #e17055); color: white;">
-          <div style="font-size: 3rem; font-weight: 800; margin-bottom: 10px;">
-            ${formatPrice(data.tong_doanh_thu / data.tong_don_hang || 0)}
-          </div>
-          <div style="font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            Trung bình/đơn
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="content-card">
-      <h5 class="mb-4"><i class="fas fa-chart-line"></i> Doanh thu theo ngày (30 ngày gần nhất)</h5>
-      <canvas id="revenue-chart" style="max-height: 400px;"></canvas>
-    </div>
-    
-    <div class="content-card mt-4">
-      <h5 class="mb-3"><i class="fas fa-table"></i> Chi tiết theo ngày</h5>
-      <div class="table-responsive">
-        <table class="table-custom">
-          <thead>
-            <tr>
-              <th>Ngày</th>
-              <th>Số đơn hàng</th>
-              <th>Doanh thu</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.chi_tiet.map(item => `
-              <tr>
-                <td>${formatDate(item.Ngay)}</td>
-                <td><strong>${item.SoDonHang}</strong></td>
-                <td><strong>${formatPrice(item.DoanhThu)}</strong></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-  
-  // Render chart
-  function renderRevenueChart(data) {
-  const ctx = document.getElementById('revenue-chart');
-  if (!ctx) return;
-
-  // Xoá chart cũ nếu có (tránh bug render chồng)
-  if (window.revenueChart) {
-    window.revenueChart.destroy();
-  }
-
-  window.revenueChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: data.map(item => formatDate(item.Ngay)),
-      datasets: [
-        {
-          type: 'bar',
-          label: 'Doanh thu',
-          data: data.map(item => item.DoanhThu),
-          backgroundColor: 'rgba(102, 126, 234, 0.7)',
-          borderRadius: 8,
-          barThickness: 22
-        },
-        {
-          type: 'line',
-          label: 'Xu hướng',
-          data: data.map(item => item.DoanhThu),
-          borderColor: '#ff7675',
-          backgroundColor: 'rgba(255, 118, 117, 0.15)',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 4,
-          pointHoverRadius: 6
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: {
-            usePointStyle: true,
-            padding: 20
-          }
-        },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) {
-              return `${ctx.dataset.label}: ${formatPrice(ctx.raw)}`;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: value => formatPrice(value)
-          },
-          grid: {
-            color: 'rgba(0,0,0,0.05)'
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          }
-        }
-      }
-    }
-  });
-}
-  renderRevenueChart(data.chi_tiet);
-}
 // ═══════════════════════════════════════════════════════════════════════════
 // SOCKET.IO
 // ═══════════════════════════════════════════════════════════════════════════

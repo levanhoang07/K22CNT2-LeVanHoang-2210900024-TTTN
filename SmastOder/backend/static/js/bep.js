@@ -1,8 +1,3 @@
-// ═══════════════════════════════════════════════════════════════════════════
-// KITCHEN MANAGEMENT SYSTEM - FRONTEND V4.1 (FIXED)
-// Filename: bep.js
-// Version: 4.1 - Sửa lỗi hiển thị đơn và lịch sử
-// ═══════════════════════════════════════════════════════════════════════════
 
 const API_BASE = 'http://localhost:5000/api';
 const socket = io('http://localhost:5000');

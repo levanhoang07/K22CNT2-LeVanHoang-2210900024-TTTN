@@ -1,4 +1,3 @@
-
 import os
 from flask import Blueprint, Flask, redirect, request, jsonify
 from flask_socketio import SocketIO, emit
@@ -11,7 +10,6 @@ from decimal import Decimal
 from flask import render_template
 from flask import Blueprint, request, jsonify
 import requests
-
 
 tax_api = Blueprint('tax_api', __name__)
 
@@ -33,7 +31,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Database Configuration - THAY ĐỔI CHO PHÙNG HỢP
+# Database Configuration 
 DB_CONFIG = {
     'server': 'localhost',
     'database': 'MyCay_Oder',
@@ -41,9 +39,7 @@ DB_CONFIG = {
     'trusted_connection': 'yes'
 }
 
-# ==============================
-# 🎯 DANH SÁCH DRIVER ƯU TIÊN
-# ==============================
+# DANH SÁCH DRIVER ƯU TIÊN
 _PREFERRED_DRIVERS = [
     "ODBC Driver 18 for SQL Server",
     "ODBC Driver 17 for SQL Server",
@@ -212,9 +208,9 @@ def qr_redirect():
 
     return redirect(f"{TARGET}/?ban={ban}", code=302)
 
-# =====================================================
+# ═══════════════════════════════════════════════════════════════════════════════
 # SERVE PAGES
-# =====================================================
+# ═══════════════════════════════════════════════════════════════════════════════
 @app.route("/")
 def index_page():
     return render_template("index.html")
@@ -1308,13 +1304,13 @@ def admin_chi_tiet_don_hang(id_don_hang):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 🛠 API ADMIN - CRUD BÀN (QR = URL ORDER)
+# 🛠 API ADMIN - CRUD BÀN 
 # ═══════════════════════════════════════════════════════════════════════════════
 
 BASE_ORDER_URL = "http://localhost:5000/?ban="
 
 # ==============================
-# GET ALL TABLES
+# GET tất cả bàn
 # ==============================
 @app.route('/api/admin/ban', methods=['GET'])
 def admin_lay_ban():
@@ -1329,7 +1325,7 @@ def admin_lay_ban():
 
 
 # ==============================
-# CREATE TABLE (AUTO QR URL)
+# thêm mới bàn
 # ==============================
 @app.route('/api/admin/ban', methods=['POST'])
 def admin_them_ban():
@@ -1342,7 +1338,7 @@ def admin_them_ban():
 
         cursor, conn = get_cursor()
 
-        # 1️⃣ Insert trước (chưa có QR)
+        # 1️⃣ Insert trước
         cursor.execute("""
             INSERT INTO Ban (TenBan, TrangThai)
             OUTPUT INSERTED.IDBan
@@ -1374,7 +1370,7 @@ def admin_them_ban():
 
 
 # ==============================
-# UPDATE TABLE (KHÔNG SỬA QR)
+# Update bàn
 # ==============================
 @app.route('/api/admin/ban/<int:id_ban>', methods=['PUT'])
 def admin_sua_ban(id_ban):
@@ -1406,7 +1402,7 @@ def admin_sua_ban(id_ban):
 
 
 # ==============================
-# DELETE TABLE
+# xóa bàn
 # ==============================
 @app.route('/api/admin/ban/<int:id_ban>', methods=['DELETE'])
 def admin_xoa_ban(id_ban):
@@ -1424,7 +1420,7 @@ def admin_xoa_ban(id_ban):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 🛠 API ADMIN - CRUD DANH MỤC
+#  ADMIN - CRUD DANH MỤC
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route('/api/admin/danhmuc', methods=['GET'])
@@ -1785,29 +1781,47 @@ def bao_cao_doanh_thu():
     except Exception as e:
         return handle_exception(e, "Lỗi báo cáo doanh thu")
 
-@app.route('/api/admin/baocao/topmon', methods=['GET'])
-def top_mon_ban_chay():
+@app.route('/api/admin/baocao/danhmuc', methods=['GET'])
+def bao_cao_doanh_thu_danh_muc():
+    """
+    Báo cáo doanh thu theo danh mục món ăn
+    """
     try:
-        limit = request.args.get('limit', 10)
+        tu_ngay = request.args.get('tu_ngay')
+        den_ngay = request.args.get('den_ngay')
+        
+        if not tu_ngay or not den_ngay:
+            den_ngay = datetime.now().date()
+            tu_ngay = den_ngay - timedelta(days=30)
+        
         cursor, conn = get_cursor()
         cursor.execute("""
-            SELECT TOP (?)
-                m.IDMon, m.TenMon, m.HinhAnh,
+            SELECT 
+                dm.IDDanhMuc,
+                dm.TenDanhMuc,
+                COUNT(DISTINCT ct.IDDonHang) as SoDonHang,
                 SUM(ct.SoLuong) as TongSoLuong,
-                SUM(ct.ThanhTien) as TongDoanhThu,
-                COUNT(DISTINCT ct.IDDonHang) as SoDonHang
+                SUM(ct.ThanhTien) as DoanhThu
             FROM ChiTietDonHang ct
             JOIN Menu m ON ct.IDMon = m.IDMon
+            JOIN DanhMuc dm ON m.IDDanhMuc = dm.IDDanhMuc   -- ✅ FIX Ở ĐÂY
             JOIN DonHang d ON ct.IDDonHang = d.IDDonHang
             WHERE d.TrangThaiThanhToan = 1
-            GROUP BY m.IDMon, m.TenMon, m.HinhAnh
-            ORDER BY TongSoLuong DESC
-        """, (limit,))
-        top_mon = rows_to_dict_list(cursor, cursor.fetchall())
+            AND CONVERT(DATE, d.NgayTao) BETWEEN ? AND ?
+            GROUP BY dm.IDDanhMuc, dm.TenDanhMuc
+            ORDER BY DoanhThu DESC
+        """, (tu_ngay, den_ngay))
+        
+        danh_muc_list = rows_to_dict_list(cursor, cursor.fetchall())
+        tong_doanh_thu = sum(item['DoanhThu'] for item in danh_muc_list)
         conn.close()
-        return jsonify_response(True, "Lấy top món bán chạy thành công", {'top_mon': top_mon})
+        
+        return jsonify_response(True, "Lấy báo cáo doanh thu theo danh mục thành công", {
+            'danh_muc': danh_muc_list,
+            'tong_doanh_thu': tong_doanh_thu
+        })
     except Exception as e:
-        return handle_exception(e, "Lỗi lấy top món bán chạy")
+        return handle_exception(e, "Lỗi báo cáo doanh thu theo danh mục")
 
 @app.route('/api/admin/dashboard', methods=['GET'])
 def admin_dashboard():
@@ -1850,7 +1864,6 @@ def admin_dashboard():
         })
     except Exception as e:
         return handle_exception(e, "Lỗi lấy dashboard")
-    
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🔐 API LOGIN
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2128,7 +2141,7 @@ def add_header(response):
     return response
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 🚀 MAIN - KHỞI ĐỘNG SERVER
+#  MAIN - KHỞI ĐỘNG SERVER
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == '__main__':
