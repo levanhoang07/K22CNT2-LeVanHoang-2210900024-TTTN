@@ -1,13 +1,3 @@
-/**
- * ════════════════════════════════════════════════════════════════════════════
- *  MyCay_Oder - Admin System (Full Version)
- *  Tính năng: Dashboard, CRUD đầy đủ, Báo cáo, Quản lý toàn bộ hệ thống
- * ════════════════════════════════════════════════════════════════════════════
- */
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CONFIGURATION & STATE
-// ═══════════════════════════════════════════════════════════════════════════
 
 const API_BASE = 'http://localhost:5000/api';
 const socket = io('http://localhost:5000');
@@ -185,7 +175,7 @@ async function loadDashboard() {
       renderDashboardStats();
       await loadRecentOrders();
       await loadTopDishes();
-      await loadReports('month'); // Load báo cáo mặc định theo tháng
+      await loadReports('month');
     }
   } catch (error) {
     console.error('❌ Load dashboard error:', error);

@@ -1017,3 +1017,7 @@ console.log('🔥 Kitchen System v4.1 FIXED - Loaded Successfully!');
 console.log('📌 Backend API: ' + API_BASE);
 console.log('📌 Keyboard: 1 (Waiting), 2 (Cooking), 3 (Completed), ESC (Close), R (Refresh)');
 console.log('🐛 Debug: kitchenDebug.state(), orders(), history()');
+console.log(state.orders.map(o => ({
+  id: o.IDDonHang,
+  tenBan: o.TenBan
+})));

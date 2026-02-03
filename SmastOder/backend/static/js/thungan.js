@@ -495,11 +495,7 @@ function setCash(amount) {
   if (!input) return;
 
   input.value = amount;
-
-  // cập nhật lại tính toán
   calculatePayment();
-
-  // focus cho đẹp UX
   input.focus();
 }
 
@@ -530,8 +526,6 @@ function calculatePayment() {
       }
     }
   }
-
-  // ❗ Không cho giảm quá tổng tiền
   discount = Math.min(discount, state.currentPayment.total);
 
   const finalTotal = state.currentPayment.total - discount;
@@ -563,7 +557,6 @@ async function confirmPayment() {
   const phone = document.getElementById('customer-phone').value.trim();
   const finalTotal = state.currentPayment.final;
 
-  // ===== LẤY DỮ LIỆU VAT TỪ FORM =====
   const vatTax = document.getElementById('vat-tax')?.value.trim();
   const vatCompany = document.getElementById('vat-company')?.value.trim();
   const vatAddress = document.getElementById('vat-address')?.value.trim();
@@ -579,12 +572,10 @@ async function confirmPayment() {
     };
   }
 
-  // ✅ NẾU LÀ TIỀN MẶT & KHÔNG NHẬP → MẶC ĐỊNH KHÁCH ĐƯA ĐỦ
   if (method === 1 && cashReceived === 0) {
     cashReceived = finalTotal;
   }
 
-  // ❌ CHỈ CHẶN KHI NHẬP MÀ KHÔNG ĐỦ
   if (method === 1 && cashReceived < finalTotal) {
     showToast('⚠️ Tiền khách đưa không đủ!', 'warning');
     document.getElementById('cash-received').focus();
@@ -604,10 +595,10 @@ async function confirmPayment() {
       tienNhan: cashReceived,
       soDienThoai: phone || null,
       khuyenMai: state.currentPayment.promoId,
-      vat: vatData // 🔥 QUAN TRỌNG: đưa VAT vào đây
+      vat: vatData 
     };
 
-    console.log("📄 VAT khi thanh toán:", vatData); // debug 1 lần cho chắc
+    console.log("📄 VAT khi thanh toán:", vatData);
 
     const result = await processPayment(paymentData);
 
@@ -625,7 +616,7 @@ async function confirmPayment() {
 
 async function lookupTaxCode(taxCode) {
   try {
-    // ✅ BƯỚC 1: KIỂM TRA INPUT
+
     const trimmedCode = taxCode.trim();
     console.log("🔍 [LOOKUP] Input MST:", trimmedCode, "Length:", trimmedCode.length);
 
@@ -635,7 +626,6 @@ async function lookupTaxCode(taxCode) {
       return;
     }
 
-    // ✅ BƯỚC 2: KIỂM TRA DOM
     const companyInput = document.getElementById('vat-company');
     const addressInput = document.getElementById('vat-address');
 
@@ -650,12 +640,11 @@ async function lookupTaxCode(taxCode) {
 
     showToast('🔎 Đang tra cứu mã số thuế...', 'info');
 
-    // ✅ BƯỚC 3: GỌI API
     const apiUrl = `/api/tra-cuu-mst?mst=${encodeURIComponent(trimmedCode)}`;
     console.log("📡 [LOOKUP] Gọi API:", apiUrl);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const res = await fetch(apiUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
@@ -671,7 +660,6 @@ async function lookupTaxCode(taxCode) {
       throw new Error(`HTTP ${res.status}: ${errorText}`);
     }
 
-    // ✅ BƯỚC 4: PARSE RESPONSE
     const text = await res.text();
     console.log("📥 [LOOKUP] Raw response:", text);
 
@@ -687,7 +675,6 @@ async function lookupTaxCode(taxCode) {
 
     console.log("✅ [LOOKUP] Parsed JSON:", json);
 
-    // ✅ BƯỚC 5: KIỂM TRA SUCCESS
     if (!json.success) {
       const errorMsg = json.message || 'Không tìm thấy';
       console.warn(`⚠️ [LOOKUP] API success=false: ${errorMsg}`);
@@ -701,7 +688,6 @@ async function lookupTaxCode(taxCode) {
       return;
     }
 
-    // ✅ BƯỚC 6: TRÍCH XUẤT DỮ LIỆU
     const { ten_cong_ty, dia_chi } = json.data;
     console.log("📦 [LOOKUP] Data:", { ten_cong_ty, dia_chi });
 
@@ -711,7 +697,6 @@ async function lookupTaxCode(taxCode) {
       return;
     }
 
-    // ✅ BƯỚC 7: CẬP NHẬT FORM
     companyInput.value = ten_cong_ty;
     addressInput.value = dia_chi || '';
 
@@ -769,7 +754,7 @@ function setupEventListeners() {
     cashGroup.style.display = 'none';
     qrGroup.style.display = 'block';
 
-    generateVietQR(); // 🔥 tạo QR
+    generateVietQR(); 
   }
 });
 
@@ -786,22 +771,122 @@ function setupEventListeners() {
 }
 
 function generateVietQR() {
-  if (!state.currentPayment) return;
+  // Kiểm tra dữ liệu thanh toán
+  if (!state.currentPayment) {
+    console.warn('⚠️ Không có thông tin thanh toán');
+    return;
+  }
 
+  // Cấu hình ngân hàng
+  const BANK_CONFIG = {
+    bankId: 'Techcombank',
+    accountNo: '6982121680',
+    accountName: 'LE VAN HOANG'
+  };
+
+  // Thông tin thanh toán
   const amount = state.currentPayment.final;
+  const orderId = state.currentPayment.order.IDDonHang;
+  const description = `Thanh toan hoa don MycayHoangChef ${orderId}`;
 
-  // ⚠️ THÔNG TIN TÀI KHOẢN
-  const bankId = 'Techcombank'; // Vietcombank
-  const accountNo = '098212680';
-  const accountName = 'MI CAY ONE';
-  const description = `Thanh toan don ${state.currentPayment.order.IDDonHang}`;
+  // Xây dựng URL VietQR
+  const params = new URLSearchParams({
+    amount: amount,
+    addInfo: description,
+    accountName: BANK_CONFIG.accountName
+  });
 
-  const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png` +
-    `?amount=${amount}` +
-    `&addInfo=${encodeURIComponent(description)}` +
-    `&accountName=${encodeURIComponent(accountName)}`;
+  const qrUrl = `https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.png?${params}`;
 
-  document.getElementById('vietqr-img').src = qrUrl;
+  // Cập nhật hình ảnh QR với style
+  const qrImage = document.getElementById('vietqr-img');
+  if (qrImage) {
+    qrImage.src = qrUrl;
+    qrImage.alt = `QR thanh toán đơn ${orderId}`;
+    qrImage.className = 'vietqr-styled';
+    
+    // Loading state
+    qrImage.style.opacity = '0.5';
+    qrImage.onload = () => {
+      qrImage.style.opacity = '1';
+      console.log('✅ QR Code đã tải xong');
+    };
+    qrImage.onerror = () => {
+      console.error('❌ Lỗi tải QR Code');
+      showToast('⚠️ Không thể tải mã QR, vui lòng thử lại', 'warning');
+    };
+  }
+
+  // Hiển thị thông tin chuyển khoản
+  displayPaymentInfo({
+    orderId: orderId,
+    amount: amount,
+    bankName: 'Techcombank',
+    accountNo: BANK_CONFIG.accountNo,
+    accountName: BANK_CONFIG.accountName,
+    description: description
+  });
+}
+
+function displayPaymentInfo(info) {
+  // Tìm hoặc tạo container hiển thị thông tin
+  let infoContainer = document.getElementById('payment-info');
+  
+  if (!infoContainer) {
+    infoContainer = document.createElement('div');
+    infoContainer.id = 'payment-info';
+    
+    // Chèn sau element QR image
+    const qrImage = document.getElementById('vietqr-img');
+    if (qrImage && qrImage.parentNode) {
+      qrImage.parentNode.insertBefore(infoContainer, qrImage.nextSibling);
+    }
+  }
+
+  // Format số tiền
+  const formattedAmount = new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(info.amount);
+
+  // Tạo HTML hiển thị thông tin
+  infoContainer.innerHTML = `
+    <div class="payment-details">
+      <h3 class="payment-title">Thông tin chuyển khoản</h3>
+      
+      <div class="info-row">
+        <span class="info-label">Ngân hàng:</span>
+        <span class="info-value">${info.bankName}</span>
+      </div>
+      
+      <div class="info-row">
+        <span class="info-label">Số tài khoản:</span>
+        <span class="info-value highlight">${info.accountNo}</span>
+      </div>
+      
+      <div class="info-row">
+        <span class="info-label">Tên tài khoản:</span>
+        <span class="info-value">${info.accountName}</span>
+      </div>
+      
+      <div class="info-row amount-row">
+        <span class="info-label">Số tiền:</span>
+        <span class="info-value amount">${formattedAmount}</span>
+      </div>
+      
+      <div class="info-row">
+        <span class="info-label">Nội dung:</span>
+        <span class="info-value highlight">${info.description}</span>
+      </div>
+
+      <div class="payment-note">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 12H7V7h2v5zm0-6H7V4h2v2z" fill="#ff6b6b"/>
+        </svg>
+        <span>Vui lòng chuyển khoản <strong>ĐÚNG NỘI DUNG</strong> để xác nhận đơn hàng</span>
+      </div>
+    </div>
+  `;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -944,8 +1029,8 @@ function getToastTitle(type) {
 
 const audioPlayers = {
   new_order: new Audio('/static/sounds/new_order1.mp3'),
-  call_staff: new Audio('/static/sounds/call_staff.mp3'),
-  payment: new Audio('/static/sounds/payment.mp3')
+  call_staff: new Audio('/static/sounds/hotro.mp3'),
+  payment: new Audio('/static/sounds/thanhtoan.mp3')
 };
 
 let soundUnlocked = false;

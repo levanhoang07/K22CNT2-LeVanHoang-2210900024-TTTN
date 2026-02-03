@@ -866,76 +866,111 @@ def thungan_lay_khuyen_mai():
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🔥 API BẾP 
 # ═══════════════════════════════════════════════════════════════════════════════
-
 @app.route('/api/bep/donhang', methods=['GET'])
 def bep_lay_don_hang():
     """
-    Lấy danh sách đơn hàng cho bếp
-    ✅ CHỈ LẤY ĐƠN CHƯA THANH TOÁN (TrangThaiThanhToan = 0)
-    - Mỗi món có trạng thái riêng: CHỜ / Đang nấu / Hoàn thành
+    🔥 API BẾP - Lấy tất cả đơn chưa thanh toán
+    - Tối ưu: 1 query duy nhất
+    - Có đầy đủ chi tiết món
+    - Nhanh + sạch + production ready
     """
+
     try:
         cursor, conn = get_cursor()
 
         cursor.execute("""
-            SELECT 
+            SELECT
                 d.IDDonHang,
                 d.IDBan,
                 d.TongTien,
                 d.NgayTao,
                 d.TrangThaiThanhToan,
                 b.TenBan,
+
+                -- Trạng thái đơn gần nhất
                 ISNULL(ls.TrangThai, N'CHỜ') AS TrangThaiBep,
-                ISNULL(ls.ThoiGian, d.NgayTao) AS ThoiGianCapNhat
+                ISNULL(ls.ThoiGian, d.NgayTao) AS ThoiGianCapNhat,
+
+                -- Chi tiết món
+                ct.IDChiTiet,
+                m.TenMon,
+                ct.SoLuong,
+                ct.CapDoCay,
+                ct.GhiChu,
+                ISNULL(ct.TrangThai, N'CHỜ') AS TrangThaiMon
+
             FROM DonHang d
             JOIN Ban b ON d.IDBan = b.IDBan
+
+            -- Lấy trạng thái mới nhất của đơn
             OUTER APPLY (
                 SELECT TOP 1 TrangThai, ThoiGian
                 FROM LichSuTrangThaiDonHang
                 WHERE IDDonHang = d.IDDonHang
                 ORDER BY ThoiGian DESC
             ) ls
+
+            -- Chi tiết món
+            LEFT JOIN ChiTietDonHang ct ON ct.IDDonHang = d.IDDonHang
+            LEFT JOIN Menu m ON m.IDMon = ct.IDMon
+
             WHERE d.TrangThaiThanhToan = 0
+
             ORDER BY 
                 CASE WHEN ls.TrangThai = N'Hoàn thành' THEN 1 ELSE 0 END,
-                d.NgayTao DESC
+                d.NgayTao DESC,
+                ct.IDChiTiet ASC
         """)
 
+        columns = [col[0] for col in cursor.description]
         rows = cursor.fetchall()
-        don_hang_list = []
+
+        # 🔥 GROUP DATA
+        don_map = {}
 
         for row in rows:
-            try:
-                don = row_to_dict(cursor, row)
-            except Exception:
-                continue
+            data = dict(zip(columns, row))
+            id_don = data["IDDonHang"]
 
-            # 🔥 LẤY CHI TIẾT MÓN VỚI TRẠNG THÁI TỪNG MÓN
-            cursor.execute("""
-                SELECT 
-                    ct.IDChiTiet,
-                    m.TenMon,
-                    ct.SoLuong,
-                    ct.CapDoCay,
-                    ct.GhiChu,
-                    ISNULL(ct.TrangThai, N'CHỜ') AS TrangThai
-                FROM ChiTietDonHang ct
-                JOIN Menu m ON ct.IDMon = m.IDMon
-                WHERE ct.IDDonHang = ?
-                ORDER BY ct.IDChiTiet ASC
-            """, (don["IDDonHang"],))
+            # Nếu chưa tồn tại → tạo mới
+            if id_don not in don_map:
+                don_map[id_don] = {
+                    "IDDonHang": id_don,
+                    "IDBan": data["IDBan"],
+                    "TenBan": data["TenBan"],
+                    "TongTien": data["TongTien"],
+                    "NgayTao": data["NgayTao"],
+                    "TrangThaiThanhToan": data["TrangThaiThanhToan"],
+                    "TrangThaiBep": data["TrangThaiBep"],
+                    "ThoiGianCapNhat": data["ThoiGianCapNhat"],
+                    "chi_tiet": []
+                }
 
-            don["chi_tiet"] = rows_to_dict_list(cursor, cursor.fetchall())
-            don_hang_list.append(don)
+            # thêm món nếu có
+            if data["IDChiTiet"]:
+                don_map[id_don]["chi_tiet"].append({
+                    "IDChiTiet": data["IDChiTiet"],
+                    "TenMon": data["TenMon"],
+                    "SoLuong": data["SoLuong"],
+                    "CapDoCay": data["CapDoCay"],
+                    "GhiChu": data["GhiChu"],
+                    "TrangThai": data["TrangThaiMon"]
+                })
 
         conn.close()
-        return jsonify_response(True, "Danh sách đơn bếp", {
-            "don_hang": don_hang_list
-        })
+
+        return jsonify_response(
+            True,
+            "Danh sách đơn bếp",
+            {
+                "don_hang": list(don_map.values())
+            }
+        )
 
     except Exception as e:
-        logger.exception("❌ Lỗi lấy đơn hàng bếp")
+        logger.exception("❌ Lỗi API bếp lấy đơn hàng")
         return jsonify_response(False, "Lỗi lấy đơn hàng bếp", None, 500)
+
 
 
 @app.route('/api/bep/donhang/lichsu', methods=['GET'])
@@ -971,7 +1006,7 @@ def bep_lay_lich_su_hoan_thanh():
                     FROM LichSuTrangThaiDonHang
                 ) x WHERE rn = 1
             ) ls ON ls.IDDonHang = d.IDDonHang
-            WHERE ls.TrangThai = N'Hoàn thành'
+            WHERE ls.TrangThai = 'HOAN_THANH'
             AND d.TrangThaiThanhToan = 1
             {time_where}
             ORDER BY ls.ThoiGian DESC
@@ -991,7 +1026,7 @@ def bep_lay_lich_su_hoan_thanh():
                 "NgayTao": row[3],
                 "TrangThaiThanhToan": row[4],
                 "TenBan": row[5],
-                "TrangThaiBep": row[6] or "Hoàn thành",
+                "TrangThaiBep": row[6] or "HOAN_THANH",
                 "ThoiGianHoanThanh": row[7] or row[3],
             }
 
@@ -1003,7 +1038,7 @@ def bep_lay_lich_su_hoan_thanh():
                     ct.SoLuong,
                     ct.CapDoCay,
                     ct.GhiChu,
-                    ISNULL(ct.TrangThai, N'Hoàn thành') AS TrangThai
+                    ISNULL(ct.TrangThai, N'HOAN_THANH') AS TrangThai
                 FROM ChiTietDonHang ct
                 JOIN Menu m ON ct.IDMon = m.IDMon
                 WHERE ct.IDDonHang = ?
@@ -1105,6 +1140,7 @@ def cap_nhat_trang_thai_mon(id_chi_tiet):
     finally:
         if conn:
             conn.close()
+            
 @app.route('/api/bep/donhang/<int:id_don_hang>/trangthai', methods=['PUT'])
 def cap_nhat_trang_thai_nau(id_don_hang):
 

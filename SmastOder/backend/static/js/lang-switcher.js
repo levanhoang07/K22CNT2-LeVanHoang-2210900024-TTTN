@@ -9,7 +9,7 @@ const i18n = {
     pageTitle: "Mì Cay HoangChef – Đặt món qua QR",
     
     // Header - Brand
-    brandName: "🌶️ Mì Cay HoangChef",
+    brandName: "Mì Cay HoangChef",
     slogan: "Nâng tầm hương vị Việt",
     address: "📍 88 Hoàng Hoa Thám, Xuân Hòa, Phú Thọ",
     openTime: "⏰ 9:00 - 22:00",
@@ -105,7 +105,7 @@ const i18n = {
     pageTitle: "HoangChef Spicy Noodles – Order via QR",
     
     // Header - Brand
-    brandName: "🌶️ HoangChef Spicy Noodles",
+    brandName: "HoangChef Spicy Noodles",
     slogan: "Elevating Vietnamese flavors",
     address: "📍 88 Hoang Hoa Tham, Xuan Hoa, Phu Tho",
     openTime: "⏰ 9:00 AM - 10:00 PM",
@@ -201,7 +201,7 @@ const i18n = {
     pageTitle: "HoangChef 매운 국수 – QR 주문",
     
     // Header - Brand
-    brandName: "🌶️ HoangChef 매운 국수",
+    brandName: "HoangChef 매운 국수",
     slogan: "베트남의 맛을 한 단계 높이다",
     address: "📍 88 Hoang Hoa Tham, Xuan Hoa, Phu Tho",
     openTime: "⏰ 09:00 - 22:00",
@@ -217,7 +217,7 @@ const i18n = {
     addButton: "+ 추가",
     
     // Cart - Desktop & Mobile
-    cartTitle: "🛒 장바구니",
+    cartTitle: "장바구니",
     emptyCart: "장바구니가 비어 있습니다",
     subtotal: "소계:",
     orderBtn: "🍽️ 주문 보내기",
