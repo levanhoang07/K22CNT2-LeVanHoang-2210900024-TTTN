@@ -1,5 +1,6 @@
 
 const i18n = {
+  
   vi: {
     // Meta
     label: "Tiếng Việt",
@@ -18,29 +19,30 @@ const i18n = {
     loading: "Đang tải...",
     
     // Menu Section
-    menuTitle: "🍜 Thực Đơn",
+    menuTitle: "Thực Đơn",
     searchPlaceholder: "🔍 Tìm món ăn (ví dụ: mì cay, trà sữa...)",
     categoryAll: "Tất cả",
+
     noResultsFound: "Không tìm thấy món ăn phù hợp",
     addButton: "+ Thêm",
     
     // Cart - Desktop & Mobile
-    cartTitle: "🛒 Giỏ hàng",
+    cartTitle: "Giỏ hàng",
     emptyCart: "Giỏ hàng trống",
     subtotal: "Tạm tính:",
-    orderBtn: "🍽️ Gửi đơn hàng",
+    orderBtn: "Gửi đơn hàng",
     orderBtnShort: "Gửi đơn",
     orderBtnSending: "Đang gửi...",
-    callStaffBtn: "📢 Gọi nhân viên hỗ trợ",
-    callStaffBtnShort: "📢 Gọi nhân viên",
-    reviewBtn: "⭐ Góp ý dịch vụ",
-    reviewBtnShort: "⭐ Góp ý",
+    callStaffBtn: "Gọi nhân viên hỗ trợ",
+    callStaffBtnShort: "Gọi nhân viên",
+    reviewBtn: "Góp ý dịch vụ",
+    reviewBtnShort: "Góp ý",
     
     // Mobile Cart
     itemsCount: "món",
     
     // History
-    historyTitle: "📜 Lịch sử đơn hàng",
+    historyTitle: "Lịch sử đơn hàng",
     historyBubbleTitle: "Xem lịch sử đơn hàng",
     closeBtn: "Đóng",
     noOrderHistory: "💭 Bạn chưa có đơn hàng nào",
@@ -52,7 +54,7 @@ const i18n = {
     
     // Modal: Dish Options
     optionTitle: "Tùy chọn món",
-    spicyLabel: "🌶️ Cấp độ cay",
+    spicyLabel: "Cấp độ cay",
     spicyLevels: {
       level1: "Cấp 1 - Nhẹ nhàng",
       level2: "Cấp 2 - Vừa phải",
@@ -62,7 +64,7 @@ const i18n = {
       level6: "Cấp 6 - Siêu cay",
       level7: "Cấp 7 - Thách thức"
     },
-    noteLabel: "📝 Ghi chú thêm (tùy chọn)",
+    noteLabel: "Ghi chú thêm (tùy chọn)",
     notePlaceholder: "Ví dụ: ít đá, không hành, thêm ớt...",
     addToCart: "✅ Thêm vào giỏ",
     cancel: "❌ Hủy",
@@ -114,29 +116,29 @@ const i18n = {
     loading: "Loading...",
     
     // Menu Section
-    menuTitle: "🍜 Menu",
+    menuTitle: "Menu",
     searchPlaceholder: "🔍 Search food (e.g. spicy noodles, milk tea...)",
     categoryAll: "All",
     noResultsFound: "No dishes found",
     addButton: "+ Add",
     
     // Cart - Desktop & Mobile
-    cartTitle: "🛒 Cart",
+    cartTitle: "Cart",
     emptyCart: "Your cart is empty",
     subtotal: "Subtotal:",
-    orderBtn: "🍽️ Place order",
+    orderBtn: "Place order",
     orderBtnShort: "Place order",
     orderBtnSending: "Sending...",
-    callStaffBtn: "📢 Call staff for assistance",
-    callStaffBtnShort: "📢 Call staff",
-    reviewBtn: "⭐ Service feedback",
-    reviewBtnShort: "⭐ Feedback",
+    callStaffBtn: "Call staff for assistance",
+    callStaffBtnShort: "Call staff",
+    reviewBtn: "Service feedback",
+    reviewBtnShort: "Feedback",
     
     // Mobile Cart
     itemsCount: "items",
     
     // History
-    historyTitle: "📜 Order History",
+    historyTitle: "Order History",
     historyBubbleTitle: "View order history",
     closeBtn: "Close",
     noOrderHistory: "💭 You have no orders yet",
@@ -148,7 +150,7 @@ const i18n = {
     
     // Modal: Dish Options
     optionTitle: "Food options",
-    spicyLabel: "🌶️ Spicy level",
+    spicyLabel: "Spicy level",
     spicyLevels: {
       level1: "Level 1 - Mild",
       level2: "Level 2 - Medium",
@@ -158,7 +160,7 @@ const i18n = {
       level6: "Level 6 - Super spicy",
       level7: "Level 7 - Challenge"
     },
-    noteLabel: "📝 Additional notes (optional)",
+    noteLabel: " Additional notes (optional)",
     notePlaceholder: "Example: less ice, no onion, extra chili...",
     addToCart: "✅ Add to cart",
     cancel: "❌ Cancel",
@@ -210,7 +212,7 @@ const i18n = {
     loading: "로딩 중...",
     
     // Menu Section
-    menuTitle: "🍜 메뉴",
+    menuTitle: "메뉴",
     searchPlaceholder: "🔍 음식 검색 (예: 매운 국수, 밀크티...)",
     categoryAll: "전체",
     noResultsFound: "검색 결과가 없습니다",
@@ -220,19 +222,19 @@ const i18n = {
     cartTitle: "장바구니",
     emptyCart: "장바구니가 비어 있습니다",
     subtotal: "소계:",
-    orderBtn: "🍽️ 주문 보내기",
+    orderBtn: "주문 보내기",
     orderBtnShort: "주문하기",
     orderBtnSending: "전송 중...",
-    callStaffBtn: "📢 직원 호출하기",
-    callStaffBtnShort: "📢 직원 호출",
-    reviewBtn: "⭐ 서비스 평가하기",
-    reviewBtnShort: "⭐ 평가",
+    callStaffBtn: "직원 호출하기",
+    callStaffBtnShort: "직원 호출",
+    reviewBtn: "서비스 평가하기",
+    reviewBtnShort: "평가",
     
     // Mobile Cart
     itemsCount: "개",
     
     // History
-    historyTitle: "📜 주문 내역",
+    historyTitle: "주문 내역",
     historyBubbleTitle: "주문 내역 보기",
     closeBtn: "닫기",
     noOrderHistory: "💭 아직 주문 내역이 없습니다",
@@ -244,7 +246,7 @@ const i18n = {
     
     // Modal: Dish Options
     optionTitle: "메뉴 옵션",
-    spicyLabel: "🌶️ 매운 단계",
+    spicyLabel: "매운 단계",
     spicyLevels: {
       level1: "1단계 - 순한맛",
       level2: "2단계 - 중간맛",
@@ -254,7 +256,7 @@ const i18n = {
       level6: "6단계 - 극도로 매운맛",
       level7: "7단계 - 도전"
     },
-    noteLabel: "📝 추가 요청사항 (선택)",
+    noteLabel: "추가 요청사항 (선택)",
     notePlaceholder: "예: 얼음 적게, 양파 제외, 고추 추가...",
     addToCart: "✅ 장바구니 추가",
     cancel: "❌ 취소",
@@ -288,7 +290,7 @@ const i18n = {
     emptyReviewContent: "평가 내용을 입력해주세요!"
   }
 };
-
+let currentTableNumber = null;
 // ═══════════════════════════════════════════════════════════════════════════
 // TABLE NAME MANAGEMENT
 // ═══════════════════════════════════════════════════════════════════════════
